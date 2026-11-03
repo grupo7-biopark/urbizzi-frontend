@@ -13,6 +13,11 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
+      // Componentes ficam de fora: são cobertos por cenários, sem meta numérica (docs/testing.md).
+      thresholds: {
+        'src/shared/**': { lines: 80, branches: 80 },
+        'src/features/**/{api,hooks,schemas}/**': { lines: 80, branches: 80 },
+      },
     },
   },
 });
