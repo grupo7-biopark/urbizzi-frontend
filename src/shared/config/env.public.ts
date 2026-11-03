@@ -5,3 +5,5 @@ import { parseEnv, publicEnvSchema } from './env.schema';
 export const publicEnv = parseEnv(publicEnvSchema, {
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 });
+
+export const tipoErrado: number = 'texto';
