@@ -1,0 +1,17 @@
+services:
+  web:
+    build:
+      context: .
+      target: development
+    environment:
+      API_URL: ${DOCKER_API_URL:-http://host.docker.internal:3000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3001}
+      WATCH_POLL_INTERVAL_MS: 1000
+    ports:
+      - '${WEB_PORT:-3001}:3001'
+    # Alcança a API publicada no host pelo compose do backend; necessário no Linux.
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
