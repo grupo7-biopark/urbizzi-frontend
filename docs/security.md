@@ -1,0 +1,140 @@
+# Segurança
+
+> **Status:** sessão e proteção de rotas são entregues na FE-07, e as permissões por perfil, na FE-08. A regra de autorização vale de verdade no backend (ver [`docs/security.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/security.md) dele). Aqui está como a interface a aplica.
+
+## Princípios
+
+1. **O servidor decide.** Esconder um botão melhora a experiência, mas não protege nada. Toda ação continua validada pela API (RNF06), e a interface trata o `403` mesmo com a ação escondida.
+2. **O navegador não guarda credenciais.** Tokens ficam em cookies `httpOnly`, inacessíveis ao JavaScript.
+3. **Minimização.** Só chega ao navegador o que a tela usa.
+
+## Sessão: BFF + cookies `httpOnly`
+
+O navegador nunca fala direto com a API. O Next atua como BFF (_backend for frontend_):
+
+```text
+Navegador ── cookie httpOnly ──► Next (/api/auth, /api/backend) ── Authorization: Bearer ──► API
+```
+
+| Rota do Next             | O que faz                                            | Rota da API            |
+| ------------------------ | ---------------------------------------------------- | ---------------------- |
+| `POST /api/auth/login`   | autentica e grava os cookies                         | `POST /v1/auth/login`  |
+| `POST /api/auth/logout`  | revoga e apaga os cookies, mesmo se o backend falhar | `POST /v1/auth/logout` |
+| `/api/backend/[...path]` | injeta o token, renova no `401` e repassa a resposta | qualquer `/v1/...`     |
+
+O contrato do backend:
+
+- O access token é um JWT de 15 minutos por padrão. O refresh token é opaco, com 7 dias por padrão.
+- `POST /v1/auth/refresh` consome o refresh token e devolve outro. **Um refresh token só pode ser usado uma vez.**
+- `GET /v1/auth/me` devolve id, nome, e-mail e perfil.
+
+Regras:
+
+1. Access e refresh token ficam em cookies `httpOnly`, `SameSite=Lax` e `Secure`. Só o ambiente de desenvolvimento em HTTP pode dispensar `Secure`.
+2. **Renovação única**: com requisições simultâneas, só uma chama o refresh; as outras aguardam o resultado. Como o token é de uso único, duas renovações concorrentes derrubariam a sessão.
+3. **Só Route Handlers gravam cookies.** Server Components não conseguem gravá-los durante a renderização. Por isso, um Server Component que receber `401` não renova: redireciona o usuário para o login, ou para uma rota que renove.
+4. Refresh inválido (`401 REFRESH_TOKEN_INVALIDO`) apaga os cookies e leva a `/login?redirect=<rota>`.
+5. O proxy só encaminha para `/v1/...` em `API_URL`, nunca para uma URL vinda da requisição (risco de SSRF). Ele não repassa o header `Cookie` à API e não registra corpo, headers nem query string.
+6. Em métodos que alteram dados, o proxy e as rotas de autenticação conferem o header `Origin`. `SameSite=Lax` ajuda contra CSRF, mas Route Handlers não têm a checagem automática de origem das Server Actions.
+7. `redirect` aceita só caminho interno (começa com `/`, mas não com `//`), para evitar redirecionamento aberto.
+
+## Proteção de rotas
+
+São duas camadas, com papéis diferentes:
+
+| Camada     | Arquivo                                  | O que faz                                                                                                              |
+| ---------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Otimista   | `src/proxy.ts`                           | lê só o **cookie**, sem chamar a API: sem sessão, redireciona para `/login?redirect=...`; com sessão, tira de `/login` |
+| Definitiva | layout ou página de `(app)`, no servidor | carrega o usuário de `GET /v1/auth/me` e confere o perfil; sem permissão, mostra a tela 403                            |
+
+- `src/proxy.ts` substitui o `middleware.ts` citado na FE-07, porque a convenção antiga está depreciada no Next 16. Ele roda em toda rota, inclusive em pré-carregamentos, e a documentação do Next proíbe buscas lentas nele. Não o use como única proteção.
+- O `matcher` dele exclui `/api`, `/_next`, arquivos estáticos e a página pública. Rotas de API respondem `401`, sem redirecionar.
+- A tela 403 é um componente comum. O arquivo `forbidden.js` do Next ainda é experimental nesta versão: só adote depois de avaliar na FE-08.
+
+## Autorização por perfil
+
+O mapa de permissões fica centralizado em `src/shared/auth/permissoes.ts` (FE-08) e espelha a matriz abaixo. Telas e menu consultam esse mapa por `<Permitido acao="...">` e `usePermissao()`. Nunca compare o perfil direto em um componente (`perfil === 'GESTOR'`).
+
+| Perfil        | Enum            | Papel                                                                                                  |
+| ------------- | --------------- | ------------------------------------------------------------------------------------------------------ |
+| Administrador | `ADMINISTRADOR` | configura o sistema e gerencia usuários; tudo o que o Gestor faz                                       |
+| Gestor        | `GESTOR`        | gerencia cadastros, planta e links públicos; analisa propostas; vê auditoria e painel                  |
+| Comercial     | `COMERCIAL`     | vendedor: cadastra clientes, cria e gerencia as **próprias** reservas e propostas, gera links públicos |
+| Consulta      | `CONSULTA`      | somente leitura do mapa, dos lotes e do painel                                                         |
+
+`ADMINISTRADOR` não é coringa automático: inclua-o explicitamente no mapa, como no backend.
+
+### Matriz de permissões
+
+Cópia da matriz de [`docs/security.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/security.md#matriz-de-permissões) do backend, que é a fonte de verdade. Se ela mudar lá, atualize aqui e em `permissoes.ts`. As linhas com † são interpretações do grupo.
+
+Legenda: ✅ permitido · 👤 permitido só para os próprios registros · — negado
+
+| Ação                                                                        | Administrador | Gestor | Comercial                   | Consulta |
+| --------------------------------------------------------------------------- | ------------- | ------ | --------------------------- | -------- |
+| Gerenciar usuários e configurações (prazos)                                 | ✅            | —      | —                           | —        |
+| Cadastrar, editar e excluir loteamentos, quadras e lotes; importar planilha | ✅            | ✅     | —                           | —        |
+| Enviar planta e posicionar marcadores                                       | ✅            | ✅     | —                           | —        |
+| Cadastrar e editar clientes                                                 | ✅            | ✅     | ✅                          | —        |
+| Ver e buscar clientes †                                                     | ✅            | ✅     | ✅                          | —        |
+| Reservar, renovar e cancelar reserva                                        | ✅            | ✅     | 👤 (vendedor da reserva)    | —        |
+| Listar reservas †                                                           | ✅            | ✅     | ✅                          | —        |
+| Criar proposta                                                              | ✅            | ✅     | 👤 (sobre as suas reservas) | —        |
+| Acompanhar propostas †                                                      | ✅            | ✅     | 👤                          | —        |
+| Aprovar ou rejeitar proposta; ver pendências                                | ✅            | ✅     | —                           | —        |
+| Marcar lote como Vendido                                                    | ✅            | ✅     | —                           | —        |
+| Bloquear e desbloquear lote                                                 | ✅            | ✅     | —                           | —        |
+| Gerar link público                                                          | ✅            | ✅     | ✅                          | —        |
+| Desativar link público †                                                    | ✅            | ✅     | 👤 (links que gerou)        | —        |
+| Ver mapa, lotes e painel                                                    | ✅            | ✅     | ✅                          | ✅       |
+| Ver histórico de alterações                                                 | ✅            | ✅     | 👤 (dos seus registros)     | —        |
+
+Nas linhas com 👤, a interface confere se o usuário atual é o dono do registro para mostrar a ação. A API confere de novo.
+
+## O que nunca guardar no navegador
+
+- **Em `localStorage`, `sessionStorage`, IndexedDB ou cookie legível por JavaScript:** tokens, senhas e dados pessoais.
+- **No cache persistente do TanStack Query:** nada que contenha dado pessoal. O cache fica só em memória; não ative persistência em disco.
+- **No bundle:** segredos. Só variáveis `NEXT_PUBLIC_*` chegam ao navegador, e elas não podem conter segredo. `API_URL` é de servidor.
+- **Em props de Server para Client Component:** tokens ou campos que a tela não usa, porque tudo isso fica visível na página.
+
+Ao sair, além de apagar os cookies, limpe o cache do TanStack Query, para os dados não aparecerem ao próximo usuário.
+
+## LGPD na interface
+
+Dados pessoais tratados: cliente (nome, CPF/CNPJ, e-mail, telefone, endereço) e usuário (nome, e-mail).
+
+1. **Nada de dado pessoal em URL.** Rotas usam ids, nunca CPF, nome ou e-mail. Como URLs ficam em histórico, logs e cabeçalho `Referer`, a busca de clientes por nome ou documento não vai para os search params da tela (ver [api-integration.md](api-integration.md#filtros-na-url)).
+2. **Nada de dado pessoal em log.** Sem `console.log` de usuário, cliente ou resposta da API, nem em ferramentas de erro ou analítica. Logue ids.
+3. **Nada de dado pessoal em `localStorage`**, nem como rascunho de formulário.
+4. **Acesso restrito.** O perfil Consulta não vê clientes (RNF08): não busque esses dados para ele, em vez de só escondê-los.
+5. **Exposição mínima.** Listagens e relações mostram só `id` e `nome` do cliente; documento, e-mail e telefone aparecem só no detalhe.
+6. **Mensagens de erro** não repetem dado pessoal: "Já existe um cliente com esse documento", não o CPF em si.
+7. **Testes e desenvolvimento** usam só dados fictícios.
+
+## Página pública
+
+`/p/[token]` é aberta a clientes finais, sem login (RF36, RF37, RN18, RN19, RNF07).
+
+1. Exibe **só** o necessário para o mapa: identificação do lote, status, geometria e marcador. Valor apenas quando autorizado no lote.
+2. **Nunca** exibe nem carrega dados de cliente, reserva, proposta ou usuário interno, nem em respostas de rede que a tela ignore. Um e2e confere as respostas (FE-33).
+3. Fica no grupo `(publico)`, fora do layout interno. Não lê cookies de sessão nem usa o proxy autenticado.
+4. `noindex`, para não entrar em buscadores.
+5. O token é a credencial do link: não o registre em logs e use `Referrer-Policy: no-referrer`, para ele não vazar ao abrir WhatsApp ou outros links externos.
+6. Link inválido, expirado ou desativado mostra a mesma página de indisponibilidade, sem indicar qual foi o motivo.
+
+## Segredos e configuração
+
+- Variáveis são validadas com Zod na inicialização (`src/shared/config/env.schema.ts`); sem elas, a aplicação não sobe.
+- Variável nova: adicione ao schema, ao `.env.example` (com valor fictício e comentário) e à tabela do README.
+- Variável de servidor é lida com `getServerEnv()`; pública, com `publicEnv`. Não leia `process.env` direto no restante do código.
+- `NEXT_PUBLIC_*` é incorporada ao bundle no build: ela não pode conter segredo, e mudar o valor exige novo build.
+- `.env` e `.env.*` nunca são commitados (só `.env.example`).
+- Não registre `process.env` em logs.
+
+## Outras práticas
+
+- Não use `dangerouslySetInnerHTML` com conteúdo vindo da API ou do usuário.
+- Valide search params e `params` com Zod: a URL é entrada do usuário.
+- Em links externos abertos em nova aba, use `rel="noopener noreferrer"`.
+- Dependências: não adicione pacotes sem manutenção; rode `npm audit` ao atualizar.
