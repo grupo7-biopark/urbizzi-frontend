@@ -1,39 +1,130 @@
 # Interface
 
-> **Status:** os tokens e os componentes são entregues na FE-04, e os padrões de listagem e formulário, na FE-06. Até lá, só o Tailwind CSS v4 está instalado. Os valores abaixo vêm da FE-04 e do manual de marca Urbizzi, que prevalece em caso de divergência.
+> **Status:** tokens e componentes base existem em `src/app/globals.css` e `src/shared/ui/`. Os padrões de listagem e formulário (`DataTable`, `Form`, `ConfirmDialog`, máscaras) são entregues na FE-06. A fonte de verdade da marca é o guia oficial **"Urbizzi Marcas e Variações"**; em caso de divergência, ele prevalece.
 
 ## Design system
 
-Use os componentes de `src/shared/ui/` (FE-04, FE-06) e os tokens do tema. Não recrie botão, campo ou diálogo dentro de uma funcionalidade. Se faltar uma variação, adicione-a ao design system.
+Use os componentes de `src/shared/ui/` e os tokens do tema. Não recrie botão, campo ou diálogo dentro de uma funcionalidade. Se faltar uma variação, adicione-a ao design system. Para ver tudo funcionando, abra [`/design-system`](http://localhost:3001/design-system), disponível só em desenvolvimento.
 
-Componentes base previstos: Button (primário, secundário, perigo, fantasma), Input, Textarea, Select, Checkbox, Switch, Label e mensagem de erro, Dialog, Drawer, Dropdown, Tabs, Table, Badge, Toast, Skeleton, EmptyState, Spinner, Pagination, Tooltip. Da FE-06: `DataTable`, barra de filtros, `Form`, `ConfirmDialog`, máscaras.
+| Arquivo                                          | Exporta                                                                   | Observações                                                                              |
+| ------------------------------------------------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `button.tsx`                                     | `Button`                                                                  | `variant`: `primario`, `secundario`, `perigo`, `fantasma`. `type` padrão é `button`      |
+| `input.tsx`, `textarea.tsx`, `select.tsx`        | `Input`, `Textarea`, `Select`                                             | `label` obrigatório; `error` e `hint` ligados ao campo. Aceitam `{...register('campo')}` |
+| `checkbox.tsx`, `switch.tsx`                     | `Checkbox`, `Switch`                                                      | inputs nativos, com `label` obrigatório                                                  |
+| `label.tsx`                                      | `Label`, `FieldError`                                                     | para campos fora dos componentes acima                                                   |
+| `dialog.tsx`, `drawer.tsx`                       | `Dialog`, `DialogClose`, `Drawer`                                         | `title` obrigatório; `trigger`, ou controle com `open` e `onOpenChange`                  |
+| `dropdown.tsx`                                   | `Dropdown`, `DropdownItem`, `DropdownSeparator`                           | `variant="perigo"` em ações destrutivas                                                  |
+| `tabs.tsx`                                       | `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`                          | dê `aria-label` ao `TabsList`                                                            |
+| `table.tsx`                                      | `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell` |                                                                                          |
+| `badge.tsx`                                      | `Badge`, `StatusLoteBadge`, `StatusPropostaBadge`                         | sempre com cor e texto                                                                   |
+| `toast.tsx`                                      | `ToastProvider`, `useToast`                                               | hoje o provider só está em `/design-system`; a FE-08 o coloca no layout de `(app)`       |
+| `skeleton.tsx`, `spinner.tsx`, `empty-state.tsx` | `Skeleton`, `Spinner`, `EmptyState`                                       | `Skeleton` exige `aria-label`                                                            |
+| `pagination.tsx`                                 | `Pagination`                                                              | recebe `meta` da API e `getPageHref(page)`                                               |
+| `tooltip.tsx`                                    | `Tooltip`                                                                 | só complementa: não existe no toque                                                      |
+| `logo.tsx`                                       | `Logo`, `LogoSimbolo`                                                     | ver [Logos](#logos)                                                                      |
 
-A FE-04 cria também a página `/design-system`, só em desenvolvimento, para consultar tudo isso.
+Dialog, Drawer, Dropdown, Tabs, Toast e Tooltip usam Radix UI, que cuida de foco, teclado e ARIA. Select, Checkbox e Switch são nativos, porque já funcionam bem no teclado e no celular.
 
-### Tokens
+### Cores
 
-Nas telas, use os tokens **semânticos**. Eles se adaptam aos temas claro e escuro. Não escreva cores fixas (`#EE6017`, `bg-orange-500`).
+Nas telas, use os tokens **semânticos**, que se adaptam ao tema. As utilidades prontas do Tailwind (`bg-orange-500`, `shadow-md`, `rounded-lg`) foram removidas do tema e não geram estilo. Não escreva cores fixas.
 
-| Grupo          | Tokens                                                                                                                                                       |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Marca          | `laranja` (#EE6017), `preto`, `branco`, `prata` (#C5C7C7), `cinza-oliva` (#8F9289), `cinza-carvao` (#545759)                                                 |
-| Semânticos     | `surface`, `surface-alt`, `ink`, `ink-muted`, `accent`, `on-accent`, `border`                                                                                |
-| Status do lote | `status-disponivel` (verde), `status-reservado` (azul), `status-vendido` (rosa), `status-bloqueado` (cinza-carvão, aguardando o ponto em aberto 9 do escopo) |
+| Token                                  | Valor                     | Papel                                 |
+| -------------------------------------- | ------------------------- | ------------------------------------- |
+| `laranja`                              | #EE6017                   | cor-assinatura                        |
+| `preto`, `branco`                      | #000000, #FFFFFF          | principais                            |
+| `prata`, `cinza-oliva`, `cinza-carvao` | #C5C7C7, #8F9289, #545759 | neutros de apoio, nunca protagonistas |
+
+| Semântico     | Claro   | Escuro  | Uso                                                            |
+| ------------- | ------- | ------- | -------------------------------------------------------------- |
+| `surface`     | branco  | preto   | fundo da página                                                |
+| `surface-alt` | prata   | carvão  | faixas e blocos neutros                                        |
+| `ink`         | preto   | branco  | texto principal                                                |
+| `ink-muted`   | carvão  | prata   | texto secundário e borda de campo                              |
+| `accent`      | laranja | laranja | ação principal e destaque                                      |
+| `on-accent`   | preto   | preto   | texto e ícone sobre `accent`                                   |
+| `border`      | prata   | carvão  | divisores decorativos, **não** borda de campo (não atinge 3:1) |
+
+O tema segue o sistema operacional; `data-theme="light"` ou `"dark"` no `<html>` força um deles.
+
+#### Combinações de texto aprovadas
+
+Todas são verificadas em `src/shared/ui/tokens.test.ts`, nos dois temas.
+
+| Fundo         | Texto permitido              | Não use                                  |
+| ------------- | ---------------------------- | ---------------------------------------- |
+| `surface`     | `ink`, `ink-muted`, `danger` | `border`, `cinza-oliva`                  |
+| `surface-alt` | **só `ink`**                 | `ink-muted` (4,29:1), `accent`, `danger` |
+| `accent`      | **só `on-accent`**           | branco (3,32:1)                          |
+
+Laranja como texto sobre branco tem 3,32:1: só em títulos de 24px ou mais, nunca em texto corrido. Sobre preto, tem 6,32:1 e vale em qualquer tamanho.
+
+#### Cores que não vêm do manual
+
+O manual não define cor de perigo nem de status. Os valores abaixo são **propostas** do grupo, escolhidos para atender ao contraste, e podem mudar.
+
+| Token                                            | Claro   | Escuro  |
+| ------------------------------------------------ | ------- | ------- |
+| `danger`                                         | #B91C1C | #F87171 |
+| `status-disponivel` (verde)                      | #16A34A | #22C55E |
+| `status-reservado` (azul)                        | #1D4ED8 | #60A5FA |
+| `status-vendido` (rosa)                          | #BE185D | #F472B6 |
+| `status-bloqueado` (ponto em aberto 9 do escopo) | carvão  | prata   |
+
+Cada um tem um `on-*` para o texto (`on-danger`, `on-status-vendido` etc.). No tema escuro, `status-bloqueado` usa prata porque carvão fica abaixo de 3:1 sobre preto.
 
 ### Tipografia
 
-Inter (400, 700, 900) em textos e títulos e Bebas Neue em rótulos de seção, carregadas com `next/font`, sem requisição externa em tempo de execução. Escala: display, heading, section-label, body, small, caption.
+Inter e Bebas Neue, carregadas com `next/font` em `src/app/fonts.ts`, sem requisição externa em tempo de execução. A escala é uma proposta do manual, que não define tamanhos.
+
+| Classe                            | Tamanho           | Uso                                                                         |
+| --------------------------------- | ----------------- | --------------------------------------------------------------------------- |
+| `text-display`                    | 48/52, Inter 900  | título de destaque                                                          |
+| `text-heading`                    | 28/32, Inter 900  | título de seção e diálogo                                                   |
+| `font-display text-section-label` | 20/24, Bebas Neue | rótulos curtos em versal, seguidos de filete de 1px. Nunca em texto corrido |
+| `text-body`                       | 16/24, Inter 400  | texto                                                                       |
+| `text-small`                      | 14/20, Inter 400  | texto de apoio                                                              |
+| `text-caption`                    | 12/16, Inter 700  | legendas e metadados                                                        |
+
+Em texto corrido, escreva **Urbizzi**, com inicial maiúscula. A caixa baixa é só do logo.
+
+### Logos
+
+Os 23 SVGs oficiais ficam em `public/brand/`, sem alteração. Não redesenhe, recolore, deforme, contorne nem aplique sombra. Use sempre os componentes:
+
+```tsx
+<Logo className="h-10 w-auto" /> {/* acompanha o tema */}
+<Logo variant="laranja" assinatura="tagline" className="h-16 w-auto" />
+<Logo variant="escuro" arquitetura="vertical" assinatura="marca" className="h-24 w-auto" />
+<LogoSimbolo className="size-8" />
+```
+
+| Prop          | Valores                                       | Quando usar                                                                        |
+| ------------- | --------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `variant`     | `tema` (padrão), `claro`, `escuro`, `laranja` | o fundo em que o logo está. Em bloco de cor fixa, informe o fundo em vez de `tema` |
+| `arquitetura` | `horizontal` (padrão), `vertical`             | horizontal em cabeçalhos e banners; vertical em espaços quadrados ou altos         |
+| `assinatura`  | `wordmark` (padrão), `tagline`, `marca`       | `marca` traz "by Biopark"; abaixo de 120px de largura, use só `wordmark`           |
+
+Regras:
+
+- Sobre laranja, só a versão preta: o componente já a escolhe.
+- Nunca sobre `cinza-oliva` (1,05:1 com o laranja), nem sobre foto sem área limpa.
+- `LogoSimbolo` é laranja: nunca sobre fundo laranja.
+- Mantenha respiro em volta, de pelo menos ¼ da largura do símbolo.
+- Em um container `flex-col`, adicione `self-start` ou similar, para a imagem não esticar.
+
+> **Divergência a confirmar com o designer:** os vetores dos logos usam #FF5300, e a tabela de cores do guia diz #EE6017. Os SVGs preservam o arquivo original; a interface usa #EE6017.
 
 ## Regras do manual de marca
 
 1. **Cantos retos**: raio 0 em tudo.
-2. **Sem sombras e sem gradientes.** Separe áreas com borda ou fundo (`border`, `surface-alt`).
+2. **Sem sombras e sem gradientes.** Use blocos de cor chapada e separe áreas com borda ou fundo.
 3. **Texto sobre laranja é sempre preto** (`on-accent`).
-4. **Laranja sobre branco só em títulos de 24px ou mais.** Em tamanhos menores, ele não atinge o contraste exigido.
-5. **Contraste de texto de pelo menos 4,5:1** nos dois temas.
-6. **Logos sem alteração**: use `<Logo variant>`, que escolhe a versão certa para fundo claro, escuro ou laranja. Os arquivos ficam em `public/brand/`.
-
-O manual de marca não está neste repositório: as regras acima foram transcritas da FE-04. Ao entregá-la, confira e complete esta seção com o manual.
+4. **Laranja sobre branco só em títulos de 24px ou mais.**
+5. **Contraste de texto de pelo menos 4,5:1** nos dois temas; 3:1 em bordas de campo, foco e ícones.
+6. **Hierarquia:** laranja, preto e branco formam a marca. Prata, oliva e carvão são apoio.
+7. **Laranja e cinza-oliva não se misturam**: têm 1,05:1 e se fundem.
+8. **Tom:** direto, urbano e construtivo.
 
 ## Acessibilidade e responsividade
 
