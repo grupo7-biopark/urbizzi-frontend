@@ -4,14 +4,33 @@
  */
 
 export interface paths {
-    "/health": {
+    "/v1/plantas/{plantaId}/marcadores": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["HealthController_check"];
+        /** Lista os marcadores da planta */
+        get: operations["MarcadoresController_list_v1"];
+        put?: never;
+        /** Posiciona um lote na planta */
+        post: operations["MarcadoresController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas/{plantaId}/lotes-sem-marcador": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista lotes ainda não marcados nesta planta */
+        get: operations["MarcadoresController_semMarcador_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -20,117 +39,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/historico": {
+    "/v1/plantas/{plantaId}/marcadores/lote": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Consulta alterações respeitando propriedade e filtros */
-        get: operations["HistoricoController_list_v1"];
+        get?: never;
+        put?: never;
+        /** Cria até 500 marcadores na mesma transação */
+        post: operations["MarcadoresController_createMany_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas/{plantaId}/marcadores/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** Remove um marcador */
+        delete: operations["MarcadoresController_delete_v1"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** Move um marcador sem alterar o lote associado */
+        patch: operations["MarcadoresController_mover_v1"];
         trace?: never;
     };
-    "/v1/auth/forgot-password": {
+    "/v1/mapa": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        /** Solicita um link de recuperação sem revelar se a conta existe */
-        post: operations["AuthController_solicitar_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/reset-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Redefine a senha e revoga os refresh tokens anteriores */
-        post: operations["AuthController_redefinir_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Autentica o usuário e inicia uma sessão */
-        post: operations["AuthController_login_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Renova os tokens e invalida o refresh token anterior */
-        post: operations["AuthController_refresh_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Revoga o refresh token informado */
-        post: operations["AuthController_logout_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Consulta os dados e o perfil atuais do usuário autenticado */
-        get: operations["AuthController_me_v1"];
+        /** Planta ativa e marcadores paginados com status atual e ações do usuário */
+        get: operations["MapaController_consultar_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -245,35 +197,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/links-publicos": {
+    "/v1/historico": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Lista links conforme o perfil do usuário */
-        get: operations["LinksPublicosController_list_v1"];
+        /** Consulta alterações respeitando propriedade e filtros */
+        get: operations["HistoricoController_list_v1"];
         put?: never;
-        /** Gera um link compartilhável com token aleatório */
-        post: operations["LinksPublicosController_create_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/links-publicos/{id}/desativar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Desativa um link imediatamente */
-        post: operations["LinksPublicosController_desativar_v1"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -459,6 +393,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reservas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista reservas com filtros combinados, por vencimento crescente; Comercial só vê as próprias */
+        get: operations["ReservasConsultaController_list_v1"];
+        put?: never;
+        /** Reserva lote disponível para o cliente; vendedor é o usuário autenticado */
+        post: operations["ReservasController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reservas/minhas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reservas do usuário autenticado, pelo vencimento mais próximo */
+        get: operations["ReservasConsultaController_minhas_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reservas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consulta a reserva com tempo restante; Comercial só consulta as próprias */
+        get: operations["ReservasController_find_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clientes": {
         parameters: {
             query?: never;
@@ -513,6 +499,246 @@ export interface paths {
         patch: operations["ConfiguracoesController_update_v1"];
         trace?: never;
     };
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["HealthController_check"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Solicita um link de recuperação sem revelar se a conta existe */
+        post: operations["AuthController_solicitar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Redefine a senha e revoga os refresh tokens anteriores */
+        post: operations["AuthController_redefinir_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Autentica o usuário e inicia uma sessão */
+        post: operations["AuthController_login_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Renova os tokens e invalida o refresh token anterior */
+        post: operations["AuthController_refresh_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoga o refresh token informado */
+        post: operations["AuthController_logout_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consulta os dados e o perfil atuais do usuário autenticado */
+        get: operations["AuthController_me_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/usuarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista usuários com filtros por perfil e situação */
+        get: operations["UsuariosController_list_v1"];
+        put?: never;
+        /** Cria usuário ativo com senha inicial */
+        post: operations["UsuariosController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/usuarios/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consulta um usuário */
+        get: operations["UsuariosController_find_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Altera nome, e-mail ou perfil do usuário */
+        patch: operations["UsuariosController_update_v1"];
+        trace?: never;
+    };
+    "/v1/usuarios/{id}/ativar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ativa usuário existente */
+        post: operations["UsuariosController_ativar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/usuarios/{id}/desativar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desativa sem excluir o histórico do usuário */
+        post: operations["UsuariosController_desativar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/links-publicos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista links conforme o perfil do usuário */
+        get: operations["LinksPublicosController_list_v1"];
+        put?: never;
+        /** Gera um link compartilhável com token aleatório */
+        post: operations["LinksPublicosController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/links-publicos/{id}/desativar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desativa um link imediatamente */
+        post: operations["LinksPublicosController_desativar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/publico/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consulta somente leitura por token ativo, sem dados internos; até 60 acessos por IP por minuto */
+        get: operations["MapaPublicoController_consultar_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -527,35 +753,12 @@ export interface components {
             /** @example 3 */
             totalPages: number;
         };
-        HistoricoDto: {
-            /**
-             * @description Autor ou null para sistema.
-             * @example { id: "2872822b-14be-41ea-881f-a8c0c11c1ffd", nome: "Usuário Teste" }
-             */
-            usuario: {
-                [key: string]: unknown;
-            } | null;
-            valorAnterior: ({
-                [key: string]: unknown;
-            } | unknown[] | string | number | boolean) | null;
-            valorNovo: ({
-                [key: string]: unknown;
-            } | unknown[] | string | number | boolean) | null;
-            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
+        MarcadorDto: {
             id: string;
-            /** @example Reserva */
-            entidadeTipo: string;
-            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
-            entidadeId: string;
-            /** @example CANCELAR */
-            acao: string;
-            /** @example Solicitação de cancelamento */
-            motivo: string | null;
-            /**
-             * Format: date-time
-             * @example 2026-11-03T12:00:00Z
-             */
-            createdAt: string;
+            plantaId: string;
+            loteId: string;
+            x: number;
+            y: number;
         };
         ErrorDetailDto: {
             /**
@@ -591,94 +794,79 @@ export interface components {
             /** @example 2026-10-28T12:00:00.000Z */
             timestamp: string;
         };
-        ForgotPasswordDto: {
-            /**
-             * Format: email
-             * @description E-mail cadastrado.
-             * @example usuario@exemplo.com
-             */
-            email: string;
-        };
-        ResetPasswordDto: {
-            /**
-             * @description Token recebido por e-mail.
-             * @example AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-             */
-            token: string;
-            /**
-             * @description Nova senha, com no mínimo 8 caracteres.
-             * @example NovaSenha123!
-             */
-            senha: string;
-        };
-        LoginDto: {
-            /**
-             * Format: email
-             * @description E-mail cadastrado.
-             * @example usuario@exemplo.com
-             */
-            email: string;
-            /**
-             * @description Senha do usuário.
-             * @example SenhaExemplo123!
-             */
-            senha: string;
-        };
-        TokensDto: {
-            /**
-             * @description Token de acesso JWT.
-             * @example eyJ...
-             */
-            accessToken: string;
-            /**
-             * @description Token opaco de renovação; substitua-o após cada refresh.
-             * @example token-aleatorio
-             */
-            refreshToken: string;
-            /**
-             * @description Esquema de autenticação.
-             * @example Bearer
-             */
-            tokenType: string;
-            /**
-             * @description Validade do access token em segundos.
-             * @example 900
-             */
-            expiresIn: number;
-        };
-        RefreshTokenDto: {
-            /**
-             * @description Refresh token recebido no login ou na última renovação.
-             * @example token-base64url-com-43-caracteres
-             */
-            refreshToken: string;
-        };
-        /**
-         * @description Perfil atual.
-         * @enum {string}
-         */
-        PerfilCodigo: "ADMINISTRADOR" | "GESTOR" | "COMERCIAL" | "CONSULTA";
-        UsuarioLogadoDto: {
-            /**
-             * @description Perfil atual.
-             * @example COMERCIAL
-             */
-            perfil: components["schemas"]["PerfilCodigo"];
-            /**
-             * @description Identificador do usuário.
-             * @example e0ed7a15-2f1c-473f-b9c6-b426818598cd
-             */
+        LoteSemMarcadorDto: {
             id: string;
+            numero: string;
+            quadraId: string;
+            loteamentoId: string;
+        };
+        CreateMarcadorDto: {
             /**
-             * @description Nome do usuário.
-             * @example Usuário Teste
+             * Format: uuid
+             * @description Lote a posicionar.
+             * @example 00000000-0000-4000-8000-000000000001
              */
+            loteId: string;
+            /**
+             * @description Coordenada horizontal normalizada.
+             * @example 0.5
+             */
+            x: number;
+            /**
+             * @description Coordenada vertical normalizada.
+             * @example 0.5
+             */
+            y: number;
+        };
+        CreateMarcadoresDto: {
+            /** @description Marcadores criados atomicamente, até 500 por requisição. */
+            marcadores: components["schemas"]["CreateMarcadorDto"][];
+        };
+        CoordenadasMarcadorDto: {
+            /**
+             * @description Coordenada horizontal normalizada.
+             * @example 0.5
+             */
+            x: number;
+            /**
+             * @description Coordenada vertical normalizada.
+             * @example 0.5
+             */
+            y: number;
+        };
+        PlantaMapaDto: {
+            id: string;
             nome: string;
-            /**
-             * @description E-mail do próprio usuário.
-             * @example usuario@exemplo.com
-             */
-            email: string;
+            versao: number;
+            larguraPx: number | null;
+            alturaPx: number | null;
+            maxZoom: number | null;
+            tamanhoTile: number | null;
+            tilesUrl: string;
+        };
+        MarcadorMapaDto: {
+            /** @enum {string} */
+            status: "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "BLOQUEADO";
+            acoes: ("reservar" | "verReserva" | "vender" | "bloquear" | "desbloquear")[];
+            id: string;
+            loteId: string;
+            x: number;
+            y: number;
+            numero: string;
+            quadraId: string;
+            quadra: string;
+            loteamentoId: string;
+            loteamento: string;
+            areaM2: string;
+            valor: string | null;
+        };
+        PaginaMarcadoresMapaDto: {
+            data: components["schemas"]["MarcadorMapaDto"][];
+            meta: components["schemas"]["PaginationMetaDto"];
+        };
+        MapaDto: {
+            planta: components["schemas"]["PlantaMapaDto"];
+            marcadores: components["schemas"]["PaginaMarcadoresMapaDto"];
         };
         /** @enum {string} */
         StatusPlanta: "ENVIADA" | "PROCESSANDO" | "PRONTA" | "ERRO";
@@ -800,38 +988,35 @@ export interface components {
              */
             tilesUrl: string;
         };
-        CreateLinkPublicoDto: {
+        HistoricoDto: {
             /**
-             * Format: uuid
-             * @description Opcional: limita o mapa a um loteamento; null mostra todos.
+             * @description Autor ou null para sistema.
+             * @example { id: "2872822b-14be-41ea-881f-a8c0c11c1ffd", nome: "Usuário Teste" }
              */
-            loteamentoId?: string | null;
-        };
-        LinkPublicoDto: {
+            usuario: {
+                [key: string]: unknown;
+            } | null;
+            valorAnterior: ({
+                [key: string]: unknown;
+            } | unknown[] | string | number | boolean) | null;
+            valorNovo: ({
+                [key: string]: unknown;
+            } | unknown[] | string | number | boolean) | null;
             /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
             id: string;
-            /**
-             * @description Token opaco de 32 bytes; não registrar em logs.
-             * @example token-base64url
-             */
-            token: string;
+            /** @example Reserva */
+            entidadeTipo: string;
             /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
-            criadoPorId: string;
-            loteamentoId: string | null;
-            /** @example true */
-            ativo: boolean;
-            /** @example 0 */
-            acessos: number;
+            entidadeId: string;
+            /** @example CANCELAR */
+            acao: string;
+            /** @example Solicitação de cancelamento */
+            motivo: string | null;
             /**
              * Format: date-time
              * @example 2026-11-03T12:00:00Z
              */
             createdAt: string;
-            /**
-             * Format: date-time
-             * @example 2026-11-03T12:00:00Z
-             */
-            updatedAt: string;
         };
         CreateLoteamentoDto: {
             /**
@@ -1024,6 +1209,62 @@ export interface components {
              */
             motivo: string;
         };
+        LoteReservaResumoDto: {
+            id: string;
+            numero: string;
+            quadra: string;
+            loteamentoId: string;
+            loteamento: string;
+        };
+        ClienteReservaResumoDto: {
+            nome: string | null;
+            id: string;
+        };
+        PropostaReservaResumoDto: {
+            /** @enum {string} */
+            status: "EM_ANALISE" | "APROVADA" | "REJEITADA";
+            id: string;
+            valor: string;
+        };
+        ReservaResumoDto: {
+            /** @enum {string} */
+            status: "ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA";
+            /** Format: date-time */
+            dataInicio: string;
+            /** Format: date-time */
+            dataVencimento: string;
+            lote: components["schemas"]["LoteReservaResumoDto"];
+            cliente: components["schemas"]["ClienteReservaResumoDto"];
+            propostaAtual: components["schemas"]["PropostaReservaResumoDto"] | null;
+            id: string;
+            vendedorId: string;
+        };
+        CreateReservaDto: {
+            /**
+             * Format: uuid
+             * @description Lote disponível a reservar.
+             */
+            loteId: string;
+            /**
+             * Format: uuid
+             * @description Cliente previamente cadastrado.
+             */
+            clienteId: string;
+        };
+        ReservaDto: {
+            /** @enum {string} */
+            status: "ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA";
+            id: string;
+            loteId: string;
+            clienteId: string;
+            vendedorId: string;
+            /** Format: date-time */
+            dataInicio: string;
+            /** Format: date-time */
+            dataVencimento: string;
+            /** @description Segundos até o vencimento, nunca negativo; zero para reserva encerrada. */
+            tempoRestanteSegundos: number;
+        };
         ClienteResumoDto: {
             /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
             id: string;
@@ -1113,6 +1354,214 @@ export interface components {
             /** @example 7 */
             prazoAnaliseDiasUteis: number;
         };
+        ForgotPasswordDto: {
+            /**
+             * Format: email
+             * @description E-mail cadastrado.
+             * @example usuario@exemplo.com
+             */
+            email: string;
+        };
+        ResetPasswordDto: {
+            /**
+             * @description Token recebido por e-mail.
+             * @example AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+             */
+            token: string;
+            /**
+             * @description Nova senha, com no mínimo 8 caracteres.
+             * @example NovaSenha123!
+             */
+            senha: string;
+        };
+        LoginDto: {
+            /**
+             * Format: email
+             * @description E-mail cadastrado.
+             * @example usuario@exemplo.com
+             */
+            email: string;
+            /**
+             * @description Senha do usuário.
+             * @example SenhaExemplo123!
+             */
+            senha: string;
+        };
+        TokensDto: {
+            /**
+             * @description Token de acesso JWT.
+             * @example eyJ...
+             */
+            accessToken: string;
+            /**
+             * @description Token opaco de renovação; substitua-o após cada refresh.
+             * @example token-aleatorio
+             */
+            refreshToken: string;
+            /**
+             * @description Esquema de autenticação.
+             * @example Bearer
+             */
+            tokenType: string;
+            /**
+             * @description Validade do access token em segundos.
+             * @example 900
+             */
+            expiresIn: number;
+        };
+        RefreshTokenDto: {
+            /**
+             * @description Refresh token recebido no login ou na última renovação.
+             * @example token-base64url-com-43-caracteres
+             */
+            refreshToken: string;
+        };
+        /**
+         * @description Perfil atual.
+         * @enum {string}
+         */
+        PerfilCodigo: "ADMINISTRADOR" | "GESTOR" | "COMERCIAL" | "CONSULTA";
+        UsuarioLogadoDto: {
+            /**
+             * @description Perfil atual.
+             * @example COMERCIAL
+             */
+            perfil: components["schemas"]["PerfilCodigo"];
+            /**
+             * @description Identificador do usuário.
+             * @example e0ed7a15-2f1c-473f-b9c6-b426818598cd
+             */
+            id: string;
+            /**
+             * @description Nome do usuário.
+             * @example Usuário Teste
+             */
+            nome: string;
+            /**
+             * @description E-mail do próprio usuário.
+             * @example usuario@exemplo.com
+             */
+            email: string;
+        };
+        UsuarioDto: {
+            perfil: components["schemas"]["PerfilCodigo"];
+            id: string;
+            nome: string;
+            email: string;
+            ativo: boolean;
+        };
+        CreateUsuarioDto: {
+            /**
+             * @description Perfil de acesso.
+             * @example COMERCIAL
+             */
+            perfil: components["schemas"]["PerfilCodigo"];
+            /**
+             * @description Nome do usuário.
+             * @example Maria Silva
+             */
+            nome: string;
+            /**
+             * Format: email
+             * @description E-mail único.
+             * @example maria@exemplo.com
+             */
+            email: string;
+            /**
+             * @description Senha inicial.
+             * @example SenhaInicial123!
+             */
+            senha: string;
+        };
+        UpdateUsuarioDto: {
+            /**
+             * @description Perfil de acesso.
+             * @example COMERCIAL
+             */
+            perfil?: components["schemas"]["PerfilCodigo"];
+            /**
+             * @description Nome do usuário.
+             * @example Maria Silva
+             */
+            nome?: string;
+            /**
+             * Format: email
+             * @description E-mail único.
+             * @example maria@exemplo.com
+             */
+            email?: string;
+        };
+        CreateLinkPublicoDto: {
+            /**
+             * Format: uuid
+             * @description Opcional: limita o mapa a um loteamento; null mostra todos.
+             */
+            loteamentoId?: string | null;
+        };
+        LinkPublicoDto: {
+            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
+            id: string;
+            /**
+             * @description Token opaco de 32 bytes; não registrar em logs.
+             * @example token-base64url
+             */
+            token: string;
+            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
+            criadoPorId: string;
+            loteamentoId: string | null;
+            /** @example true */
+            ativo: boolean;
+            /** @example 0 */
+            acessos: number;
+            /**
+             * Format: date-time
+             * @example 2026-11-03T12:00:00Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-11-03T12:00:00Z
+             */
+            updatedAt: string;
+        };
+        PlantaPublicaDto: {
+            id: string;
+            nome: string;
+            versao: number;
+            larguraPx: number | null;
+            alturaPx: number | null;
+            maxZoom: number | null;
+            tamanhoTile: number | null;
+            tilesUrl: string;
+        };
+        LotePublicoDto: {
+            /** @enum {string} */
+            status: "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "BLOQUEADO";
+            valor?: string | null;
+            id: string;
+            loteId: string;
+            x: number;
+            y: number;
+            numero: string;
+            quadraId: string;
+            quadra: string;
+            loteamentoId: string;
+            loteamento: string;
+            areaM2: string;
+        };
+        PaginaLotesPublicosDto: {
+            data: components["schemas"]["LotePublicoDto"][];
+            meta: components["schemas"]["PaginationMetaDto"];
+        };
+        MapaPublicoDto: {
+            planta: components["schemas"]["PlantaPublicaDto"];
+            marcadores: components["schemas"]["PaginaLotesPublicosDto"];
+            /**
+             * @description Canal geral de atendimento ou orientação para falar com quem compartilhou o link.
+             * @example https://exemplo.com/atendimento
+             */
+            contatoComercial: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -1122,172 +1571,18 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    HealthController_check: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The Health Check is successful */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example ok
-                         * @enum {string}
-                         */
-                        status?: "ok" | "degraded";
-                        /**
-                         * @example {
-                         *       "database": {
-                         *         "status": "up",
-                         *         "responseTime": 12
-                         *       }
-                         *     }
-                         */
-                        info?: {
-                            [key: string]: {
-                                /** @enum {string} */
-                                status: "up" | "degraded" | "down";
-                                /** @description Time the health indicator took to respond, in ms */
-                                responseTime?: number;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        } | null;
-                        /** @example {} */
-                        error?: {
-                            [key: string]: {
-                                /** @enum {string} */
-                                status: "up" | "degraded" | "down";
-                                /** @description Time the health indicator took to respond, in ms */
-                                responseTime?: number;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        } | null;
-                        /**
-                         * @example {
-                         *       "database": {
-                         *         "status": "up",
-                         *         "responseTime": 12
-                         *       }
-                         *     }
-                         */
-                        details?: {
-                            [key: string]: {
-                                /** @enum {string} */
-                                status: "up" | "degraded" | "down";
-                                /** @description Time the health indicator took to respond, in ms */
-                                responseTime?: number;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-            /** @description The Health Check is not successful */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example error
-                         * @enum {string}
-                         */
-                        status?: "error" | "shutting_down";
-                        /**
-                         * @example {
-                         *       "database": {
-                         *         "status": "up",
-                         *         "responseTime": 12
-                         *       }
-                         *     }
-                         */
-                        info?: {
-                            [key: string]: {
-                                /** @enum {string} */
-                                status: "up" | "degraded" | "down";
-                                /** @description Time the health indicator took to respond, in ms */
-                                responseTime?: number;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        } | null;
-                        /**
-                         * @example {
-                         *       "redis": {
-                         *         "status": "down",
-                         *         "message": "Could not connect",
-                         *         "responseTime": 3005
-                         *       }
-                         *     }
-                         */
-                        error?: {
-                            [key: string]: {
-                                /** @enum {string} */
-                                status: "up" | "degraded" | "down";
-                                /** @description Time the health indicator took to respond, in ms */
-                                responseTime?: number;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        } | null;
-                        /**
-                         * @example {
-                         *       "database": {
-                         *         "status": "up",
-                         *         "responseTime": 12
-                         *       },
-                         *       "redis": {
-                         *         "status": "down",
-                         *         "message": "Could not connect",
-                         *         "responseTime": 3005
-                         *       }
-                         *     }
-                         */
-                        details?: {
-                            [key: string]: {
-                                /** @enum {string} */
-                                status: "up" | "degraded" | "down";
-                                /** @description Time the health indicator took to respond, in ms */
-                                responseTime?: number;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-    };
-    HistoricoController_list_v1: {
+    MarcadoresController_list_v1: {
         parameters: {
             query: {
-                entidadeTipo?: string;
-                entidadeId?: string;
-                /** @description Autor da alteração. */
-                usuarioId?: string;
-                /** @description Data UTC ou instante ISO 8601 inclusivo. */
-                dataDe?: string;
-                /** @description Data UTC inteira incluída, ou instante ISO 8601 inclusivo. */
-                dataAte?: string;
                 /** @description Página desejada, começando em 1 */
                 page: number;
                 /** @description Itens por página (máximo 100) */
                 pageSize: number;
             };
             header?: never;
-            path?: never;
+            path: {
+                plantaId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -1298,9 +1593,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["HistoricoDto"][];
+                        data: components["schemas"]["MarcadorDto"][];
                         meta: components["schemas"]["PaginationMetaDto"];
                     };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MarcadoresController_create_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plantaId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMarcadorDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarcadorDto"];
                 };
             };
             /** @description Dados inválidos (code DADOS_INVALIDOS) */
@@ -1330,8 +1677,17 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Regra de negócio violada */
-            422: {
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1341,25 +1697,34 @@ export interface operations {
             };
         };
     };
-    AuthController_solicitar_v1: {
+    MarcadoresController_semMarcador_v1: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+                /** @description Filtra os lotes pelo loteamento. */
+                loteamentoId?: string;
+            };
             header?: never;
-            path?: never;
+            path: {
+                plantaId: string;
+            };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ForgotPasswordDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description Se o e-mail estiver cadastrado e ativo, enviaremos as instruções de recuperação. */
-            202: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LoteSemMarcadorDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
             };
             /** @description Dados inválidos (code DADOS_INVALIDOS) */
             400: {
@@ -1370,8 +1735,17 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Muitas requisições; tente novamente mais tarde */
-            429: {
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1381,20 +1755,88 @@ export interface operations {
             };
         };
     };
-    AuthController_redefinir_v1: {
+    MarcadoresController_createMany_v1: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                plantaId: string;
+            };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ResetPasswordDto"];
+                "application/json": components["schemas"]["CreateMarcadoresDto"];
             };
         };
         responses: {
-            /** @description Senha redefinida; faça login novamente */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarcadorDto"][];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MarcadoresController_delete_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plantaId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -1419,8 +1861,17 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Muitas requisições; tente novamente mais tarde */
-            429: {
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1430,16 +1881,19 @@ export interface operations {
             };
         };
     };
-    AuthController_login_v1: {
+    MarcadoresController_mover_v1: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                plantaId: string;
+                id: string;
+            };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LoginDto"];
+                "application/json": components["schemas"]["CoordenadasMarcadorDto"];
             };
         };
         responses: {
@@ -1448,7 +1902,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TokensDto"];
+                    "application/json": components["schemas"]["MarcadorDto"];
                 };
             };
             /** @description Dados inválidos (code DADOS_INVALIDOS) */
@@ -1469,8 +1923,17 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Muitas requisições; tente novamente mais tarde */
-            429: {
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1480,90 +1943,18 @@ export interface operations {
             };
         };
     };
-    AuthController_refresh_v1: {
+    MapaController_consultar_v1: {
         parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshTokenDto"];
+            query: {
+                /** @description Status separados por vírgula. */
+                status?: ("DISPONIVEL" | "RESERVADO" | "VENDIDO" | "BLOQUEADO")[];
+                /** @description Loteamento desejado. */
+                loteamentoId?: string;
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
             };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokensDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Muitas requisições; tente novamente mais tarde */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    AuthController_logout_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshTokenDto"];
-            };
-        };
-        responses: {
-            /** @description Refresh token revogado */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    AuthController_me_v1: {
-        parameters: {
-            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -1575,11 +1966,29 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UsuarioLogadoDto"];
+                    "application/json": components["schemas"]["MapaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
             /** @description Token ausente ou inválido */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1970,13 +2379,21 @@ export interface operations {
             };
         };
     };
-    LinksPublicosController_list_v1: {
+    HistoricoController_list_v1: {
         parameters: {
             query: {
                 /** @description Página desejada, começando em 1 */
                 page: number;
                 /** @description Itens por página (máximo 100) */
                 pageSize: number;
+                entidadeTipo?: string;
+                entidadeId?: string;
+                /** @description Autor da alteração. */
+                usuarioId?: string;
+                /** @description Data UTC ou instante ISO 8601 inclusivo. */
+                dataDe?: string;
+                /** @description Data UTC inteira incluída, ou instante ISO 8601 inclusivo. */
+                dataAte?: string;
             };
             header?: never;
             path?: never;
@@ -1990,7 +2407,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["LinkPublicoDto"][];
+                        data: components["schemas"]["HistoricoDto"][];
                         meta: components["schemas"]["PaginationMetaDto"];
                     };
                 };
@@ -2022,115 +2439,8 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-        };
-    };
-    LinksPublicosController_create_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateLinkPublicoDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LinkPublicoDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    LinksPublicosController_desativar_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LinkPublicoDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
+            /** @description Regra de negócio violada */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3324,6 +3634,268 @@ export interface operations {
             };
         };
     };
+    ReservasConsultaController_list_v1: {
+        parameters: {
+            query: {
+                /** @description Status separados por vírgula. */
+                status?: ("ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA")[];
+                /** @description Vendedor desejado; Comercial é sempre limitado ao próprio usuário. */
+                vendedorId?: string;
+                /** @description Loteamento desejado. */
+                loteamentoId?: string;
+                /** @description Início inclusivo do intervalo de vencimento, com fuso. */
+                vencimentoDe?: string;
+                /** @description Fim inclusivo do intervalo de vencimento, com fuso. */
+                vencimentoAte?: string;
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ReservaResumoDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ReservasController_create_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateReservaDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ReservasConsultaController_minhas_v1: {
+        parameters: {
+            query: {
+                /** @description Status separados por vírgula. */
+                status?: ("ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA")[];
+                /** @description Vendedor desejado; Comercial é sempre limitado ao próprio usuário. */
+                vendedorId?: string;
+                /** @description Loteamento desejado. */
+                loteamentoId?: string;
+                /** @description Início inclusivo do intervalo de vencimento, com fuso. */
+                vencimentoDe?: string;
+                /** @description Fim inclusivo do intervalo de vencimento, com fuso. */
+                vencimentoAte?: string;
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ReservaResumoDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ReservasController_find_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
     ClientesController_list_v1: {
         parameters: {
             query: {
@@ -3688,6 +4260,1010 @@ export interface operations {
             };
             /** @description Regra de negócio violada */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    HealthController_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The Health Check is successful */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example ok
+                         * @enum {string}
+                         */
+                        status?: "ok" | "degraded";
+                        /**
+                         * @example {
+                         *       "database": {
+                         *         "status": "up",
+                         *         "responseTime": 12
+                         *       }
+                         *     }
+                         */
+                        info?: {
+                            [key: string]: {
+                                /** @enum {string} */
+                                status: "up" | "degraded" | "down";
+                                /** @description Time the health indicator took to respond, in ms */
+                                responseTime?: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } | null;
+                        /** @example {} */
+                        error?: {
+                            [key: string]: {
+                                /** @enum {string} */
+                                status: "up" | "degraded" | "down";
+                                /** @description Time the health indicator took to respond, in ms */
+                                responseTime?: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } | null;
+                        /**
+                         * @example {
+                         *       "database": {
+                         *         "status": "up",
+                         *         "responseTime": 12
+                         *       }
+                         *     }
+                         */
+                        details?: {
+                            [key: string]: {
+                                /** @enum {string} */
+                                status: "up" | "degraded" | "down";
+                                /** @description Time the health indicator took to respond, in ms */
+                                responseTime?: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description The Health Check is not successful */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example error
+                         * @enum {string}
+                         */
+                        status?: "error" | "shutting_down";
+                        /**
+                         * @example {
+                         *       "database": {
+                         *         "status": "up",
+                         *         "responseTime": 12
+                         *       }
+                         *     }
+                         */
+                        info?: {
+                            [key: string]: {
+                                /** @enum {string} */
+                                status: "up" | "degraded" | "down";
+                                /** @description Time the health indicator took to respond, in ms */
+                                responseTime?: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } | null;
+                        /**
+                         * @example {
+                         *       "redis": {
+                         *         "status": "down",
+                         *         "message": "Could not connect",
+                         *         "responseTime": 3005
+                         *       }
+                         *     }
+                         */
+                        error?: {
+                            [key: string]: {
+                                /** @enum {string} */
+                                status: "up" | "degraded" | "down";
+                                /** @description Time the health indicator took to respond, in ms */
+                                responseTime?: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } | null;
+                        /**
+                         * @example {
+                         *       "database": {
+                         *         "status": "up",
+                         *         "responseTime": 12
+                         *       },
+                         *       "redis": {
+                         *         "status": "down",
+                         *         "message": "Could not connect",
+                         *         "responseTime": 3005
+                         *       }
+                         *     }
+                         */
+                        details?: {
+                            [key: string]: {
+                                /** @enum {string} */
+                                status: "up" | "degraded" | "down";
+                                /** @description Time the health indicator took to respond, in ms */
+                                responseTime?: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    AuthController_solicitar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordDto"];
+            };
+        };
+        responses: {
+            /** @description Se o e-mail estiver cadastrado e ativo, enviaremos as instruções de recuperação. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Muitas requisições; tente novamente mais tarde */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_redefinir_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordDto"];
+            };
+        };
+        responses: {
+            /** @description Senha redefinida; faça login novamente */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Muitas requisições; tente novamente mais tarde */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_login_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokensDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Muitas requisições; tente novamente mais tarde */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_refresh_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshTokenDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokensDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Muitas requisições; tente novamente mais tarde */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_logout_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshTokenDto"];
+            };
+        };
+        responses: {
+            /** @description Refresh token revogado */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_me_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioLogadoDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_list_v1: {
+        parameters: {
+            query: {
+                /** @description Perfil desejado. */
+                perfil?: components["schemas"]["PerfilCodigo"];
+                /** @description Filtra usuários ativos ou inativos. */
+                ativo?: boolean;
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["UsuarioDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_create_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUsuarioDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_find_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_update_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUsuarioDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_ativar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_desativar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    LinksPublicosController_list_v1: {
+        parameters: {
+            query: {
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LinkPublicoDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    LinksPublicosController_create_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLinkPublicoDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkPublicoDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    LinksPublicosController_desativar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkPublicoDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MapaPublicoController_consultar_v1: {
+        parameters: {
+            query: {
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapaPublicoDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Muitas requisições; tente novamente mais tarde */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
