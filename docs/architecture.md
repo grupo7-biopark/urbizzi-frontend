@@ -8,7 +8,7 @@ Objetivos:
 - **Isolamento**: cada funcionalidade é dona das suas telas, chamadas e regras de formulário.
 - **Contrato único**: os tipos da API são gerados do OpenAPI, nunca digitados à mão.
 
-> **Status:** a base da FE-01 (`src/app`, `src/shared/config`, health e validação de ambiente) e a camada de API da FE-05 (`src/shared/api`, `src/test`) existem. O que está marcado como "previsto" neste documento ainda não existe. Os exemplos mostram a forma que o código deve ter quando as issues citadas forem entregues; ao implementá-las, atualize este arquivo no mesmo PR se o resultado for diferente.
+> **Status:** a base da FE-01 (`src/app`, `src/shared/config`, health e validação de ambiente), a camada de API da FE-05 (`src/shared/api`, `src/test`) e a sessão da FE-07 (`src/proxy.ts`, `src/shared/auth`, `src/features/auth`, rotas de `/api`) existem. O que está marcado como "previsto" neste documento ainda não existe. Os exemplos mostram a forma que o código deve ter quando as issues citadas forem entregues; ao implementá-las, atualize este arquivo no mesmo PR se o resultado for diferente.
 
 ## Estrutura de pastas
 
@@ -16,7 +16,7 @@ Objetivos:
 src/
 ├── instrumentation.ts            # valida o ambiente ao subir o servidor
 ├── instrumentation-node.ts
-├── proxy.ts                      # previsto (FE-07): redirecionamento otimista por sessão
+├── proxy.ts                      # redirecionamento otimista por sessão
 ├── app/                          # só rotas: páginas finas que compõem funcionalidades
 │   ├── layout.tsx                # layout raiz
 │   ├── globals.css
@@ -25,8 +25,8 @@ src/
 │   ├── (publico)/                # previsto: mapa público por token
 │   └── api/
 │       ├── health/route.ts       # GET /api/health
-│       ├── auth/                 # previsto (FE-07): login e logout
-│       └── backend/[...path]/    # previsto (FE-07): proxy autenticado para a API
+│       ├── auth/                 # login, logout e renovação
+│       └── backend/[...path]/    # proxy autenticado para a API
 ├── features/                     # funcionalidades de negócio
 │   └── <modulo>/
 │       ├── components/
@@ -37,7 +37,7 @@ src/
 │   ├── config/                   # validação de ambiente
 │   ├── api/                      # schema gerado, clientes, ApiError, TanStack Query
 │   ├── ui/                       # design system (ver docs/ui.md)
-│   └── auth/                     # previsto (FE-07, FE-08): usuário atual e permissões
+│   └── auth/                     # sessão e usuário atual; permissões previstas (FE-08)
 └── test/                         # apoio aos testes: MSW, renderização e factories
 e2e/                              # testes do Playwright
 docs/                             # esta documentação
@@ -61,15 +61,16 @@ Quando uma funcionalidade precisar de algo de outra (ex.: reservas mostrando dad
 
 Só o que é usado por mais de uma funcionalidade e não contém regra de negócio de nenhuma delas.
 
-| Caminho                | O que é                                                               | Situação                |
-| ---------------------- | --------------------------------------------------------------------- | ----------------------- |
-| `config/env.schema.ts` | schemas Zod e `parseEnv()`                                            | existe                  |
-| `config/env.server.ts` | `getServerEnv()`, só no servidor                                      | existe                  |
-| `config/env.public.ts` | `publicEnv`, disponível também no navegador                           | existe                  |
-| `api/`                 | `schema.d.ts` gerado, clientes, `ApiError`, utilitários de paginação  | existe                  |
-| `ui/`                  | Button, Input, Dialog, Table, Badge e demais componentes base         | existe                  |
-| `ui/`                  | `DataTable`, `Form`, `ConfirmDialog`, máscaras                        | previsto (FE-06)        |
-| `auth/`                | `useUsuarioAtual()`, `permissoes.ts`, `<Permitido>`, `usePermissao()` | previsto (FE-07, FE-08) |
+| Caminho                | O que é                                                              | Situação         |
+| ---------------------- | -------------------------------------------------------------------- | ---------------- |
+| `config/env.schema.ts` | schemas Zod e `parseEnv()`                                           | existe           |
+| `config/env.server.ts` | `getServerEnv()`, só no servidor                                     | existe           |
+| `config/env.public.ts` | `publicEnv`, disponível também no navegador                          | existe           |
+| `api/`                 | `schema.d.ts` gerado, clientes, `ApiError`, utilitários de paginação | existe           |
+| `ui/`                  | Button, Input, Dialog, Table, Badge e demais componentes base        | existe           |
+| `ui/`                  | `DataTable`, `Form`, `ConfirmDialog`, máscaras                       | previsto (FE-06) |
+| `auth/`                | sessão, `getUsuarioAtual()`, `useUsuarioAtual()`                     | existe           |
+| `auth/`                | `permissoes.ts`, `<Permitido>`, `usePermissao()`                     | previsto (FE-08) |
 
 Não use o que ainda não existe: implemente a issue correspondente ou combine a mudança de escopo.
 
@@ -132,11 +133,11 @@ Grupos de rota, com o nome entre parênteses, organizam as telas e aplicam layou
 | `(app)`     | todas as telas internas        | barra lateral, cabeçalho | obrigatória                                              |
 | `(publico)` | `/p/[token]`                   | marca, sem menu          | não usa sessão nem cookies                               |
 
-Rotas em grupos diferentes não podem resolver para a mesma URL. O `src/app/page.tsx` provisório da FE-01 sai quando a tela inicial definitiva entrar em um grupo.
+Rotas em grupos diferentes não podem resolver para a mesma URL. O `src/app/(app)/page.tsx` é a página inicial provisória, até a tela definitiva.
 
 Cada grupo define, quando fizer sentido, `loading.tsx`, `error.tsx` e `not-found.tsx`. As páginas ficam finas: leem a URL, conferem a permissão e renderizam componentes de `features/`.
 
-O Next 16 renomeou `middleware.ts` para `proxy.ts`, e `middleware` está depreciado. Na FE-07, o arquivo é `src/proxy.ts`, ainda que a issue cite o nome antigo. Ele faz só a checagem otimista de sessão (ver [security.md](security.md#proteção-de-rotas)). Não confunda com o proxy BFF `/api/backend/[...path]`, que é um Route Handler.
+O Next 16 renomeou `middleware.ts` para `proxy.ts`, e `middleware` está depreciado. Por isso, o arquivo é `src/proxy.ts`. Ele faz só a checagem otimista de sessão (ver [security.md](security.md#proteção-de-rotas)). Não confunda com o proxy BFF `/api/backend/[...path]`, que é um Route Handler.
 
 ## Fluxo de uma requisição
 

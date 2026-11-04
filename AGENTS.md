@@ -108,12 +108,17 @@ Depois de `npm install <pacote>` ou `npm uninstall <pacote>`, confira se o `pack
 | `app/globals.css`                               | tokens de cor e tipografia, temas claro e escuro                                                                                   |
 | `app/design-system/page.tsx`                    | catálogo de tokens e componentes, só em desenvolvimento (`/design-system`)                                                         |
 | `shared/ui/`                                    | design system: componentes base e logos (ver [docs/ui.md](docs/ui.md))                                                             |
-| `app/page.tsx`                                  | página inicial provisória                                                                                                          |
+| `app/(app)/layout.tsx`, `app/(app)/page.tsx`    | layout com sessão obrigatória e página inicial provisória                                                                          |
+| `app/(auth)/`                                   | login e aviso de sessão indisponível                                                                                               |
+| `app/api/auth/`, `app/api/backend/[...path]/`   | login, logout, renovação e proxy BFF autenticado                                                                                   |
+| `proxy.ts`                                      | checagem otimista de sessão nas páginas                                                                                            |
+| `features/auth/`                                | formulário de login e menu do usuário                                                                                              |
+| `shared/auth/`                                  | cookies de sessão, renovação única, `getUsuarioAtual()` e `useUsuarioAtual()`                                                      |
 | `app/api/health/route.ts`                       | `GET /api/health`, informando também se a API foi alcançada                                                                        |
 | `shared/api/`                                   | `schema.d.ts` gerado, clientes (`client.ts`, `client.server.ts`), `unwrap()`, `ApiError`, paginação, query string e TanStack Query |
 | `test/`                                         | servidor do MSW, `http` tipado pelo contrato, `renderWithQuery` e factories                                                        |
 
-Previsto em issues futuras (não use antes de existir): `DataTable`, `Form` e máscaras (FE-06); sessão, proxy BFF e `src/proxy.ts` (FE-07); permissões em `shared/auth/` (FE-08).
+Previsto em issues futuras (não use antes de existir): `DataTable`, `Form` e máscaras (FE-06); permissões em `shared/auth/` (FE-08).
 
 <!-- BEGIN:nextjs-agent-rules -->
 

@@ -21,7 +21,8 @@ const FRIENDLY_MESSAGES = new Map<string, string>([
   ['DADOS_INVALIDOS', 'Os dados enviados são inválidos. Confira os campos.'],
   ['REQUISICAO_INVALIDA', 'Não foi possível processar os dados enviados.'],
   ['NAO_AUTENTICADO', 'Sua sessão expirou. Entre novamente para continuar.'],
-  ['CREDENCIAIS_INVALIDAS', 'E-mail ou senha incorretos.'],
+  // A API responde igual para os dois casos, para não revelar quais contas existem.
+  ['CREDENCIAIS_INVALIDAS', 'E-mail ou senha incorretos, ou usuário inativo.'],
   ['ACESSO_NEGADO', 'Você não tem permissão para executar esta ação.'],
   ['RECURSO_NAO_ENCONTRADO', 'O registro procurado não foi encontrado.'],
   ['REGISTRO_DUPLICADO', 'Já existe um registro com esses dados.'],
