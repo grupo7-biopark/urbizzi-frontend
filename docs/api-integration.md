@@ -1,6 +1,6 @@
 # Integração com a API
 
-> **Status:** previsto na FE-05 (cliente, erros, TanStack Query e MSW) e na FE-07 (proxy autenticado). Nada disso existe ainda; este documento define como as issues devem entregar. Os padrões da API vêm de [`docs/api-standards.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/api-standards.md) no backend. Se houver divergência, o backend prevalece.
+> **Status:** cliente, erros, TanStack Query e MSW entregues na FE-05. O proxy autenticado `/api/backend` chega na FE-07; até lá, o cliente do navegador não tem destino real. Os padrões da API vêm de [`docs/api-standards.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/api-standards.md) no backend. Se houver divergência, o backend prevalece.
 
 ## Tipos gerados do OpenAPI
 
@@ -22,17 +22,18 @@ type ListLotesQuery = NonNullable<
 ```
 
 - Depois de uma mudança no backend, rode `npm run api:generate` e `npm run typecheck`, e corrija o que quebrar no mesmo PR.
-- As rotas no schema já incluem o versionamento (`/v1/loteamentos`). Por isso, o `baseUrl` dos clientes **não** leva `/v1`, embora a FE-05 cite "URL base `/v1`": senão, a URL fica `/v1/v1/...`. Confirme no primeiro `schema.d.ts` gerado.
+- O script lê `http://localhost:3000/docs-json`. Para outra origem ou um arquivo exportado: `npx openapi-typescript <url-ou-arquivo> -o src/shared/api/schema.d.ts`. O arquivo fica fora do Prettier, para a saída do gerador não mudar.
+- As rotas no schema já incluem o versionamento (`/v1/loteamentos`). Por isso, o `baseUrl` dos clientes **não** leva `/v1`: senão, a URL fica `/v1/v1/...`.
 - Use as rotas que estão no schema, não as citadas de memória ou nas issues. Rotas previstas podem ter mudado ao serem implementadas.
 
 ## Cliente
 
 Há um único jeito de chamar o backend, com `openapi-fetch`, e dois clientes com os mesmos tipos:
 
-| Cliente          | Arquivo                       | Usado em                          | Destino                          |
-| ---------------- | ----------------------------- | --------------------------------- | -------------------------------- |
-| `api`            | `shared/api/client.ts`        | Client Components                 | `/api/backend` (proxy BFF)       |
-| `getServerApi()` | `shared/api/client.server.ts` | Server Components, Route Handlers | `API_URL`, com o token do cookie |
+| Cliente          | Arquivo                       | Usado em                          | Destino                                                                            |
+| ---------------- | ----------------------------- | --------------------------------- | ---------------------------------------------------------------------------------- |
+| `api`            | `shared/api/client.ts`        | Client Components                 | `/api/backend` (proxy BFF)                                                         |
+| `getServerApi()` | `shared/api/client.server.ts` | Server Components, Route Handlers | `API_URL`, com o token recebido por parâmetro (a leitura do cookie chega na FE-07) |
 
 Cada funcionalidade expõe funções em `features/<modulo>/api/<modulo>.api.ts`. Componentes e hooks chamam essas funções, nunca o cliente direto.
 
@@ -48,25 +49,11 @@ export function getLote(id: string) {
 }
 ```
 
-O cliente do navegador tem dois cuidados, ambos necessários para os testes:
+Os dois clientes nascem de `createApi()` (`shared/api/create-api.ts`), e estes cuidados são necessários:
 
-```ts
-// src/shared/api/client.ts
-import createClient from 'openapi-fetch';
-import type { paths } from './schema';
-
-// No servidor, este módulo só é avaliado na renderização inicial, quando o
-// useQuery ainda não dispara requisições, então a origem vazia não é usada.
-const origin = typeof window === 'undefined' ? '' : window.location.origin;
-
-export const api = createClient<paths>({
-  baseUrl: `${origin}/api/backend`,
-  fetch: (request) => globalThis.fetch(request),
-});
-```
-
-- **URL absoluta**: no Node, inclusive nos testes, o `Request` não aceita URL relativa.
+- **URL absoluta**: no Node, inclusive nos testes, o `Request` não aceita URL relativa. Por isso, `client.ts` usa `window.location.origin`.
 - **`fetch` lido a cada chamada**: por padrão, o `openapi-fetch` guarda o `globalThis.fetch` ao ser criado. Como o cliente nasce no import, antes de `server.listen()`, o MSW não interceptaria nada e os testes fariam requisições reais.
+- **Arrays separados por vírgula**: o padrão do `openapi-fetch` repetiria o parâmetro (`status=A&status=B`), mas o formato documentado pela API é `status=A,B`. Por isso, o `querySerializer` é o `toQueryString()`.
 
 ## Tratamento de erros
 
@@ -83,12 +70,12 @@ Toda resposta de erro da API tem o mesmo formato:
 }
 ```
 
-Ele vira um `ApiError` (`shared/api/errors.ts`), com `statusCode`, `code`, `message` e `details`. Falha de rede também vira `ApiError`, com mensagem própria.
+Ele vira um `ApiError` (`shared/api/errors.ts`), com `statusCode`, `code`, `message` e `details` (sempre um array). Falha de rede também vira `ApiError`, com `statusCode` 0 e `code` `ERRO_DE_REDE`. Resposta fora desse formato, como um 502 em HTML, vira `ERRO_INESPERADO`, com mensagem genérica. Cancelamento continua como `AbortError`, porque quem o trata é o TanStack Query.
 
 Regras:
 
 1. **Trate pelo `code`, nunca pelo texto da `message`.** O `code` é estável; o texto pode mudar.
-2. **Mostre mensagens com `getErrorMessage(error)`**, que usa o mapa de mensagens amigáveis e, na falta dele, a `message` da API ou um texto genérico.
+2. **Mostre mensagens com `getErrorMessage(error)`**. O `ApiError.message` já sai pronto para a tela: usa o mapa de mensagens amigáveis e, na falta dele, a `message` da API. Para o que não for `ApiError`, a função devolve um texto genérico.
 3. **`details` pode vir em inglês.** Em `DADOS_INVALIDOS`, as mensagens de `class-validator` são do tipo `nome should not be empty`. Por isso, o schema Zod do formulário valida antes com textos em português, e o erro de campo da API é só a última barreira.
 4. `details[].field` pode ter caminho aninhado (`endereco.cep`) e mapeia direto para o nome do campo no `react-hook-form`.
 5. Nunca exiba corpo de resposta bruto, stack ou mensagens de exceção do JavaScript.
@@ -110,11 +97,11 @@ Regras:
 
 ### Configuração
 
-O `QueryClientProvider` fica em um Client Component no layout raiz, seguindo o guia oficial de SSR avançado: um `QueryClient` novo por requisição no servidor e um único no navegador.
+O `QueryClientProvider` fica em um Client Component no layout raiz (`shared/api/query-provider.tsx`), seguindo o guia oficial de SSR avançado: um `QueryClient` novo por requisição no servidor e um único no navegador.
 
 Padrões:
 
-- `retry`: só para erro de rede e 5xx. Nunca em 4xx.
+- `retry` de queries: só para erro de rede e 5xx, até 3 vezes. Nunca em 4xx. Mutações não repetem, porque podem não ser idempotentes.
 - `staleTime` acima de zero, para evitar nova busca logo após hidratar.
 
 ### Chaves
@@ -170,6 +157,8 @@ Toda listagem da API é paginada: `page` (padrão 1) e `pageSize` (padrão 20, m
 
 Página além da última responde `200` com `data: []`. Nesse caso, mostre o estado vazio com uma ação para voltar à primeira página.
 
+`shared/api/pagination.ts` tem o tipo `Paginated<Item>` e os utilitários `hasNextPage`, `hasPreviousPage` e `isBeyondLastPage`.
+
 ## Filtros na URL
 
 Página, filtros e busca ficam nos search params, para sobreviver a recarregar e poder ser compartilhados. Exceção: dados pessoais, abaixo.
@@ -188,7 +177,9 @@ Página, filtros e busca ficam nos search params, para sobreviver a recarregar e
 | Booleano            | `true` ou `false`                           | `?ativo=true`                                               |
 | Ordenação           | `orderBy` e `order`, quando a rota permitir | `?orderBy=createdAt&order=desc`                             |
 
-Filtro desconhecido gera `400 DADOS_INVALIDOS`, então não repasse à API parâmetros que ela não declara.
+Filtro desconhecido gera `400 DADOS_INVALIDOS`, então não repasse à API parâmetros que ela não declara. O tipo do `openapi-fetch` confere nome de rota e valor de filtro, mas **não** barra um filtro a mais no objeto `query`.
+
+`toQueryString()` (`shared/api/query-string.ts`) monta a query string nesse formato, sem o `?` inicial, e omite filtros vazios.
 
 > **Dado pessoal não vai para a URL da tela** ([security.md](security.md#lgpd-na-interface)). A busca de clientes aceita nome e documento, então o `q` dessa tela fica só em estado de componente, mesmo que o resto da listagem use a URL. Essa é uma exceção à FE-06 ("recarregar mantém a busca"), válida para buscas que aceitam dado pessoal.
 

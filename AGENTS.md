@@ -18,9 +18,9 @@ Frontend do **Urbizzi**: sistema de gestão de loteamentos (cadastro de loteamen
 | Componentes       | Radix UI (`radix-ui`), só onde há foco e teclado       | em uso                       |
 | Validação         | Zod (variáveis de ambiente)                            | em uso; formulários na FE-06 |
 | Lint / formatação | oxlint + Prettier                                      | em uso                       |
-| Testes            | Vitest + Testing Library, Playwright                   | em uso; MSW na FE-05         |
+| Testes            | Vitest + Testing Library, MSW, Playwright              | em uso                       |
 | Infra local       | Docker Compose (`web`)                                 | em uso                       |
-| Dados             | TanStack Query, `openapi-fetch`, `openapi-typescript`  | previsto (FE-05)             |
+| Dados             | TanStack Query, `openapi-fetch`, `openapi-typescript`  | em uso                       |
 | Formulários       | `react-hook-form`                                      | previsto (FE-06)             |
 | Mapa              | Leaflet                                                | previsto (FE-27)             |
 
@@ -37,6 +37,7 @@ npm run build                  # build de produção (precisa de .env)
 npm test                       # testes unitários e de componente
 npm run test:cov               # os mesmos, com cobertura
 npm run test:e2e               # testes e2e (Playwright)
+npm run api:generate           # regenera os tipos da API (com o backend no ar)
 npx vitest run caminho/arquivo.test.ts   # um arquivo só
 ```
 
@@ -97,20 +98,22 @@ Depois de `npm install <pacote>` ou `npm uninstall <pacote>`, confira se o `pack
 
 ## O que já existe em `src/`
 
-| Caminho                                         | O que é                                                                     |
-| ----------------------------------------------- | --------------------------------------------------------------------------- |
-| `instrumentation.ts`, `instrumentation-node.ts` | validam o ambiente ao subir o servidor e encerram o processo se houver erro |
-| `shared/config/env.schema.ts`                   | schemas Zod das variáveis e `parseEnv()`                                    |
-| `shared/config/env.server.ts`                   | `getServerEnv()`, só no servidor                                            |
-| `shared/config/env.public.ts`                   | `publicEnv`, disponível também no navegador                                 |
-| `app/layout.tsx`, `app/fonts.ts`                | layout raiz e fontes da marca, servidas pelo próprio Next                   |
-| `app/globals.css`                               | tokens de cor e tipografia, temas claro e escuro                            |
-| `app/design-system/page.tsx`                    | catálogo de tokens e componentes, só em desenvolvimento (`/design-system`)  |
-| `shared/ui/`                                    | design system: componentes base e logos (ver [docs/ui.md](docs/ui.md))      |
-| `app/page.tsx`                                  | página inicial provisória                                                   |
-| `app/api/health/route.ts`                       | `GET /api/health`, informando também se a API foi alcançada                 |
+| Caminho                                         | O que é                                                                                                                            |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `instrumentation.ts`, `instrumentation-node.ts` | validam o ambiente ao subir o servidor e encerram o processo se houver erro                                                        |
+| `shared/config/env.schema.ts`                   | schemas Zod das variáveis e `parseEnv()`                                                                                           |
+| `shared/config/env.server.ts`                   | `getServerEnv()`, só no servidor                                                                                                   |
+| `shared/config/env.public.ts`                   | `publicEnv`, disponível também no navegador                                                                                        |
+| `app/layout.tsx`, `app/fonts.ts`                | layout raiz e fontes da marca, servidas pelo próprio Next                                                                          |
+| `app/globals.css`                               | tokens de cor e tipografia, temas claro e escuro                                                                                   |
+| `app/design-system/page.tsx`                    | catálogo de tokens e componentes, só em desenvolvimento (`/design-system`)                                                         |
+| `shared/ui/`                                    | design system: componentes base e logos (ver [docs/ui.md](docs/ui.md))                                                             |
+| `app/page.tsx`                                  | página inicial provisória                                                                                                          |
+| `app/api/health/route.ts`                       | `GET /api/health`, informando também se a API foi alcançada                                                                        |
+| `shared/api/`                                   | `schema.d.ts` gerado, clientes (`client.ts`, `client.server.ts`), `unwrap()`, `ApiError`, paginação, query string e TanStack Query |
+| `test/`                                         | servidor do MSW, `http` tipado pelo contrato, `renderWithQuery` e factories                                                        |
 
-Previsto em issues futuras (não use antes de existir): cliente da API, `ApiError` e TanStack Query em `shared/api/` (FE-05); `DataTable`, `Form` e máscaras (FE-06); sessão, proxy BFF e `src/proxy.ts` (FE-07); permissões em `shared/auth/` (FE-08).
+Previsto em issues futuras (não use antes de existir): `DataTable`, `Form` e máscaras (FE-06); sessão, proxy BFF e `src/proxy.ts` (FE-07); permissões em `shared/auth/` (FE-08).
 
 <!-- BEGIN:nextjs-agent-rules -->
 

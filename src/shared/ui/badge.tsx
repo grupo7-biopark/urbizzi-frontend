@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'react';
+import type { components } from '@/shared/api/schema';
 import { cn } from './cn';
 
 const TONE_CLASSES = {
@@ -27,9 +28,9 @@ export function Badge({ tone = 'neutro', className, ...props }: BadgeProps) {
   );
 }
 
-// Os dois tipos abaixo repetem os enums do backend até a FE-05 entregar o schema gerado.
-export type StatusLote = 'DISPONIVEL' | 'RESERVADO' | 'VENDIDO' | 'BLOQUEADO';
-export type StatusProposta = 'EM_ANALISE' | 'APROVADA' | 'REJEITADA';
+export type StatusLote = components['schemas']['StatusLote'];
+export type StatusProposta =
+  components['schemas']['PropostaReservaResumoDto']['status'];
 
 const STATUS_LOTE = {
   DISPONIVEL: { label: 'Disponível', tone: 'disponivel' },
