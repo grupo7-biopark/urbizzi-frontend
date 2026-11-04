@@ -8,7 +8,7 @@ Objetivos:
 - **Isolamento**: cada funcionalidade é dona das suas telas, chamadas e regras de formulário.
 - **Contrato único**: os tipos da API são gerados do OpenAPI, nunca digitados à mão.
 
-> **Status:** a base da FE-01 existe (`src/app`, `src/shared/config`, health e validação de ambiente). O que está marcado como "previsto" neste documento ainda não existe. Os exemplos mostram a forma que o código deve ter quando as issues citadas forem entregues; ao implementá-las, atualize este arquivo no mesmo PR se o resultado for diferente.
+> **Status:** a base da FE-01 (`src/app`, `src/shared/config`, health e validação de ambiente) e a camada de API da FE-05 (`src/shared/api`, `src/test`) existem. O que está marcado como "previsto" neste documento ainda não existe. Os exemplos mostram a forma que o código deve ter quando as issues citadas forem entregues; ao implementá-las, atualize este arquivo no mesmo PR se o resultado for diferente.
 
 ## Estrutura de pastas
 
@@ -33,11 +33,12 @@ src/
 │       ├── hooks/
 │       ├── api/
 │       └── schemas/
-└── shared/                       # código transversal, sem regra de nenhuma funcionalidade
-    ├── config/                   # validação de ambiente
-    ├── api/                      # previsto (FE-05): schema gerado, clientes, ApiError
-    ├── ui/                       # design system (ver docs/ui.md)
-    └── auth/                     # previsto (FE-07, FE-08): usuário atual e permissões
+├── shared/                       # código transversal, sem regra de nenhuma funcionalidade
+│   ├── config/                   # validação de ambiente
+│   ├── api/                      # schema gerado, clientes, ApiError, TanStack Query
+│   ├── ui/                       # design system (ver docs/ui.md)
+│   └── auth/                     # previsto (FE-07, FE-08): usuário atual e permissões
+└── test/                         # apoio aos testes: MSW, renderização e factories
 e2e/                              # testes do Playwright
 docs/                             # esta documentação
 ```
@@ -65,7 +66,7 @@ Só o que é usado por mais de uma funcionalidade e não contém regra de negóc
 | `config/env.schema.ts` | schemas Zod e `parseEnv()`                                            | existe                  |
 | `config/env.server.ts` | `getServerEnv()`, só no servidor                                      | existe                  |
 | `config/env.public.ts` | `publicEnv`, disponível também no navegador                           | existe                  |
-| `api/`                 | `schema.d.ts` gerado, clientes, `ApiError`, utilitários de paginação  | previsto (FE-05)        |
+| `api/`                 | `schema.d.ts` gerado, clientes, `ApiError`, utilitários de paginação  | existe                  |
 | `ui/`                  | Button, Input, Dialog, Table, Badge e demais componentes base         | existe                  |
 | `ui/`                  | `DataTable`, `Form`, `ConfirmDialog`, máscaras                        | previsto (FE-06)        |
 | `auth/`                | `useUsuarioAtual()`, `permissoes.ts`, `<Permitido>`, `usePermissao()` | previsto (FE-07, FE-08) |
@@ -155,7 +156,7 @@ O inverso vale para o erro: a resposta da API vira um `ApiError`, que a tela exi
 
 ## Exemplo completo: funcionalidade `loteamentos`
 
-Modelo a ser copiado para funcionalidades novas, com o contrato real do backend. Depende de FE-05 (`@/shared/api`) e FE-08 (`@/shared/auth`), ainda não entregues; a assinatura exata do que vier deles pode ser ajustada na entrega. A partir da FE-06, troque a tabela e o formulário manuais por `DataTable` e `Form`.
+Modelo a ser copiado para funcionalidades novas, com o contrato real do backend. Depende de FE-08 (`@/shared/auth`), ainda não entregue; a assinatura exata do que vier dela pode ser ajustada na entrega. A partir da FE-06, troque a tabela e o formulário manuais por `DataTable` e `Form`.
 
 Rotas: `GET /v1/loteamentos` (paginada, com `q`), `POST /v1/loteamentos`. Os perfis estão na [matriz](security.md#matriz-de-permissões): todos visualizam; Administrador e Gestor cadastram.
 

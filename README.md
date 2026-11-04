@@ -76,17 +76,18 @@ npm run dev
 
 ## Scripts
 
-| Comando                | O que faz                                   |
-| ---------------------- | ------------------------------------------- |
-| `npm run dev`          | Servidor de desenvolvimento na porta 3001   |
-| `npm run build`        | Build de produção (exige `.env` preenchido) |
-| `npm run lint`         | oxlint                                      |
-| `npm run format`       | Formata com Prettier                        |
-| `npm run format:check` | Confere a formatação                        |
-| `npm run typecheck`    | Gera os tipos de rota e roda o `tsc`        |
-| `npm test`             | Testes unitários e de componente (Vitest)   |
-| `npm run test:cov`     | Testes com relatório de cobertura           |
-| `npm run test:e2e`     | Testes e2e (Playwright)                     |
+| Comando                | O que faz                                     |
+| ---------------------- | --------------------------------------------- |
+| `npm run dev`          | Servidor de desenvolvimento na porta 3001     |
+| `npm run build`        | Build de produção (exige `.env` preenchido)   |
+| `npm run lint`         | oxlint                                        |
+| `npm run format`       | Formata com Prettier                          |
+| `npm run format:check` | Confere a formatação                          |
+| `npm run typecheck`    | Gera os tipos de rota e roda o `tsc`          |
+| `npm test`             | Testes unitários e de componente (Vitest)     |
+| `npm run test:cov`     | Testes com relatório de cobertura             |
+| `npm run test:e2e`     | Testes e2e (Playwright)                       |
+| `npm run api:generate` | Regenera os tipos da API, com o backend no ar |
 
 Antes do primeiro `npm run test:e2e`, instale o navegador com `npx playwright install chromium`. O Playwright sobe o servidor sozinho, ou reaproveita o que já estiver na porta 3001.
 

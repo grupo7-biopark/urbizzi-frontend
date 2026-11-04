@@ -1,6 +1,6 @@
 # Testes
 
-Ferramentas: **Vitest** com **Testing Library** em testes unitários e de componente, **MSW** para simular a API (previsto na FE-05) e **Playwright** nos e2e.
+Ferramentas: **Vitest** com **Testing Library** em testes unitários e de componente, **MSW** para simular a API e **Playwright** nos e2e.
 
 | Comando                    | O que roda                                           | Config                 |
 | -------------------------- | ---------------------------------------------------- | ---------------------- |
@@ -63,8 +63,6 @@ O teste da página inicial (`e2e/home.spec.ts`) não precisa da API. Os fluxos c
 
 ## Uso do MSW
 
-> Previsto na FE-05, que instala o pacote e cria `src/test/`. Use só depois disso.
-
 O servidor do MSW é um só, em `src/test/server.ts`, e a preparação fica em `src/test/msw-setup.ts`, registrado em `setupFiles` no `vitest.config.ts`. Requisição sem handler **falha o teste** (`onUnhandledFrame: 'error'`, nome da opção no MSW 3), para não deixar uma chamada passar despercebida:
 
 ```ts
@@ -84,7 +82,20 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 ```
 
-Cada teste declara as respostas de que precisa com `server.use(...)`. Use `*/v1/...` na rota, para não depender da origem. Tipe os dados com os tipos do schema, para o teste quebrar quando o contrato mudar.
+Cada teste declara as respostas de que precisa com `server.use(...)`. Prefira o `http` de `@/test/http`, gerado do schema com `openapi-msw`: a rota, os parâmetros e o corpo da resposta são conferidos pelo `npm run typecheck`, então o teste quebra quando o contrato muda.
+
+```ts
+import { http } from '@/test/http';
+import { server } from '@/test/server';
+
+server.use(
+  http.get('/v1/loteamentos', ({ response }) =>
+    response(200).json({ data: [], meta }),
+  ),
+);
+```
+
+Para simular o que o contrato não descreve (falha de rede, 502 em HTML), use `http.untyped`, que **não** aplica o prefixo: escreva `*/v1/...` na rota, para não depender da origem. O mesmo vale para o `http` importado direto de `msw`. Para os erros da API, use `makeErrorResponse()` de `@/test/factories/error-response.factory`.
 
 `QueryClient` novo a cada teste, sem retry, para o cache não vazar entre testes:
 
