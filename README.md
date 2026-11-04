@@ -90,6 +90,10 @@ npm run dev
 
 Antes do primeiro `npm run test:e2e`, instale o navegador com `npx playwright install chromium`. O Playwright sobe o servidor sozinho, ou reaproveita o que já estiver na porta 3001.
 
+## Integração contínua
+
+O GitHub Actions roda lint, formatação, tipos, testes com cobertura, build e e2e em todo Pull Request e em todo push na `main`. O pipeline leva **cerca de 1 minuto**, porque os dois jobs rodam em paralelo. Detalhes em [docs/testing.md](docs/testing.md#integração-contínua).
+
 ## Estrutura
 
 ```text

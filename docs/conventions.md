@@ -67,7 +67,7 @@ Formato: `<tipo>(<escopo>): <descrição>`
 
 ## Branches
 
-- Todo código entra por Pull Request. A proteção da `main` no GitHub é configurada na FE-03.
+- Todo código entra por Pull Request. A proteção da `main` ainda não está ativa no GitHub (ver [testing.md](testing.md#integração-contínua)), então esta regra depende de cada integrante.
 - Nome: `<tipo>/fe-<nn>-<descricao-curta>` em `kebab-case`, onde `<nn>` é o número da issue no padrão `FE-NN`. Ex.: `feat/fe-19-criar-reserva`, `fix/fe-21-filtro-status`, `docs/fe-02-arquitetura`.
 - Sem issue (raro): `<tipo>/<descricao-curta>`.
 - Uma branch por issue. Atualize com `git rebase origin/main` (ou merge) antes de pedir revisão.
@@ -77,4 +77,4 @@ Formato: `<tipo>(<escopo>): <descrição>`
 - Título: `[FE-NN] <título da issue>`.
 - Corpo: o template de `.github/PULL_REQUEST_TEMPLATE.md` preenchido, com `Closes #<número>`.
 - Revisão de pelo menos um integrante (dois para mudanças de arquitetura ou de `docs/`).
-- A partir da FE-03, o CI precisa estar verde antes do merge. Até lá, rode a verificação completa de [AGENTS.md](../AGENTS.md#comandos) localmente.
+- Os dois jobs do CI (`Lint, tipos, testes e build` e `Testes e2e`) precisam estar verdes antes do merge (ver [testing.md](testing.md#integração-contínua)). O GitHub ainda não impõe isso: confira antes de mergear.

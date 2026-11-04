@@ -39,7 +39,7 @@ npm run test:e2e               # testes e2e (Playwright)
 npx vitest run caminho/arquivo.test.ts   # um arquivo só
 ```
 
-Antes de dizer que terminou: `npm run lint && npm run format:check && npm run typecheck && npm run test:cov && npm run build` precisam passar. Se mexeu em tela, rota ou sessão, rode também `npm run test:e2e`.
+Antes de dizer que terminou: `npm run lint && npm run format:check && npm run typecheck && npm run test:cov && npm run build` precisam passar (é o que o CI roda; `test:cov` falha com cobertura abaixo de 80% nos caminhos de [docs/testing.md](docs/testing.md#cobertura-mínima)). Se mexeu em tela, rota ou sessão, rode também `npm run test:e2e`, que o CI também executa.
 
 Depois de `npm install <pacote>` ou `npm uninstall <pacote>`, confira se o `package-lock.json` ainda tem as entradas `@rolldown/binding-*` (ver o [README](README.md#solução-de-problemas)).
 
