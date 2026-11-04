@@ -29,9 +29,8 @@ export function Badge({ tone = 'neutro', className, ...props }: BadgeProps) {
 }
 
 export type StatusLote = components['schemas']['StatusLote'];
-// Repete o enum do backend até as rotas de propostas entrarem no OpenAPI: troque
-// pelo tipo do schema gerado ao regenerá-lo com elas.
-export type StatusProposta = 'EM_ANALISE' | 'APROVADA' | 'REJEITADA';
+export type StatusProposta =
+  components['schemas']['PropostaReservaResumoDto']['status'];
 
 const STATUS_LOTE = {
   DISPONIVEL: { label: 'Disponível', tone: 'disponivel' },
