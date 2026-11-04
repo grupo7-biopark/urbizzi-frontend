@@ -1,21 +1,25 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import { expectNoA11yViolations } from '@/test/a11y';
+import { renderWithQuery } from '@/test/render';
 import { DesignSystemShowcase } from './design-system-showcase';
+
+vi.mock('next/navigation', () => import('@/test/next-navigation'));
 
 afterEach(() => {
   delete document.documentElement.dataset.theme;
 });
 
 it('não tem violações de acessibilidade', async () => {
-  render(<DesignSystemShowcase />);
+  renderWithQuery(<DesignSystemShowcase />);
+  await screen.findByRole('table', { name: 'Lotes de exemplo' });
 
   await expectNoA11yViolations();
 });
 
 it('troca o tema e limpa a escolha ao sair da página', async () => {
-  const { unmount } = render(<DesignSystemShowcase />);
+  const { unmount } = renderWithQuery(<DesignSystemShowcase />);
   const raiz = document.documentElement;
 
   await userEvent.click(screen.getByRole('button', { name: 'Escuro' }));
@@ -37,7 +41,7 @@ it('troca o tema e limpa a escolha ao sair da página', async () => {
 });
 
 it('dispara os três tipos de notificação', async () => {
-  render(<DesignSystemShowcase />);
+  renderWithQuery(<DesignSystemShowcase />);
 
   await userEvent.click(
     screen.getByRole('button', { name: 'Toast de sucesso' }),
