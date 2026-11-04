@@ -1,1 +1,135 @@
 @import 'tailwindcss';
+
+/*
+ * O tema segue o sistema operacional; `data-theme` no <html> força claro ou escuro.
+ * `light-dark()` escolhe o valor pelo `color-scheme`, sem duplicar a lista de tokens.
+ */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:where(
+      :root:not([data-theme='light']),
+      :root:not([data-theme='light']) *
+    ) {
+      @slot;
+    }
+  }
+}
+
+:root {
+  color-scheme: light dark;
+
+  /* Marca: manual "Urbizzi Marcas e Variações" */
+  --laranja: #ee6017;
+  --preto: #000000;
+  --branco: #ffffff;
+  --prata: #c5c7c7;
+  --cinza-oliva: #8f9289;
+  --cinza-carvao: #545759;
+
+  /* Semânticos: manual */
+  --surface: light-dark(var(--branco), var(--preto));
+  --surface-alt: light-dark(var(--prata), var(--cinza-carvao));
+  --ink: light-dark(var(--preto), var(--branco));
+  --ink-muted: light-dark(var(--cinza-carvao), var(--prata));
+  --accent: var(--laranja);
+  --on-accent: var(--preto);
+  --border: light-dark(var(--prata), var(--cinza-carvao));
+
+  /* Propostas: o manual não define cor para perigo nem para status */
+  --danger: light-dark(#b91c1c, #f87171);
+  --on-danger: light-dark(var(--branco), var(--preto));
+
+  --status-disponivel: light-dark(#16a34a, #22c55e);
+  --on-status-disponivel: var(--preto);
+  --status-reservado: light-dark(#1d4ed8, #60a5fa);
+  --on-status-reservado: light-dark(var(--branco), var(--preto));
+  --status-vendido: light-dark(#be185d, #f472b6);
+  --on-status-vendido: light-dark(var(--branco), var(--preto));
+  /* Carvão fica abaixo de 3:1 sobre preto, então o tema escuro usa prata (ponto em aberto 9). */
+  --status-bloqueado: light-dark(var(--cinza-carvao), var(--prata));
+  --on-status-bloqueado: light-dark(var(--branco), var(--preto));
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Tira do Tailwind o que a marca não usa: cores prontas, sombras e cantos arredondados. */
+@theme {
+  --color-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --radius-*: initial;
+  --radius-none: 0;
+
+  /* A escala é uma proposta do manual, que não define tamanhos. */
+  --text-*: initial;
+  --text-display: 3rem;
+  --text-display--line-height: 3.25rem;
+  --text-display--font-weight: 900;
+  --text-heading: 1.75rem;
+  --text-heading--line-height: 2rem;
+  --text-heading--font-weight: 900;
+  --text-section-label: 1.25rem;
+  --text-section-label--line-height: 1.5rem;
+  --text-section-label--font-weight: 400;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.25rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-caption--font-weight: 700;
+}
+
+@theme inline {
+  --font-sans:
+    var(--font-inter), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display:
+    var(--font-bebas-neue), var(--font-inter), system-ui, sans-serif;
+
+  --color-laranja: var(--laranja);
+  --color-preto: var(--preto);
+  --color-branco: var(--branco);
+  --color-prata: var(--prata);
+  --color-cinza-oliva: var(--cinza-oliva);
+  --color-cinza-carvao: var(--cinza-carvao);
+
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-border: var(--border);
+
+  --color-danger: var(--danger);
+  --color-on-danger: var(--on-danger);
+
+  --color-status-disponivel: var(--status-disponivel);
+  --color-on-status-disponivel: var(--on-status-disponivel);
+  --color-status-reservado: var(--status-reservado);
+  --color-on-status-reservado: var(--on-status-reservado);
+  --color-status-vendido: var(--status-vendido);
+  --color-on-status-vendido: var(--on-status-vendido);
+  --color-status-bloqueado: var(--status-bloqueado);
+  --color-on-status-bloqueado: var(--on-status-bloqueado);
+}
+
+@layer base {
+  /* `ink` mantém 3:1 sobre surface e sobre laranja, nos dois temas. */
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+}
