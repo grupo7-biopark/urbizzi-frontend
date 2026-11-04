@@ -53,7 +53,7 @@ Os dois clientes nascem de `createApi()` (`shared/api/create-api.ts`), e estes c
 
 - **URL absoluta**: no Node, inclusive nos testes, o `Request` não aceita URL relativa. Por isso, `client.ts` usa `window.location.origin`.
 - **`fetch` lido a cada chamada**: por padrão, o `openapi-fetch` guarda o `globalThis.fetch` ao ser criado. Como o cliente nasce no import, antes de `server.listen()`, o MSW não interceptaria nada e os testes fariam requisições reais.
-- **Arrays separados por vírgula**: o padrão do `openapi-fetch` repetiria o parâmetro (`status=A&status=B`), mas a API espera `status=A,B`. Por isso, o `querySerializer` é o `toQueryString()`.
+- **Arrays separados por vírgula**: o padrão do `openapi-fetch` repetiria o parâmetro (`status=A&status=B`), mas o formato documentado pela API é `status=A,B`. Por isso, o `querySerializer` é o `toQueryString()`.
 
 ## Tratamento de erros
 

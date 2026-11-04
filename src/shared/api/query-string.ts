@@ -20,8 +20,8 @@ function serializeValue(value: unknown): string | undefined {
 /**
  * Monta a query string no padrão da API, sem o `?` inicial: vários valores
  * separados por vírgula (`status=DISPONIVEL,RESERVADO`) e sem filtros vazios.
- * Também é o `querySerializer` dos clientes, porque o padrão do `openapi-fetch`
- * repetiria o parâmetro (`status=A&status=B`), que a API não aceita.
+ * Também é o `querySerializer` dos clientes, para as chamadas seguirem o padrão
+ * documentado pela API, e não o do `openapi-fetch` (`status=A&status=B`).
  */
 export function toQueryString(query: Record<string, unknown>) {
   return Object.entries(query)
