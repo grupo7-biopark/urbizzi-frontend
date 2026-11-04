@@ -15,11 +15,14 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "api:generate": "openapi-typescript http://localhost:3000/docs-json -o src/shared/api/schema.d.ts"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.4",
+    "@tanstack/react-query": "^5.105.3",
     "next": "^16.4.5",
+    "openapi-fetch": "^0.17.0",
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -41,6 +44,9 @@
     "@vitest/coverage-v8": "^5.1.0",
     "axe-core": "^4.14.0",
     "jsdom": "^29.1.1",
+    "msw": "^3.0.3",
+    "openapi-msw": "^2.1.1",
+    "openapi-typescript": "^7.13.0",
     "oxlint": "^1.91.0",
     "prettier": "^3.9.10",
     "typescript": "^5.9.3",

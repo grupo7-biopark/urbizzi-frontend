@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { QueryProvider } from '@/shared/api/query-provider';
 import { publicEnv } from '@/shared/config/env.public';
 import { bebasNeue, inter } from './fonts';
 import './globals.css';
@@ -13,7 +14,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR" className={`${inter.variable} ${bebasNeue.variable}`}>
       <body className="bg-surface font-sans text-body text-ink">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );
