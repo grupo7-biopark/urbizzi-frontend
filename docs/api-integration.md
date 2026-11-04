@@ -1,6 +1,6 @@
 # Integração com a API
 
-> **Status:** cliente, erros, TanStack Query e MSW entregues na FE-05. O proxy autenticado `/api/backend` chega na FE-07; até lá, o cliente do navegador não tem destino real. Os padrões da API vêm de [`docs/api-standards.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/api-standards.md) no backend. Se houver divergência, o backend prevalece.
+> **Status:** cliente, erros, TanStack Query e MSW entregues na FE-05, e o proxy autenticado `/api/backend`, na FE-07. Os padrões da API vêm de [`docs/api-standards.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/api-standards.md) no backend. Se houver divergência, o backend prevalece.
 
 ## Tipos gerados do OpenAPI
 
@@ -30,10 +30,12 @@ type ListLotesQuery = NonNullable<
 
 Há um único jeito de chamar o backend, com `openapi-fetch`, e dois clientes com os mesmos tipos:
 
-| Cliente          | Arquivo                       | Usado em                          | Destino                                                                            |
-| ---------------- | ----------------------------- | --------------------------------- | ---------------------------------------------------------------------------------- |
-| `api`            | `shared/api/client.ts`        | Client Components                 | `/api/backend` (proxy BFF)                                                         |
-| `getServerApi()` | `shared/api/client.server.ts` | Server Components, Route Handlers | `API_URL`, com o token recebido por parâmetro (a leitura do cookie chega na FE-07) |
+| Cliente          | Arquivo                       | Usado em                          | Destino                                                                         |
+| ---------------- | ----------------------------- | --------------------------------- | ------------------------------------------------------------------------------- |
+| `api`            | `shared/api/client.ts`        | Client Components                 | `/api/backend` (proxy BFF)                                                      |
+| `getServerApi()` | `shared/api/client.server.ts` | Server Components, Route Handlers | `API_URL`, com o token recebido por parâmetro (`getUsuarioAtual()` lê o cookie) |
+
+As rotas do próprio Next (`/api/auth`) ficam fora do schema e são chamadas por `postBff()` (`shared/api/bff-client.ts`), que também rejeita com `ApiError`.
 
 Cada funcionalidade expõe funções em `features/<modulo>/api/<modulo>.api.ts`. Componentes e hooks chamam essas funções, nunca o cliente direto.
 
@@ -80,18 +82,18 @@ Regras:
 4. `details[].field` pode ter caminho aninhado (`endereco.cep`) e mapeia direto para o nome do campo no `react-hook-form`.
 5. Nunca exiba corpo de resposta bruto, stack ou mensagens de exceção do JavaScript.
 
-| HTTP | `code`                         | Na interface                                                        |
-| ---- | ------------------------------ | ------------------------------------------------------------------- |
-| 400  | `DADOS_INVALIDOS`              | erro embaixo de cada campo (`details`)                              |
-| 400  | `REQUISICAO_INVALIDA`          | mensagem genérica                                                   |
-| 401  | `NAO_AUTENTICADO`              | o proxy tenta renovar; se falhar, vai para `/login?redirect=...`    |
-| 401  | `CREDENCIAIS_INVALIDAS`        | mensagem única no login, sem indicar qual campo errou               |
-| 403  | `ACESSO_NEGADO`                | mensagem ou tela 403; também acontece com o botão escondido (RNF06) |
-| 404  | `<ENTIDADE>_NAO_ENCONTRAD[OA]` | tela ou estado de "não encontrado"                                  |
-| 409  | ex.: `LOTE_INDISPONIVEL`       | mensagem da API e recarga dos dados, porque o estado mudou          |
-| 422  | ex.: `RESERVA_NAO_RENOVAVEL`   | mensagem da API                                                     |
-| 429  | `MUITAS_REQUISICOES`           | pede para aguardar antes de tentar de novo                          |
-| 500  | `ERRO_INTERNO`                 | mensagem genérica, com opção de tentar novamente                    |
+| HTTP | `code`                         | Na interface                                                                   |
+| ---- | ------------------------------ | ------------------------------------------------------------------------------ |
+| 400  | `DADOS_INVALIDOS`              | erro embaixo de cada campo (`details`)                                         |
+| 400  | `REQUISICAO_INVALIDA`          | mensagem genérica                                                              |
+| 401  | `NAO_AUTENTICADO`              | o proxy tenta renovar; se falhar, o `QueryClient` leva a `/login?redirect=...` |
+| 401  | `CREDENCIAIS_INVALIDAS`        | mensagem única no login, sem indicar qual campo errou                          |
+| 403  | `ACESSO_NEGADO`                | mensagem ou tela 403; também acontece com o botão escondido (RNF06)            |
+| 404  | `<ENTIDADE>_NAO_ENCONTRAD[OA]` | tela ou estado de "não encontrado"                                             |
+| 409  | ex.: `LOTE_INDISPONIVEL`       | mensagem da API e recarga dos dados, porque o estado mudou                     |
+| 422  | ex.: `RESERVA_NAO_RENOVAVEL`   | mensagem da API                                                                |
+| 429  | `MUITAS_REQUISICOES`           | pede para aguardar antes de tentar de novo                                     |
+| 500  | `ERRO_INTERNO`                 | mensagem genérica, com opção de tentar novamente                               |
 
 ## TanStack Query
 
@@ -103,6 +105,7 @@ Padrões:
 
 - `retry` de queries: só para erro de rede e 5xx, até 3 vezes. Nunca em 4xx. Mutações não repetem, porque podem não ser idempotentes.
 - `staleTime` acima de zero, para evitar nova busca logo após hidratar.
+- `onError` nos caches de query e de mutação: `NAO_AUTENTICADO` e `REFRESH_TOKEN_INVALIDO` levam ao login, preservando a página (`shared/auth/session-expired.ts`). As telas não precisam tratar esses dois códigos.
 
 ### Chaves
 

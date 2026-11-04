@@ -1,6 +1,6 @@
 # Segurança
 
-> **Status:** sessão e proteção de rotas são entregues na FE-07, e as permissões por perfil, na FE-08. A regra de autorização vale de verdade no backend (ver [`docs/security.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/security.md) dele). Aqui está como a interface a aplica.
+> **Status:** sessão e proteção de rotas foram entregues na FE-07. As permissões por perfil chegam na FE-08. A regra de autorização vale de verdade no backend (ver [`docs/security.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/security.md) dele). Aqui está como a interface a aplica.
 
 ## Princípios
 
@@ -16,11 +16,12 @@ O navegador nunca fala direto com a API. O Next atua como BFF (_backend for fron
 Navegador ── cookie httpOnly ──► Next (/api/auth, /api/backend) ── Authorization: Bearer ──► API
 ```
 
-| Rota do Next             | O que faz                                            | Rota da API            |
-| ------------------------ | ---------------------------------------------------- | ---------------------- |
-| `POST /api/auth/login`   | autentica e grava os cookies                         | `POST /v1/auth/login`  |
-| `POST /api/auth/logout`  | revoga e apaga os cookies, mesmo se o backend falhar | `POST /v1/auth/logout` |
-| `/api/backend/[...path]` | injeta o token, renova no `401` e repassa a resposta | qualquer `/v1/...`     |
+| Rota do Next             | O que faz                                            | Rota da API                                  |
+| ------------------------ | ---------------------------------------------------- | -------------------------------------------- |
+| `POST /api/auth/login`   | autentica e grava os cookies                         | `POST /v1/auth/login`                        |
+| `POST /api/auth/logout`  | revoga e apaga os cookies, mesmo se o backend falhar | `POST /v1/auth/logout`                       |
+| `GET /api/auth/refresh`  | renova e volta à página, para Server Components      | `POST /v1/auth/refresh`                      |
+| `/api/backend/[...path]` | injeta o token, renova no `401` e repassa a resposta | qualquer `/v1/...`, exceto as rotas de token |
 
 O contrato do backend:
 
@@ -31,12 +32,15 @@ O contrato do backend:
 Regras:
 
 1. Access e refresh token ficam em cookies `httpOnly`, `SameSite=Lax` e `Secure`. Só o ambiente de desenvolvimento em HTTP pode dispensar `Secure`.
-2. **Renovação única**: com requisições simultâneas, só uma chama o refresh; as outras aguardam o resultado. Como o token é de uso único, duas renovações concorrentes derrubariam a sessão.
-3. **Só Route Handlers gravam cookies.** Server Components não conseguem gravá-los durante a renderização. Por isso, um Server Component que receber `401` não renova: redireciona o usuário para o login, ou para uma rota que renove.
-4. Refresh inválido (`401 REFRESH_TOKEN_INVALIDO`) apaga os cookies e leva a `/login?redirect=<rota>`.
-5. O proxy só encaminha para `/v1/...` em `API_URL`, nunca para uma URL vinda da requisição (risco de SSRF). Ele não repassa o header `Cookie` à API e não registra corpo, headers nem query string.
+2. **Renovação única**: com requisições simultâneas, só uma chama o refresh; as outras aguardam o resultado. Como o token é de uso único, duas renovações concorrentes derrubariam a sessão. O resultado fica disponível por 10 segundos, para quem chega depois com o cookie antigo. Isso vale por processo: com mais de uma réplica, será preciso um armazenamento compartilhado.
+3. **Só Route Handlers gravam cookies.** Server Components não conseguem gravá-los durante a renderização. Por isso, `getUsuarioAtual()` não renova: com `401`, redireciona para `/api/auth/refresh`.
+4. Refresh inválido (`401 REFRESH_TOKEN_INVALIDO`) apaga os cookies e leva a `/login?redirect=<rota>`. Falha temporária (`429`, `5xx`, rede) **mantém** os cookies: a sessão continua valendo, e a página mostra `/sessao-indisponivel`, com a opção de tentar novamente.
+5. O proxy só encaminha para `/v1/...` em `API_URL`, nunca para uma URL vinda da requisição (risco de SSRF). Ele não repassa o header `Cookie` à API e não registra corpo, headers nem query string. As rotas `/v1/auth/login`, `refresh` e `logout` são bloqueadas no proxy, porque devolveriam tokens ao JavaScript do navegador.
 6. Em métodos que alteram dados, o proxy e as rotas de autenticação conferem o header `Origin`. `SameSite=Lax` ajuda contra CSRF, mas Route Handlers não têm a checagem automática de origem das Server Actions.
-7. `redirect` aceita só caminho interno (começa com `/`, mas não com `//`), para evitar redirecionamento aberto.
+7. `redirect` aceita só caminho interno (`getSafeRedirect()`), para evitar redirecionamento aberto.
+8. Corpos de até 10 MB ficam em memória, para serem reenviados depois da renovação. Acima disso, seguem em fluxo: em um `401`, a sessão é renovada, mas o envio precisa ser repetido.
+
+**Limitação conhecida:** a API limita login e refresh a 5 tentativas por minuto **por IP**, e não confia em `X-Forwarded-For`. Como todas as chamadas partem do servidor do Next, todos os usuários dividem esse limite. Até o backend tratar disso, várias pessoas renovando a sessão no mesmo minuto podem receber `429`, sem perder a sessão.
 
 ## Proteção de rotas
 
@@ -47,8 +51,10 @@ São duas camadas, com papéis diferentes:
 | Otimista   | `src/proxy.ts`                           | lê só o **cookie**, sem chamar a API: sem sessão, redireciona para `/login?redirect=...`; com sessão, tira de `/login` |
 | Definitiva | layout ou página de `(app)`, no servidor | carrega o usuário de `GET /v1/auth/me` e confere o perfil; sem permissão, mostra a tela 403                            |
 
-- `src/proxy.ts` substitui o `middleware.ts` citado na FE-07, porque a convenção antiga está depreciada no Next 16. Ele roda em toda rota, inclusive em pré-carregamentos, e a documentação do Next proíbe buscas lentas nele. Não o use como única proteção.
+- `src/proxy.ts` substitui o `middleware.ts`, porque a convenção antiga está depreciada no Next 16. Ele roda em toda rota, inclusive em pré-carregamentos, e a documentação do Next proíbe buscas lentas nele. Não o use como única proteção.
 - O `matcher` dele exclui `/api`, `/_next`, arquivos estáticos e a página pública. Rotas de API respondem `401`, sem redirecionar.
+- Ele também informa a rota atual ao layout, pelo header `x-urbizzi-path`, porque um layout não a conhece.
+- A tela de login mostra a mesma mensagem para senha errada e usuário inativo, porque a API responde igual aos dois, para não revelar quais contas existem.
 - A tela 403 é um componente comum. O arquivo `forbidden.js` do Next ainda é experimental nesta versão: só adote depois de avaliar na FE-08.
 
 ## Autorização por perfil

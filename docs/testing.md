@@ -59,7 +59,13 @@ Abre o navegador e percorre o sistema como o usuário. Fica para os fluxos que a
 4. Navegação que depende da URL (paginação e filtros mantidos ao recarregar).
 5. Página pública: respostas de rede sem campos sensíveis.
 
-O teste da página inicial (`e2e/home.spec.ts`) não precisa da API. Os fluxos contra o backend real entram na FE-35.
+Como o CI não tem o backend, o Playwright sobe uma API falsa (`e2e/support/fake-api.mjs`), que implementa só o contrato de autenticação. Os mesmos testes rodam contra o backend real, informando um usuário de teste:
+
+```bash
+E2E_API_URL=http://localhost:3000 E2E_EMAIL=... E2E_SENHA=... npx playwright test e2e/auth.spec.ts
+```
+
+Nesse modo, a API limita a 5 logins por minuto: espere um minuto antes de repetir. Se já houver um servidor na porta 3001, o Playwright o reaproveita com a `API_URL` que ele tiver. Os demais fluxos contra o backend real entram na FE-35.
 
 ## Uso do MSW
 
@@ -295,14 +301,22 @@ it('mostra no campo o conflito de nome devolvido pela API', async () => {
 ### E2E
 
 ```ts
-// e2e/home.spec.ts
+// e2e/auth.spec.ts
 import { expect, test } from '@playwright/test';
 
-test('abre a página inicial e recebe 200', async ({ page }) => {
-  const response = await page.goto('/');
+test('mostra a mensagem de senha errada e continua no login', async ({
+  page,
+}) => {
+  await page.goto('/login');
 
-  expect(response?.status()).toBe(200);
-  await expect(page.getByRole('heading', { name: 'Urbizzi' })).toBeVisible();
+  await page.getByLabel('E-mail').fill('pessoa@exemplo.com');
+  await page.getByLabel('Senha').fill('senha-errada-123');
+  await page.getByRole('button', { name: 'Entrar' }).click();
+
+  // Só no formulário: o Next mantém o próprio `role="alert"` para anunciar rotas.
+  await expect(page.locator('form').getByRole('alert')).toHaveText(
+    'E-mail ou senha incorretos, ou usuário inativo.',
+  );
 });
 ```
 
