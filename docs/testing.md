@@ -41,6 +41,14 @@ Para cada componente com dados, cubra o que se aplicar:
 
 Server Components `async` não são renderizados pelo Testing Library: cubra-os no e2e e extraia a lógica para funções testáveis. Essa é uma recomendação da própria documentação do Next.
 
+### Acessibilidade
+
+- **Componente:** `expectNoA11yViolations()` (`src/test/a11y.ts`) roda o `axe` na árvore renderizada, com o componente aberto quando for o caso. O jsdom não calcula cores, então o contraste fica de fora.
+- **Contraste dos tokens:** `src/shared/ui/tokens.test.ts` calcula as combinações aprovadas nos dois temas. Token novo entra nessa lista.
+- **Navegador real:** `e2e/design-system.spec.ts` roda o `axe` na página `/design-system`, com contraste, nos dois temas.
+
+O jsdom também não implementa as APIs de layout que o Radix chama; os substitutos ficam em `vitest.setup.ts`.
+
 ### E2E (`e2e/<funcionalidade>.spec.ts`)
 
 Abre o navegador e percorre o sistema como o usuário. Fica para os fluxos que atravessam várias camadas:

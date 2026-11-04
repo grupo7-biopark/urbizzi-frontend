@@ -36,7 +36,7 @@ src/
 └── shared/                       # código transversal, sem regra de nenhuma funcionalidade
     ├── config/                   # validação de ambiente
     ├── api/                      # previsto (FE-05): schema gerado, clientes, ApiError
-    ├── ui/                       # previsto (FE-04): design system
+    ├── ui/                       # design system (ver docs/ui.md)
     └── auth/                     # previsto (FE-07, FE-08): usuário atual e permissões
 e2e/                              # testes do Playwright
 docs/                             # esta documentação
@@ -66,7 +66,7 @@ Só o que é usado por mais de uma funcionalidade e não contém regra de negóc
 | `config/env.server.ts` | `getServerEnv()`, só no servidor                                      | existe                  |
 | `config/env.public.ts` | `publicEnv`, disponível também no navegador                           | existe                  |
 | `api/`                 | `schema.d.ts` gerado, clientes, `ApiError`, utilitários de paginação  | previsto (FE-05)        |
-| `ui/`                  | Button, Input, Dialog, Table, Badge e demais componentes base         | previsto (FE-04)        |
+| `ui/`                  | Button, Input, Dialog, Table, Badge e demais componentes base         | existe                  |
 | `ui/`                  | `DataTable`, `Form`, `ConfirmDialog`, máscaras                        | previsto (FE-06)        |
 | `auth/`                | `useUsuarioAtual()`, `permissoes.ts`, `<Permitido>`, `usePermissao()` | previsto (FE-07, FE-08) |
 
@@ -155,7 +155,7 @@ O inverso vale para o erro: a resposta da API vira um `ApiError`, que a tela exi
 
 ## Exemplo completo: funcionalidade `loteamentos`
 
-Modelo a ser copiado para funcionalidades novas, com o contrato real do backend. Depende de FE-04 (`@/shared/ui`), FE-05 (`@/shared/api`) e FE-08 (`@/shared/auth`); a assinatura exata desses componentes pode ser ajustada quando eles forem entregues. A partir da FE-06, troque a tabela e o formulário manuais por `DataTable` e `Form`.
+Modelo a ser copiado para funcionalidades novas, com o contrato real do backend. Depende de FE-05 (`@/shared/api`) e FE-08 (`@/shared/auth`), ainda não entregues; a assinatura exata do que vier deles pode ser ajustada na entrega. A partir da FE-06, troque a tabela e o formulário manuais por `DataTable` e `Form`.
 
 Rotas: `GET /v1/loteamentos` (paginada, com `q`), `POST /v1/loteamentos`. Os perfis estão na [matriz](security.md#matriz-de-permissões): todos visualizam; Administrador e Gestor cadastram.
 
@@ -314,7 +314,15 @@ export function LoteamentosTable({ search }: { search: LoteamentosSearch }) {
           ))}
         </tbody>
       </table>
-      <Pagination meta={data.meta} />
+      <Pagination
+        meta={data.meta}
+        getPageHref={(page) =>
+          `/loteamentos?${new URLSearchParams({
+            ...(search.q ? { q: search.q } : {}),
+            page: String(page),
+          })}`
+        }
+      />
     </>
   );
 }
