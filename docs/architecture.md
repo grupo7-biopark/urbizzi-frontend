@@ -20,8 +20,8 @@ src/
 ├── app/                          # só rotas: páginas finas que compõem funcionalidades
 │   ├── layout.tsx                # layout raiz
 │   ├── globals.css
-│   ├── (auth)/                   # previsto: login e recuperação de senha
-│   ├── (app)/                    # previsto: telas internas, com sessão e menu
+│   ├── (auth)/                   # login; recuperação de senha prevista (FE-09)
+│   ├── (app)/                    # telas internas, com sessão; menu previsto (FE-08)
 │   ├── (publico)/                # previsto: mapa público por token
 │   └── api/
 │       ├── health/route.ts       # GET /api/health
@@ -68,7 +68,7 @@ Só o que é usado por mais de uma funcionalidade e não contém regra de negóc
 | `config/env.public.ts` | `publicEnv`, disponível também no navegador                          | existe           |
 | `api/`                 | `schema.d.ts` gerado, clientes, `ApiError`, utilitários de paginação | existe           |
 | `ui/`                  | Button, Input, Dialog, Table, Badge e demais componentes base        | existe           |
-| `ui/`                  | `DataTable`, `Form`, `ConfirmDialog`, máscaras                       | previsto (FE-06) |
+| `ui/`                  | `DataTable`, `Form`, `ConfirmDialog`, máscaras                       | existe           |
 | `auth/`                | sessão, `getUsuarioAtual()`, `useUsuarioAtual()`                     | existe           |
 | `auth/`                | `permissoes.ts`, `<Permitido>`, `usePermissao()`                     | previsto (FE-08) |
 
@@ -157,7 +157,7 @@ O inverso vale para o erro: a resposta da API vira um `ApiError`, que a tela exi
 
 ## Exemplo completo: funcionalidade `loteamentos`
 
-Modelo a ser copiado para funcionalidades novas, com o contrato real do backend. Depende de FE-08 (`@/shared/auth`), ainda não entregue; a assinatura exata do que vier dela pode ser ajustada na entrega. A partir da FE-06, troque a tabela e o formulário manuais por `DataTable` e `Form`.
+Modelo a ser copiado para funcionalidades novas, com o contrato real do backend. Depende de FE-08 (`@/shared/auth`), ainda não entregue; a assinatura exata do que vier dela pode ser ajustada na entrega. Nas telas novas, use `DataTable` e `Form` ([ui.md](ui.md#listagens-e-formulários)) em vez da tabela e do formulário manuais deste exemplo.
 
 Rotas: `GET /v1/loteamentos` (paginada, com `q`), `POST /v1/loteamentos`. Os perfis estão na [matriz](security.md#matriz-de-permissões): todos visualizam; Administrador e Gestor cadastram.
 

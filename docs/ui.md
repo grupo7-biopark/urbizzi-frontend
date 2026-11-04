@@ -1,27 +1,34 @@
 # Interface
 
-> **Status:** tokens e componentes base existem em `src/app/globals.css` e `src/shared/ui/`. Os padrões de listagem e formulário (`DataTable`, `Form`, `ConfirmDialog`, máscaras) são entregues na FE-06. A fonte de verdade da marca é o guia oficial **"Urbizzi Marcas e Variações"**; em caso de divergência, ele prevalece.
+> **Status:** tokens e componentes base existem em `src/app/globals.css` e `src/shared/ui/`. Os padrões de listagem e formulário estão em [Listagens e formulários](#listagens-e-formulários). A fonte de verdade da marca é o guia oficial **"Urbizzi Marcas e Variações"**; em caso de divergência, ele prevalece.
 
 ## Design system
 
 Use os componentes de `src/shared/ui/` e os tokens do tema. Não recrie botão, campo ou diálogo dentro de uma funcionalidade. Se faltar uma variação, adicione-a ao design system. Para ver tudo funcionando, abra [`/design-system`](http://localhost:3001/design-system), disponível só em desenvolvimento.
 
-| Arquivo                                          | Exporta                                                                   | Observações                                                                              |
-| ------------------------------------------------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `button.tsx`                                     | `Button`                                                                  | `variant`: `primario`, `secundario`, `perigo`, `fantasma`. `type` padrão é `button`      |
-| `input.tsx`, `textarea.tsx`, `select.tsx`        | `Input`, `Textarea`, `Select`                                             | `label` obrigatório; `error` e `hint` ligados ao campo. Aceitam `{...register('campo')}` |
-| `checkbox.tsx`, `switch.tsx`                     | `Checkbox`, `Switch`                                                      | inputs nativos, com `label` obrigatório                                                  |
-| `label.tsx`                                      | `Label`, `FieldError`                                                     | para campos fora dos componentes acima                                                   |
-| `dialog.tsx`, `drawer.tsx`                       | `Dialog`, `DialogClose`, `Drawer`                                         | `title` obrigatório; `trigger`, ou controle com `open` e `onOpenChange`                  |
-| `dropdown.tsx`                                   | `Dropdown`, `DropdownItem`, `DropdownSeparator`                           | `variant="perigo"` em ações destrutivas                                                  |
-| `tabs.tsx`                                       | `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`                          | dê `aria-label` ao `TabsList`                                                            |
-| `table.tsx`                                      | `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell` |                                                                                          |
-| `badge.tsx`                                      | `Badge`, `StatusLoteBadge`, `StatusPropostaBadge`                         | sempre com cor e texto                                                                   |
-| `toast.tsx`                                      | `ToastProvider`, `useToast`                                               | hoje o provider só está em `/design-system`; a FE-08 o coloca no layout de `(app)`       |
-| `skeleton.tsx`, `spinner.tsx`, `empty-state.tsx` | `Skeleton`, `Spinner`, `EmptyState`                                       | `Skeleton` exige `aria-label`                                                            |
-| `pagination.tsx`                                 | `Pagination`                                                              | recebe `meta` da API e `getPageHref(page)`                                               |
-| `tooltip.tsx`                                    | `Tooltip`                                                                 | só complementa: não existe no toque                                                      |
-| `logo.tsx`                                       | `Logo`, `LogoSimbolo`                                                     | ver [Logos](#logos)                                                                      |
+| Arquivo                                          | Exporta                                                                               | Observações                                                                              |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `button.tsx`                                     | `Button`                                                                              | `variant`: `primario`, `secundario`, `perigo`, `fantasma`. `type` padrão é `button`      |
+| `input.tsx`, `textarea.tsx`, `select.tsx`        | `Input`, `Textarea`, `Select`                                                         | `label` obrigatório; `error` e `hint` ligados ao campo. Aceitam `{...register('campo')}` |
+| `checkbox.tsx`, `switch.tsx`                     | `Checkbox`, `Switch`                                                                  | inputs nativos, com `label` obrigatório                                                  |
+| `label.tsx`                                      | `Label`, `FieldError`                                                                 | para campos fora dos componentes acima                                                   |
+| `dialog.tsx`, `drawer.tsx`                       | `Dialog`, `DialogClose`, `Drawer`                                                     | `title` obrigatório; `trigger`, ou controle com `open` e `onOpenChange`                  |
+| `dropdown.tsx`                                   | `Dropdown`, `DropdownItem`, `DropdownSeparator`                                       | `variant="perigo"` em ações destrutivas                                                  |
+| `tabs.tsx`                                       | `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`                                      | dê `aria-label` ao `TabsList`                                                            |
+| `table.tsx`                                      | `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`             |                                                                                          |
+| `badge.tsx`                                      | `Badge`, `StatusLoteBadge`, `StatusPropostaBadge`                                     | sempre com cor e texto                                                                   |
+| `toast.tsx`                                      | `ToastProvider`, `useToast`                                                           | o provider está no layout de `(app)` e em `/design-system`                               |
+| `skeleton.tsx`, `spinner.tsx`, `empty-state.tsx` | `Skeleton`, `Spinner`, `EmptyState`                                                   | `Skeleton` exige `aria-label`                                                            |
+| `pagination.tsx`                                 | `Pagination`                                                                          | recebe `meta` da API e `getPageHref(page)`; `label` diferencia duas na mesma tela        |
+| `data-table.tsx`                                 | `DataTable`                                                                           | listagem paginada com estado na URL; vira cartões no celular                             |
+| `list-filters.tsx`                               | `FilterBar`, `UrlSearchFilter`, `UrlSelectFilter`, `DebouncedSearch`                  | filtros sincronizados com a URL                                                          |
+| `use-list-params.ts`                             | `useListParams`, `hasActiveFilters`                                                   | lê e altera o estado da listagem na URL                                                  |
+| `form.tsx`                                       | `Form`, `FormInput`, `FormTextarea`, `FormSelect`, `FormMaskedInput`, `applyApiError` | `react-hook-form` com Zod e erros da API no campo                                        |
+| `masked-input.tsx`, `masks.ts`                   | `MaskedInput`, máscaras e formatadores                                                | ver [Máscaras](#máscaras)                                                                |
+| `confirm-dialog.tsx`                             | `ConfirmDialog`                                                                       | confirmação com motivo                                                                   |
+| `use-api-mutation.ts`                            | `useApiMutation`                                                                      | mutação com Toast e invalidação                                                          |
+| `tooltip.tsx`                                    | `Tooltip`                                                                             | só complementa: não existe no toque                                                      |
+| `logo.tsx`                                       | `Logo`, `LogoSimbolo`                                                                 | ver [Logos](#logos)                                                                      |
 
 Dialog, Drawer, Dropdown, Tabs, Toast e Tooltip usam Radix UI, que cuida de foco, teclado e ARIA. Select, Checkbox e Switch são nativos, porque já funcionam bem no teclado e no celular.
 
@@ -115,6 +122,92 @@ Regras:
 
 > **Divergência a confirmar com o designer:** os vetores dos logos usam #FF5300, e a tabela de cores do guia diz #EE6017. Os SVGs preservam o arquivo original; a interface usa #EE6017.
 
+## Listagens e formulários
+
+Os blocos de `src/shared/ui/` fazem com que uma tela nova seja só configuração. A página lê a URL com o schema, e o componente da funcionalidade compõe os blocos:
+
+```tsx
+// src/features/loteamentos/components/loteamentos-table.tsx
+'use client';
+
+export function LoteamentosTable({ search }: { search: LoteamentosSearch }) {
+  const query = useQuery(loteamentosListOptions(search));
+
+  return (
+    <>
+      <FilterBar>
+        <UrlSearchFilter />
+        <UrlSelectFilter name="ativo" label="Situação" options={OPCOES} />
+      </FilterBar>
+      <DataTable
+        label="Loteamentos"
+        query={query}
+        columns={[
+          { id: 'nome', header: 'Nome', cell: (row) => row.nome },
+          {
+            id: 'acoes',
+            header: 'Ações',
+            cell: (row) => <Acoes id={row.id} />,
+          },
+        ]}
+        getRowKey={(row) => row.id}
+        emptyTitle="Nenhum loteamento cadastrado"
+      />
+    </>
+  );
+}
+```
+
+- `DataTable` trata carregamento, erro com "Tentar novamente", vazio, "nenhum resultado para os filtros" e página além da última. No celular, cada linha vira um cartão.
+- `sortKey` na coluna ativa a ordenação. Só informe se a rota aceitar `orderBy`: hoje, nenhuma aceita.
+- Mudar um filtro ou a ordem volta à primeira página, e o estado todo fica na URL (`useListParams`).
+- Busca que aceita dado pessoal não vai para a URL: use `DebouncedSearch`, com estado local, em vez de `UrlSearchFilter` ([security.md](security.md#lgpd-na-interface)).
+- O `useSearchParams` dos blocos exige um limite de `Suspense` em página estática. Uma página que lê `searchParams` é dinâmica e não precisa dele.
+
+```tsx
+export function LoteamentoForm({ onSuccess }: { onSuccess: () => void }) {
+  const create = useApiMutation({
+    mutationFn: createLoteamento,
+    invalidates: [loteamentosKeys.lists()],
+    successMessage: 'Loteamento salvo',
+    errorToast: false, // o Form mostra o erro nele mesmo
+  });
+
+  return (
+    <Form
+      schema={loteamentoFormSchema}
+      defaultValues={{ nome: '', valor: '' }}
+      onSubmit={async (values) => {
+        await create.mutateAsync(toCreateLoteamento(values));
+        onSuccess();
+      }}
+      fieldsByCode={{ LOTEAMENTO_JA_EXISTE: 'nome' }}
+    >
+      <FormInput name="nome" label="Nome" required />
+      <FormMaskedInput name="valor" label="Valor" mask="moeda" />
+    </Form>
+  );
+}
+```
+
+- `onSubmit` precisa **rejeitar** com o `ApiError` (`mutateAsync`, e não `mutate`): é assim que o `Form` mostra `details` embaixo de cada campo, inclusive em caminhos aninhados (`endereco.cep`), e o restante no alerta.
+- `fieldsByCode` leva ao campo um erro que a API não associa a ele.
+- Valide no schema Zod, com texto em português, o que a API também valida: as mensagens de `details` podem vir em inglês ([api-integration.md](api-integration.md#tratamento-de-erros)).
+- Fora de um `Form`, `useApiMutation` avisa o erro com um Toast. Em um `409`, ela também invalida as queries, porque a tela mostra um estado que já mudou.
+
+### Máscaras
+
+`MaskedInput` e `FormMaskedInput` exibem o valor com máscara e guardam o que a API espera. Para exibir fora de campos, use as funções de `masks.ts`.
+
+| `mask`     | Exibe                                  | Guarda         | Para exibir                |
+| ---------- | -------------------------------------- | -------------- | -------------------------- |
+| `cpfCnpj`  | `529.982.247-25`, `11.222.333/0001-81` | só dígitos     | `maskCpfCnpj`              |
+| `telefone` | `(45) 99999-8888`                      | só dígitos     | `maskTelefone`             |
+| `moeda`    | `R$ 250.000,00`                        | string decimal | `formatMoeda`              |
+| `area`     | `360,00`, com a unidade no rótulo      | string decimal | `formatArea` (`360,00 m²`) |
+
+Moeda e área são digitadas da direita para a esquerda, em centavos. Nenhuma função converte para `number`, para não perder precisão.
+
 ## Regras do manual de marca
 
 1. **Cantos retos**: raio 0 em tudo.
@@ -132,7 +225,7 @@ Regras:
 - Status nunca depende só da cor: o Badge traz cor **e** texto, inclusive no mapa (legenda).
 - Campo tem `<label>` associado, e erro é anunciado e ligado ao campo.
 - Use elementos semânticos: `button` para ação, `a` para navegação, `table` para dados tabulares, um `h1` por tela.
-- A interface precisa ser utilizável em computador, tablet e celular (RNF01), sem rolagem horizontal da página. Tabelas viram lista de cartões no celular (FE-06).
+- A interface precisa ser utilizável em computador, tablet e celular (RNF01), sem rolagem horizontal da página. O `DataTable` vira lista de cartões no celular.
 - A página pública é pensada primeiro para celular.
 
 ## Padrões de tela

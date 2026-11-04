@@ -19,7 +19,7 @@ function getApiFieldError(error: unknown, field: FieldName) {
     : undefined;
 }
 
-// `react-hook-form` chega na FE-06. Com dois campos, o estado local basta.
+// Estado local: com dois campos e a navegação completa ao final, o `Form` não traria ganho.
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const login = useLogin();
   const [errors, setErrors] = useState<FieldErrors>({});

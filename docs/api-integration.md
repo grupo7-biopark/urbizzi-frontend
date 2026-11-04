@@ -127,6 +127,8 @@ export const lotesKeys = {
 
 ### Invalidação após mutações
 
+Nas telas, prefira `useApiMutation` (`shared/ui/use-api-mutation.ts`), que já invalida as queries informadas e avisa o resultado com um Toast. O padrão por trás dela é este:
+
 Toda mutação invalida o que ela pode ter alterado, no `onSuccess` de `useMutation`, devolvendo a `Promise`. A invalidação compara por prefixo, então `lists()` alcança todas as páginas e filtros.
 
 ```ts
