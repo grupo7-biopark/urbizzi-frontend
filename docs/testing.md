@@ -292,11 +292,24 @@ test('abre a página inicial e recebe 200', async ({ page }) => {
 - **80% de linhas e de branches** em `src/shared/**` e em `src/features/**/{api,hooks,schemas}/**`.
 - Componentes são cobertos pelos cenários acima, sem meta numérica.
 - Todo bug corrigido ganha um teste que falhava antes da correção.
-- O limite é configurado em `coverage.thresholds` na FE-03. Até lá, confira com `npm run test:cov`.
+- O limite está configurado em `vitest.config.ts` (`coverage.thresholds`): `npm run test:cov` falha abaixo de 80%, localmente e no CI.
 
 ## Integração contínua
 
-Previsto na FE-03: GitHub Actions em todo PR e em todo push na `main`, com `lint`, `format:check`, `typecheck`, `test:cov` e `build`, além de um job de e2e. Ao entregar, documente aqui os jobs e as verificações obrigatórias, como faz o backend.
+O workflow `.github/workflows/ci.yml` roda em todo Pull Request e em todo push na `main`, com dois jobs em paralelo:
+
+| Job                             | Etapas                                                                                                               |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Lint, tipos, testes e build** | `npm ci` (com cache do npm) → `lint` → `format:check` → `typecheck` → `test:cov` (com limite de cobertura) → `build` |
+| **Testes e2e**                  | `npm ci` → navegador do Playwright (com cache) → `test:e2e`                                                          |
+
+Um novo push no mesmo PR cancela a execução anterior. Cada etapa interrompe o job ao falhar, então corrigir um erro pode revelar outro na etapa seguinte.
+
+Quando o e2e falha, o artefato `playwright-report` fica disponível por 14 dias na página da execução, com o relatório HTML e os traces. Para ver um trace, baixe o artefato e abra `playwright-report/index.html` por `npx playwright show-report playwright-report`.
+
+**Proteção da `main`:** ainda não está ativa. O GitHub só oferece proteção de branch e rulesets em repositório privado a partir do plano pago, e este é privado em uma organização no plano Free. Até mudar, o GitHub **não** impede o merge com CI vermelho nem o push direto: confira os dois jobs antes de mergear. Ao ativar, exija como verificações obrigatórias `Lint, tipos, testes e build` e `Testes e2e`. Se renomear um job, atualize também essas verificações.
+
+Para reproduzir localmente o que o CI faz: `npm run lint && npm run format:check && npm run typecheck && npm run test:cov && npm run build && npm run test:e2e`.
 
 ## Boas práticas
 
