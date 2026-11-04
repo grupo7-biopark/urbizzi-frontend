@@ -5,5 +5,5 @@ import { createApi } from './create-api';
 // A URL precisa ser absoluta porque o `Request` do Node não aceita URL relativa.
 const origin = typeof window === 'undefined' ? '' : window.location.origin;
 
-/** Cliente de Client Components: passa pelo proxy BFF `/api/backend` (FE-07). */
+/** Cliente de Client Components: passa pelo proxy BFF `/api/backend`. */
 export const api = createApi({ baseUrl: `${origin}/api/backend` });

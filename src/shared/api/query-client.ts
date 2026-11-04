@@ -1,4 +1,10 @@
-import { environmentManager, QueryClient } from '@tanstack/react-query';
+import {
+  environmentManager,
+  MutationCache,
+  QueryCache,
+  QueryClient,
+} from '@tanstack/react-query';
+import { handleSessionExpired } from '@/shared/auth/session-expired';
 import { ApiError, NETWORK_ERROR_STATUS } from './errors';
 
 const MAX_RETRIES = 3;
@@ -17,6 +23,8 @@ export function shouldRetryQuery(failureCount: number, error: unknown) {
 
 export function makeQueryClient() {
   return new QueryClient({
+    queryCache: new QueryCache({ onError: handleSessionExpired }),
+    mutationCache: new MutationCache({ onError: handleSessionExpired }),
     defaultOptions: {
       queries: {
         retry: shouldRetryQuery,

@@ -4,8 +4,8 @@ import { createApi } from './create-api';
 
 /**
  * Cliente de Server Components e Route Handlers: fala direto com a API.
- * O token é parâmetro porque a leitura do cookie de sessão chega na FE-07 e a
- * página pública não usa sessão.
+ * O token é parâmetro porque nem toda chamada usa sessão, como o login e a
+ * página pública.
  */
 export function getServerApi(accessToken?: string) {
   return createApi({
