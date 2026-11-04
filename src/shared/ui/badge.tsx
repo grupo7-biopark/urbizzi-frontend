@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'react';
+import type { components } from '@/shared/api/schema';
 import { cn } from './cn';
 
 const TONE_CLASSES = {
@@ -27,8 +28,9 @@ export function Badge({ tone = 'neutro', className, ...props }: BadgeProps) {
   );
 }
 
-// Os dois tipos abaixo repetem os enums do backend até a FE-05 entregar o schema gerado.
-export type StatusLote = 'DISPONIVEL' | 'RESERVADO' | 'VENDIDO' | 'BLOQUEADO';
+export type StatusLote = components['schemas']['StatusLote'];
+// Repete o enum do backend até as rotas de propostas entrarem no OpenAPI: troque
+// pelo tipo do schema gerado ao regenerá-lo com elas.
 export type StatusProposta = 'EM_ANALISE' | 'APROVADA' | 'REJEITADA';
 
 const STATUS_LOTE = {
