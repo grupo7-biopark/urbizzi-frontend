@@ -28,10 +28,17 @@ const ITEM_CLASSES =
 type PaginationProps = {
   meta: { page: number; totalPages: number };
   getPageHref: (page: number) => string;
+  /** Diferencie quando houver mais de uma paginação na mesma tela. */
+  label?: string;
   className?: string;
 };
 
-export function Pagination({ meta, getPageHref, className }: PaginationProps) {
+export function Pagination({
+  meta,
+  getPageHref,
+  label = 'Paginação',
+  className,
+}: PaginationProps) {
   const { page, totalPages } = meta;
 
   if (totalPages <= 1) {
@@ -40,7 +47,7 @@ export function Pagination({ meta, getPageHref, className }: PaginationProps) {
 
   return (
     <nav
-      aria-label="Paginação"
+      aria-label={label}
       className={cn('flex flex-wrap items-center gap-1', className)}
     >
       <PageStep

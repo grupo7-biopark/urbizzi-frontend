@@ -103,6 +103,14 @@ server.use(
 
 Para simular o que o contrato não descreve (falha de rede, 502 em HTML), use `http.untyped`, que **não** aplica o prefixo: escreva `*/v1/...` na rota, para não depender da origem. O mesmo vale para o `http` importado direto de `msw`. Para os erros da API, use `makeErrorResponse()` de `@/test/factories/error-response.factory`.
 
+Componentes que usam a URL (`DataTable`, filtros) precisam de `next/navigation`, que só existe dentro do Next. `src/test/next-navigation.ts` o substitui, usando a URL do jsdom, e `setTestUrl()` define a URL inicial:
+
+```ts
+vi.mock('next/navigation', () => import('@/test/next-navigation'));
+```
+
+O `user-event` trava com os timers falsos do Vitest: nesses testes, use `fireEvent`.
+
 `QueryClient` novo a cada teste, sem retry, para o cache não vazar entre testes:
 
 ```tsx

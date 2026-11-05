@@ -8,6 +8,7 @@ import { UserMenu } from '@/features/auth/components/user-menu';
 import { USUARIO_ATUAL_KEY } from '@/shared/auth/usuario-atual.queries';
 import { getUsuarioAtual } from '@/shared/auth/usuario-atual.server';
 import { Logo } from '@/shared/ui/logo';
+import { ToastProvider } from '@/shared/ui/toast';
 
 // O menu e a navegação por perfil chegam na FE-08.
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -19,11 +20,13 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
-        <Logo className="h-8 w-auto" />
-        <UserMenu />
-      </header>
-      {children}
+      <ToastProvider>
+        <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
+          <Logo className="h-8 w-auto" />
+          <UserMenu />
+        </header>
+        {children}
+      </ToastProvider>
     </HydrationBoundary>
   );
 }

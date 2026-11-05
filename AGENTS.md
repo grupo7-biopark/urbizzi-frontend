@@ -10,19 +10,19 @@ Frontend do **Urbizzi**: sistema de gestão de loteamentos (cadastro de loteamen
 
 ## Stack
 
-| Item              | Tecnologia                                             | Situação                     |
-| ----------------- | ------------------------------------------------------ | ---------------------------- |
-| Runtime           | Node.js 24, ESM (`"type": "module"`)                   | em uso                       |
-| Framework         | Next.js 16 (App Router), React 19, TypeScript `strict` | em uso                       |
-| Estilo            | Tailwind CSS v4, com os tokens da marca                | em uso                       |
-| Componentes       | Radix UI (`radix-ui`), só onde há foco e teclado       | em uso                       |
-| Validação         | Zod (variáveis de ambiente)                            | em uso; formulários na FE-06 |
-| Lint / formatação | oxlint + Prettier                                      | em uso                       |
-| Testes            | Vitest + Testing Library, MSW, Playwright              | em uso                       |
-| Infra local       | Docker Compose (`web`)                                 | em uso                       |
-| Dados             | TanStack Query, `openapi-fetch`, `openapi-typescript`  | em uso                       |
-| Formulários       | `react-hook-form`                                      | previsto (FE-06)             |
-| Mapa              | Leaflet                                                | previsto (FE-27)             |
+| Item              | Tecnologia                                             | Situação         |
+| ----------------- | ------------------------------------------------------ | ---------------- |
+| Runtime           | Node.js 24, ESM (`"type": "module"`)                   | em uso           |
+| Framework         | Next.js 16 (App Router), React 19, TypeScript `strict` | em uso           |
+| Estilo            | Tailwind CSS v4, com os tokens da marca                | em uso           |
+| Componentes       | Radix UI (`radix-ui`), só onde há foco e teclado       | em uso           |
+| Validação         | Zod (variáveis de ambiente e formulários)              | em uso           |
+| Lint / formatação | oxlint + Prettier                                      | em uso           |
+| Testes            | Vitest + Testing Library, MSW, Playwright              | em uso           |
+| Infra local       | Docker Compose (`web`)                                 | em uso           |
+| Dados             | TanStack Query, `openapi-fetch`, `openapi-typescript`  | em uso           |
+| Formulários       | `react-hook-form`                                      | em uso           |
+| Mapa              | Leaflet                                                | previsto (FE-27) |
 
 ## Comandos
 
@@ -107,7 +107,7 @@ Depois de `npm install <pacote>` ou `npm uninstall <pacote>`, confira se o `pack
 | `app/layout.tsx`, `app/fonts.ts`                | layout raiz e fontes da marca, servidas pelo próprio Next                                                                          |
 | `app/globals.css`                               | tokens de cor e tipografia, temas claro e escuro                                                                                   |
 | `app/design-system/page.tsx`                    | catálogo de tokens e componentes, só em desenvolvimento (`/design-system`)                                                         |
-| `shared/ui/`                                    | design system: componentes base e logos (ver [docs/ui.md](docs/ui.md))                                                             |
+| `shared/ui/`                                    | design system: componentes base, logos, `DataTable`, `Form`, `ConfirmDialog` e máscaras (ver [docs/ui.md](docs/ui.md))             |
 | `app/(app)/layout.tsx`, `app/(app)/page.tsx`    | layout com sessão obrigatória e página inicial provisória                                                                          |
 | `app/(auth)/`                                   | login e aviso de sessão indisponível                                                                                               |
 | `app/api/auth/`, `app/api/backend/[...path]/`   | login, logout, renovação e proxy BFF autenticado                                                                                   |
@@ -116,9 +116,9 @@ Depois de `npm install <pacote>` ou `npm uninstall <pacote>`, confira se o `pack
 | `shared/auth/`                                  | cookies de sessão, renovação única, `getUsuarioAtual()` e `useUsuarioAtual()`                                                      |
 | `app/api/health/route.ts`                       | `GET /api/health`, informando também se a API foi alcançada                                                                        |
 | `shared/api/`                                   | `schema.d.ts` gerado, clientes (`client.ts`, `client.server.ts`), `unwrap()`, `ApiError`, paginação, query string e TanStack Query |
-| `test/`                                         | servidor do MSW, `http` tipado pelo contrato, `renderWithQuery` e factories                                                        |
+| `test/`                                         | servidor do MSW, `http` tipado pelo contrato, `renderWithQuery`, navegação simulada e factories                                    |
 
-Previsto em issues futuras (não use antes de existir): `DataTable`, `Form` e máscaras (FE-06); permissões em `shared/auth/` (FE-08).
+Previsto em issues futuras (não use antes de existir): permissões em `shared/auth/` (FE-08).
 
 <!-- BEGIN:nextjs-agent-rules -->
 

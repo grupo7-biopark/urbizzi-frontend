@@ -8,13 +8,13 @@ const SESSION_EXPIRED_CODES = new Set([
   'REFRESH_TOKEN_INVALIDO',
 ]);
 
+export function isSessionExpired(error: unknown) {
+  return error instanceof ApiError && SESSION_EXPIRED_CODES.has(error.code);
+}
+
 /** Com a sessão perdida no meio do uso, leva ao login preservando a página. */
 export function handleSessionExpired(error: unknown) {
-  if (
-    typeof window === 'undefined' ||
-    !(error instanceof ApiError) ||
-    !SESSION_EXPIRED_CODES.has(error.code)
-  ) {
+  if (typeof window === 'undefined' || !isSessionExpired(error)) {
     return;
   }
 

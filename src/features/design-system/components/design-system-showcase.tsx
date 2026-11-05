@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Badge, StatusLoteBadge, StatusPropostaBadge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
@@ -31,6 +31,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { Textarea } from '@/shared/ui/textarea';
 import { ToastProvider, useToast } from '@/shared/ui/toast';
 import { Tooltip } from '@/shared/ui/tooltip';
+import {
+  ConfirmacaoExemplo,
+  FormularioExemplo,
+  ListagemExemplo,
+} from './list-form-showcase';
 
 const CORES = [
   { nome: 'laranja', classe: 'bg-laranja' },
@@ -340,6 +345,7 @@ export function DesignSystemShowcase() {
           </Table>
           <Pagination
             meta={{ page: 4, totalPages: 9 }}
+            label="Paginação de exemplo"
             getPageHref={(page) => `/design-system?page=${page}`}
           />
         </Secao>
@@ -354,6 +360,25 @@ export function DesignSystemShowcase() {
               action={<Button>Novo loteamento</Button>}
             />
           </div>
+        </Secao>
+
+        <Secao titulo="Listagem com filtros na URL">
+          {/* `useSearchParams` exige um limite de Suspense em página estática. */}
+          <Suspense
+            fallback={
+              <Skeleton aria-label="Carregando listagem" className="h-48" />
+            }
+          >
+            <ListagemExemplo />
+          </Suspense>
+        </Secao>
+
+        <Secao titulo="Formulário">
+          <FormularioExemplo />
+        </Secao>
+
+        <Secao titulo="Confirmação">
+          <ConfirmacaoExemplo />
         </Secao>
       </main>
     </ToastProvider>
