@@ -6,7 +6,7 @@ type ApiResult<Data> = {
   response: Response;
 };
 
-function isAbort(cause: unknown) {
+export function isAbort(cause: unknown) {
   return cause instanceof Error && cause.name === 'AbortError';
 }
 
