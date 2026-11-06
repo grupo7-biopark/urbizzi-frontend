@@ -28,6 +28,12 @@ export type VisualizadorPlantaProps = {
   onMarcadorClick?: (id: string) => void;
   /** Ao mudar, aproxima até o zoom máximo neste ponto. */
   foco?: PontoNormalizado | null;
+  /** Clique em um ponto da imagem, fora dos marcadores. */
+  onPlantaClick?: (ponto: PontoNormalizado) => void;
+  /** Com esta função, os marcadores podem ser arrastados com o mouse. */
+  onMarcadorArrastado?: (id: string, ponto: PontoNormalizado) => void;
+  /** Centro da tela, na planta: é como o teclado e o toque posicionam um marcador. */
+  onCentroChange?: (ponto: PontoNormalizado) => void;
   className?: string;
 };
 

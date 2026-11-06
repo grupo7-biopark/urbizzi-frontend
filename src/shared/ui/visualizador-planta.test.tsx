@@ -13,6 +13,7 @@ import {
   vi,
 } from 'vitest';
 import { expectNoA11yViolations } from '@/test/a11y';
+import type { PontoNormalizado } from './coordenadas-planta';
 import { VisualizadorPlanta, type MarcadorPlanta } from './visualizador-planta';
 import VisualizadorPlantaLeaflet from './visualizador-planta-leaflet';
 
@@ -228,6 +229,186 @@ describe('VisualizadorPlantaLeaflet', () => {
     );
 
     expect(setView).toHaveBeenCalledWith([-64, 64], 3);
+  });
+
+  it('avisa o clique em um ponto da planta, e ignora fora da imagem', () => {
+    const mapas = espionarMapa();
+    const onPlantaClick = vi.fn<(ponto: PontoNormalizado) => void>();
+    render(
+      <VisualizadorPlantaLeaflet
+        planta={PLANTA}
+        onPlantaClick={onPlantaClick}
+      />,
+    );
+    const mapa = mapas[0] as L.Map;
+
+    act(() => {
+      mapa.fire('click', { latlng: L.latLng(-64, 64) });
+      mapa.fire('click', { latlng: L.latLng(10, 64) });
+    });
+
+    expect(onPlantaClick).toHaveBeenCalledOnce();
+    expect(onPlantaClick).toHaveBeenCalledWith({ x: 0.25, y: 0.5 });
+  });
+
+  it('o clique no marcador não sobe para a planta', () => {
+    const mapas = espionarMapa();
+    const criados = espionarMarcadores();
+    const onPlantaClick = vi.fn<(ponto: PontoNormalizado) => void>();
+    const onMarcadorClick = vi.fn<(id: string) => void>();
+    render(
+      <VisualizadorPlantaLeaflet
+        planta={PLANTA}
+        marcadores={MARCADORES}
+        onPlantaClick={onPlantaClick}
+        onMarcadorClick={onMarcadorClick}
+      />,
+    );
+    const interno = mapas[0] as unknown as {
+      _fireDOMEvent: (
+        e: unknown,
+        tipo: string,
+        alvos: L.CircleMarker[],
+      ) => void;
+    };
+
+    act(() => {
+      interno._fireDOMEvent(
+        {
+          type: 'mousedown',
+          target: document.body,
+          clientX: 0,
+          clientY: 0,
+        },
+        'click',
+        [criados[0] as L.CircleMarker],
+      );
+    });
+
+    expect(onMarcadorClick).toHaveBeenCalledWith('a');
+    expect(onPlantaClick).not.toHaveBeenCalled();
+  });
+
+  it('informa o centro da tela, dentro da planta', () => {
+    const onCentroChange = vi.fn<(ponto: PontoNormalizado) => void>();
+
+    render(
+      <VisualizadorPlantaLeaflet
+        planta={PLANTA}
+        onCentroChange={onCentroChange}
+      />,
+    );
+
+    const [ponto] = onCentroChange.mock.lastCall as [PontoNormalizado];
+    expect(ponto.x).toBeCloseTo(0.5);
+    expect(ponto.y).toBeCloseTo(0.5);
+  });
+
+  describe('arraste do marcador', () => {
+    function arrastavel() {
+      const mapas = espionarMapa();
+      const criados = espionarMarcadores();
+      const onMarcadorArrastado =
+        vi.fn<(id: string, ponto: PontoNormalizado) => void>();
+      const onPlantaClick = vi.fn<(ponto: PontoNormalizado) => void>();
+      render(
+        <VisualizadorPlantaLeaflet
+          planta={PLANTA}
+          marcadores={MARCADORES}
+          onMarcadorArrastado={onMarcadorArrastado}
+          onPlantaClick={onPlantaClick}
+        />,
+      );
+
+      // O jsdom não tem layout: soltar é no ponto do último movimento simulado.
+      const mapa = mapas[0] as L.Map;
+      let ultimo = L.latLng(0, 0);
+      mapa.on('mousemove', ({ latlng }: L.LeafletMouseEvent) => {
+        ultimo = latlng;
+      });
+      vi.spyOn(mapa, 'mouseEventToLatLng').mockImplementation(() => ultimo);
+
+      return {
+        mapa,
+        marcador: criados[0] as L.CircleMarker,
+        onMarcadorArrastado,
+        onPlantaClick,
+      };
+    }
+
+    it('acompanha o mouse e informa a posição final', () => {
+      const { mapa, marcador, onMarcadorArrastado } = arrastavel();
+
+      act(() => {
+        marcador.fire('mousedown');
+      });
+      expect(mapa.dragging.enabled()).toBe(false);
+
+      act(() => {
+        mapa.fire('mousemove', { latlng: L.latLng(-32, 128) });
+      });
+      expect(marcador.getLatLng()).toMatchObject({ lat: -32, lng: 128 });
+
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mouseup'));
+      });
+
+      expect(onMarcadorArrastado).toHaveBeenCalledWith('a', {
+        x: 0.5,
+        y: 0.25,
+      });
+      expect(mapa.dragging.enabled()).toBe(true);
+    });
+
+    it('não sai da imagem', () => {
+      const { mapa, marcador, onMarcadorArrastado } = arrastavel();
+
+      act(() => {
+        marcador.fire('mousedown');
+        mapa.fire('mousemove', { latlng: L.latLng(50, -50) });
+        document.dispatchEvent(new MouseEvent('mouseup'));
+      });
+
+      expect(onMarcadorArrastado).toHaveBeenCalledWith('a', { x: 0, y: 0 });
+    });
+
+    it('sem movimento, não informa nada', () => {
+      const { marcador, onMarcadorArrastado } = arrastavel();
+
+      act(() => {
+        marcador.fire('mousedown');
+        document.dispatchEvent(new MouseEvent('mouseup'));
+      });
+
+      expect(onMarcadorArrastado).not.toHaveBeenCalled();
+    });
+
+    it('o clique que encerra o arraste não vira um ponto na planta', () => {
+      const { mapa, marcador, onPlantaClick } = arrastavel();
+
+      act(() => {
+        marcador.fire('mousedown');
+        mapa.fire('mousemove', { latlng: L.latLng(-32, 128) });
+        document.dispatchEvent(new MouseEvent('mouseup'));
+        mapa.fire('click', { latlng: L.latLng(-32, 128) });
+      });
+
+      expect(onPlantaClick).not.toHaveBeenCalled();
+    });
+  });
+
+  it('sem a função de arraste, o marcador não acompanha o mouse', () => {
+    const mapas = espionarMapa();
+    const criados = espionarMarcadores();
+    render(
+      <VisualizadorPlantaLeaflet planta={PLANTA} marcadores={MARCADORES} />,
+    );
+
+    act(() => {
+      criados[0]?.fire('mousedown');
+    });
+
+    expect((mapas[0] as L.Map).dragging.enabled()).toBe(true);
   });
 
   it('centraliza a planta', async () => {

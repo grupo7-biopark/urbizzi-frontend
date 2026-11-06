@@ -1,7 +1,9 @@
 import L from 'leaflet';
 import { describe, expect, it } from 'vitest';
 import {
+  estaNaPlanta,
   latLngParaNormalizado,
+  limitarAPlanta,
   limitesDaPlanta,
   normalizadoParaLatLng,
 } from './coordenadas-planta';
@@ -48,6 +50,28 @@ describe('latLngParaNormalizado', () => {
 
     expect(volta.x).toBeCloseTo(x, 10);
     expect(volta.y).toBeCloseTo(y, 10);
+  });
+});
+
+describe('estaNaPlanta', () => {
+  it.each([
+    [{ x: 0, y: 0 }, true],
+    [{ x: 1, y: 1 }, true],
+    [{ x: 0.5, y: 0.5 }, true],
+    [{ x: -0.01, y: 0.5 }, false],
+    [{ x: 0.5, y: 1.01 }, false],
+  ])('%j: %s', (ponto, esperado) => {
+    expect(estaNaPlanta(ponto)).toBe(esperado);
+  });
+});
+
+describe('limitarAPlanta', () => {
+  it('mantém o que já está dentro', () => {
+    expect(limitarAPlanta({ x: 0.2, y: 0.8 })).toEqual({ x: 0.2, y: 0.8 });
+  });
+
+  it('traz para a borda o que está fora', () => {
+    expect(limitarAPlanta({ x: -0.5, y: 1.5 })).toEqual({ x: 0, y: 1 });
   });
 });
 
