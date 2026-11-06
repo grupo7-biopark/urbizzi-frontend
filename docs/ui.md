@@ -244,6 +244,7 @@ export function LoteamentoForm({ onSuccess }: { onSuccess: () => void }) {
 
 - `onSubmit` precisa **rejeitar** com o `ApiError` (`mutateAsync`, e não `mutate`): é assim que o `Form` mostra `details` embaixo de cada campo, inclusive em caminhos aninhados (`endereco.cep`), e o restante no alerta.
 - `fieldsByCode` leva ao campo um erro que a API não associa a ele.
+- `resetAfterSubmit` limpa o formulário ao salvar e volta o foco ao campo informado, para cadastrar vários itens em sequência (quadras do loteamento).
 - `cancelHref` põe "Cancelar" ao lado do botão de enviar. Envolva o formulário em um `Panel` com `max-w-2xl`: linhas longas demais dificultam o preenchimento.
 - Valide no schema Zod, com texto em português, o que a API também valida: as mensagens de `details` podem vir em inglês ([api-integration.md](api-integration.md#tratamento-de-erros)).
 - Fora de um `Form`, `useApiMutation` avisa o erro com um Toast. Em um `409`, ela também invalida as queries, porque a tela mostra um estado que já mudou.

@@ -2,7 +2,12 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import type { ComponentProps, ReactNode } from 'react';
+import {
+  useEffect,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from 'react';
 import {
   FormProvider,
   get,
@@ -66,6 +71,8 @@ type FormProps<Input extends FieldValues, Output> = {
   cancelHref?: string;
   /** Códigos de erro que dizem respeito a um campo (`LOTEAMENTO_JA_EXISTE`: `nome`). */
   fieldsByCode?: Partial<Record<string, Path<Input>>>;
+  /** Limpa o formulário ao salvar e volta o foco a este campo: cadastro em sequência. */
+  resetAfterSubmit?: Path<Input>;
   children: ReactNode;
 };
 
@@ -76,6 +83,7 @@ export function Form<Input extends FieldValues, Output>({
   submitLabel = 'Salvar',
   cancelHref,
   fieldsByCode,
+  resetAfterSubmit,
   children,
 }: FormProps<Input, Output>) {
   const form = useForm<Input, unknown, Output>({
@@ -83,10 +91,24 @@ export function Form<Input extends FieldValues, Output>({
     defaultValues,
   });
   const { errors, isSubmitting } = form.formState;
+  const [resets, setResets] = useState(0);
+  const { setFocus } = form;
+
+  // Em um efeito: o `reset` esquece os campos, que voltam a ser registrados ao renderizar.
+  useEffect(() => {
+    if (resets > 0 && resetAfterSubmit) {
+      setFocus(resetAfterSubmit);
+    }
+  }, [resets, resetAfterSubmit, setFocus]);
 
   async function handleValid(values: Output) {
     try {
       await onSubmit(values);
+
+      if (resetAfterSubmit) {
+        form.reset();
+        setResets((total) => total + 1);
+      }
     } catch (error) {
       applyApiError(error, form.setError, fieldsByCode);
     }
