@@ -90,3 +90,13 @@ export const IconConstrucao = criarIcone(
 export const IconVazio = criarIcone('M3 13l3-9h12l3 9v7H3zM3 13h6l1 3h4l1-3h6');
 
 export const IconMais = criarIcone('M12 5v14M5 12h14');
+export const IconMenos = criarIcone('M5 12h14');
+export const IconCentralizar = criarIcone(
+  'M12 3v4M12 17v4M3 12h4M17 12h4M8 8h8v8H8z',
+);
+export const IconTelaCheia = criarIcone(
+  'M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5',
+);
+export const IconSairTelaCheia = criarIcone(
+  'M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5',
+);
