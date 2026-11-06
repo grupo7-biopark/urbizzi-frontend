@@ -6,13 +6,13 @@ import { useRouter } from 'next/navigation';
 import { Permitido } from '@/shared/auth/permitido';
 import { buttonClasses } from '@/shared/ui/button';
 import { cn } from '@/shared/ui/cn';
-import { EmptyState } from '@/shared/ui/empty-state';
-import { IconConstrucao, IconEditar } from '@/shared/ui/icon';
+import { IconEditar } from '@/shared/ui/icon';
 import { PageHeader, type BreadcrumbItem } from '@/shared/ui/page-header';
 import { Panel } from '@/shared/ui/panel';
 import { loteamentoDetailOptions } from '../api/loteamentos.queries';
 import { EditarLoteamentoForm } from './loteamento-form';
 import { LoteamentoQueryState } from './loteamento-query-state';
+import { QuadrasPanel } from './quadras-panel';
 import { RemoverLoteamento } from './remover-loteamento';
 
 const PARENTS: BreadcrumbItem[] = [
@@ -81,14 +81,7 @@ export function LoteamentoDetalhe({ id }: { id: string }) {
           <Dado termo="Localização" valor={loteamento.localizacao} />
         </dl>
       </Panel>
-      <Panel title="Quadras">
-        <EmptyState
-          bare
-          icon={<IconConstrucao />}
-          title="Quadras em construção"
-          description="O cadastro de quadras deste loteamento ainda não está disponível."
-        />
-      </Panel>
+      <QuadrasPanel loteamentoId={id} />
     </>
   );
 }
