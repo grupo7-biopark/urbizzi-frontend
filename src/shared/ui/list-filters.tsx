@@ -88,6 +88,9 @@ type UrlSelectFilterProps = {
   label: string;
   options: { value: string; label: string }[];
   allLabel?: string;
+  disabled?: boolean;
+  /** Filtros que dependem deste e deixam de valer quando ele muda. */
+  clears?: string[];
 };
 
 export function UrlSelectFilter({
@@ -95,6 +98,8 @@ export function UrlSelectFilter({
   label,
   options,
   allLabel = 'Todos',
+  disabled,
+  clears = [],
 }: UrlSelectFilterProps) {
   const { params, setParams } = useListParams();
 
@@ -102,7 +107,13 @@ export function UrlSelectFilter({
     <Select
       label={label}
       value={params[name] ?? ''}
-      onChange={(event) => setParams({ [name]: event.target.value })}
+      disabled={disabled}
+      onChange={(event) =>
+        setParams({
+          ...Object.fromEntries(clears.map((filtro) => [filtro, ''])),
+          [name]: event.target.value,
+        })
+      }
     >
       <option value="">{allLabel}</option>
       {options.map((option) => (
