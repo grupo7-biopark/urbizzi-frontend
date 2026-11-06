@@ -213,6 +213,7 @@ export function LoteamentosTable({ search }: { search: LoteamentosSearch }) {
 - O link para o detalhe fica no nome da linha, em negrito. Não acrescente um botão "Ver".
 - `sortKey` na coluna ativa a ordenação. Só informe se a rota aceitar `orderBy`: hoje, nenhuma aceita.
 - Mudar um filtro ou a ordem volta à primeira página, e o estado todo fica na URL (`useListParams`).
+- Em filtros dependentes (quadra depende do loteamento), `clears` no `UrlSelectFilter` limpa o filtro dependente, e `disabled` o trava até haver o que escolher.
 - Busca que aceita dado pessoal não vai para a URL: use `DebouncedSearch`, com estado local, em vez de `UrlSearchFilter` ([security.md](security.md#lgpd-na-interface)).
 - O `useSearchParams` dos blocos exige um limite de `Suspense` em página estática. Uma página que lê `searchParams` é dinâmica e não precisa dele.
 
