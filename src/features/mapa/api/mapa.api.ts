@@ -6,6 +6,8 @@ import type { PlantaVisualizada } from '@/shared/ui/visualizador-planta';
 export type PlantaMapa = components['schemas']['PlantaMapaDto'];
 export type MarcadorMapa = components['schemas']['MarcadorMapaDto'];
 export type StatusLoteMapa = MarcadorMapa['status'];
+export type NovoMarcador = components['schemas']['CreateMarcadorDto'];
+export type LoteSemMarcador = components['schemas']['LoteSemMarcadorDto'];
 export type ConsultaMapa = Omit<
   NonNullable<paths['/v1/mapa']['get']['parameters']['query']>,
   'page' | 'pageSize'
@@ -33,6 +35,112 @@ export async function getMapa(query: ConsultaMapa) {
   }
 
   return { planta: primeira.planta, marcadores };
+}
+
+/** Percorre as páginas de uma lista, uma de cada vez. */
+async function listarTudo<Item>(
+  getPagina: (
+    page: number,
+  ) => Promise<{ data: Item[]; meta: { totalPages: number } }>,
+) {
+  const primeira = await getPagina(1);
+  const itens = [...primeira.data];
+
+  for (let page = 2; page <= primeira.meta.totalPages; page += 1) {
+    itens.push(...(await getPagina(page)).data);
+  }
+
+  return itens;
+}
+
+/** O mapa traz os nomes do lote, e só a lista de marcadores traz o `revisar`. */
+export async function getEditorDeMarcadores() {
+  const { planta, marcadores } = await getMapa({});
+  const salvos = await listarTudo((page) =>
+    unwrap(
+      api.GET('/v1/plantas/{plantaId}/marcadores', {
+        params: {
+          path: { plantaId: planta.id },
+          query: { page, pageSize: POR_PAGINA },
+        },
+      }),
+    ),
+  );
+  const aRevisar = new Set(
+    salvos.filter(({ revisar }) => revisar).map(({ id }) => id),
+  );
+
+  return {
+    planta,
+    marcadores: marcadores.map((marcador) => ({
+      ...marcador,
+      revisar: aRevisar.has(marcador.id),
+    })),
+  };
+}
+
+export type MarcadorDoEditor = Awaited<
+  ReturnType<typeof getEditorDeMarcadores>
+>['marcadores'][number];
+
+export function listLotesSemMarcador(plantaId: string, loteamentoId?: string) {
+  return listarTudo((page) =>
+    unwrap(
+      api.GET('/v1/plantas/{plantaId}/lotes-sem-marcador', {
+        params: {
+          path: { plantaId },
+          query: {
+            page,
+            pageSize: POR_PAGINA,
+            ...(loteamentoId ? { loteamentoId } : {}),
+          },
+        },
+      }),
+    ),
+  );
+}
+
+export function getQuadraDoMapa(id: string) {
+  return unwrap(api.GET('/v1/quadras/{id}', { params: { path: { id } } }));
+}
+
+/** Tudo ou nada: a API grava cada lote de até 500 em uma transação. */
+export function createMarcadores(plantaId: string, marcadores: NovoMarcador[]) {
+  return unwrap(
+    api.POST('/v1/plantas/{plantaId}/marcadores/lote', {
+      params: { path: { plantaId } },
+      body: { marcadores },
+    }),
+  );
+}
+
+export function moverMarcador(
+  plantaId: string,
+  id: string,
+  body: { x: number; y: number },
+) {
+  return unwrap(
+    api.PATCH('/v1/plantas/{plantaId}/marcadores/{id}', {
+      params: { path: { plantaId, id } },
+      body,
+    }),
+  );
+}
+
+export function deleteMarcador(plantaId: string, id: string) {
+  return unwrap(
+    api.DELETE('/v1/plantas/{plantaId}/marcadores/{id}', {
+      params: { path: { plantaId, id } },
+    }),
+  );
+}
+
+export function revisarMarcador(plantaId: string, id: string) {
+  return unwrap(
+    api.POST('/v1/plantas/{plantaId}/marcadores/{id}/revisar', {
+      params: { path: { plantaId, id } },
+    }),
+  );
 }
 
 export function listLoteamentosDoMapa() {
