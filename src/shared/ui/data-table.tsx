@@ -239,7 +239,8 @@ export function DataTable<Row>({
                     // `max-md:`: o `cn` só concatena, e o padding base do `TableCell` venceria.
                     'flex flex-col gap-0.5 max-md:px-0 max-md:py-1.5 max-md:first:pt-0 max-md:last:pb-0 md:table-cell',
                     acoes &&
-                      'border-border max-md:mt-2 max-md:border-t max-md:pt-3',
+                      // Sem ação para esta linha, o cartão não ganha um rodapé vazio.
+                      'border-border max-md:mt-2 max-md:border-t max-md:pt-3 max-md:has-[>span:empty]:hidden',
                     (align === 'right' || acoes) && 'md:text-right',
                   )}
                 >

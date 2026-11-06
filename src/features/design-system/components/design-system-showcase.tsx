@@ -19,6 +19,7 @@ import { Logo, LogoSimbolo } from '@/shared/ui/logo';
 import { Pagination } from '@/shared/ui/pagination';
 import { Panel } from '@/shared/ui/panel';
 import { Select } from '@/shared/ui/select';
+import { ProgressBar } from '@/shared/ui/progress-bar';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { Spinner } from '@/shared/ui/spinner';
 import { Switch } from '@/shared/ui/switch';
@@ -299,6 +300,7 @@ export function DesignSystemShowcase() {
             <StatusPropostaBadge status="APROVADA" />
             <StatusPropostaBadge status="REJEITADA" />
             <Badge>Neutro</Badge>
+            <Badge tone="destaque">Destaque</Badge>
           </div>
         </Secao>
 
@@ -389,6 +391,7 @@ export function DesignSystemShowcase() {
           <div className="flex flex-col gap-4">
             <Skeleton aria-label="Carregando lotes" />
             <Spinner />
+            <ProgressBar aria-label="Progresso de exemplo" value={0.4} />
             <EmptyState
               title="Nenhum loteamento encontrado"
               description="Cadastre o primeiro loteamento para começar."
