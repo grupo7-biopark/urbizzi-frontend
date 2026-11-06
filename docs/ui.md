@@ -29,6 +29,8 @@ Use os componentes de `src/shared/ui/` e os tokens do tema. Não recrie botão, 
 | `use-api-mutation.ts`                            | `useApiMutation`                                                                      | mutação com Toast e invalidação                                                          |
 | `tooltip.tsx`                                    | `Tooltip`                                                                             | só complementa: não existe no toque                                                      |
 | `logo.tsx`                                       | `Logo`, `LogoSimbolo`                                                                 | ver [Logos](#logos)                                                                      |
+| `page-header.tsx`                                | `PageHeader`                                                                          | `h1`, trilha de navegação e ação primária de toda tela interna                           |
+| `status-page.tsx`                                | `StatusPage`                                                                          | páginas 403, 404 e de erro; `standalone` traz `main` e logo fora de `(app)`              |
 
 Dialog, Drawer, Dropdown, Tabs, Toast e Tooltip usam Radix UI, que cuida de foco, teclado e ARIA. Select, Checkbox e Switch são nativos, porque já funcionam bem no teclado e no celular.
 
@@ -230,9 +232,13 @@ Moeda e área são digitadas da direita para a esquerda, em centavos. Nenhuma fu
 
 ## Padrões de tela
 
+### Título e trilha
+
+Toda tela interna começa com `PageHeader`. Informe em `parents` as telas acima, e o título entra sozinho na trilha. Defina também `metadata.title`: o layout raiz completa a aba como "Loteamentos | Urbizzi". O `<main>` e o menu vêm do layout de `(app)`.
+
 ### Listagem
 
-1. Título e ação primária (ex.: "Novo loteamento"), escondida para quem não tem permissão.
+1. `PageHeader` com o título e a ação primária (ex.: "Novo loteamento"), escondida para quem não tem permissão.
 2. Barra de filtros e busca, sincronizada com a URL ([exceção de dados pessoais](api-integration.md#filtros-na-url)).
 3. `DataTable` paginada, com ação por linha.
 4. Estados de carregamento, vazio e erro.

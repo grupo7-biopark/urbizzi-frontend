@@ -21,7 +21,7 @@ src/
 │   ├── layout.tsx                # layout raiz
 │   ├── globals.css
 │   ├── (auth)/                   # login; recuperação de senha prevista (FE-09)
-│   ├── (app)/                    # telas internas, com sessão; menu previsto (FE-08)
+│   ├── (app)/                    # telas internas, com sessão e menu por perfil
 │   ├── (publico)/                # previsto: mapa público por token
 │   └── api/
 │       ├── health/route.ts       # GET /api/health
@@ -37,7 +37,7 @@ src/
 │   ├── config/                   # validação de ambiente
 │   ├── api/                      # schema gerado, clientes, ApiError, TanStack Query
 │   ├── ui/                       # design system (ver docs/ui.md)
-│   └── auth/                     # sessão e usuário atual; permissões previstas (FE-08)
+│   └── auth/                     # sessão, usuário atual e permissões
 └── test/                         # apoio aos testes: MSW, renderização e factories
 e2e/                              # testes do Playwright
 docs/                             # esta documentação
@@ -61,16 +61,17 @@ Quando uma funcionalidade precisar de algo de outra (ex.: reservas mostrando dad
 
 Só o que é usado por mais de uma funcionalidade e não contém regra de negócio de nenhuma delas.
 
-| Caminho                | O que é                                                              | Situação         |
-| ---------------------- | -------------------------------------------------------------------- | ---------------- |
-| `config/env.schema.ts` | schemas Zod e `parseEnv()`                                           | existe           |
-| `config/env.server.ts` | `getServerEnv()`, só no servidor                                     | existe           |
-| `config/env.public.ts` | `publicEnv`, disponível também no navegador                          | existe           |
-| `api/`                 | `schema.d.ts` gerado, clientes, `ApiError`, utilitários de paginação | existe           |
-| `ui/`                  | Button, Input, Dialog, Table, Badge e demais componentes base        | existe           |
-| `ui/`                  | `DataTable`, `Form`, `ConfirmDialog`, máscaras                       | existe           |
-| `auth/`                | sessão, `getUsuarioAtual()`, `useUsuarioAtual()`                     | existe           |
-| `auth/`                | `permissoes.ts`, `<Permitido>`, `usePermissao()`                     | previsto (FE-08) |
+| Caminho                | O que é                                                               | Situação |
+| ---------------------- | --------------------------------------------------------------------- | -------- |
+| `config/env.schema.ts` | schemas Zod e `parseEnv()`                                            | existe   |
+| `config/env.server.ts` | `getServerEnv()`, só no servidor                                      | existe   |
+| `config/env.public.ts` | `publicEnv`, disponível também no navegador                           | existe   |
+| `api/`                 | `schema.d.ts` gerado, clientes, `ApiError`, utilitários de paginação  | existe   |
+| `ui/`                  | Button, Input, Dialog, Table, Badge e demais componentes base         | existe   |
+| `ui/`                  | `DataTable`, `Form`, `ConfirmDialog`, máscaras                        | existe   |
+| `auth/`                | sessão, `getUsuarioAtual()`, `useUsuarioAtual()`                      | existe   |
+| `auth/`                | `permissoes.ts`, `<Permitido>`, `usePermissao()`, `exigirPermissao()` | existe   |
+| `ui/`                  | `PageHeader`, `StatusPage`                                            | existe   |
 
 Não use o que ainda não existe: implemente a issue correspondente ou combine a mudança de escopo.
 
@@ -133,9 +134,9 @@ Grupos de rota, com o nome entre parênteses, organizam as telas e aplicam layou
 | `(app)`     | todas as telas internas        | barra lateral, cabeçalho | obrigatória                                              |
 | `(publico)` | `/p/[token]`                   | marca, sem menu          | não usa sessão nem cookies                               |
 
-Rotas em grupos diferentes não podem resolver para a mesma URL. O `src/app/(app)/page.tsx` é a página inicial provisória, até a tela definitiva.
+Rotas em grupos diferentes não podem resolver para a mesma URL. O `src/app/(app)/page.tsx` e as demais rotas do menu são provisórias (`TelaProvisoria`), já protegidas por perfil, até a entrega de cada tela.
 
-Cada grupo define, quando fizer sentido, `loading.tsx`, `error.tsx` e `not-found.tsx`. As páginas ficam finas: leem a URL, conferem a permissão e renderizam componentes de `features/`.
+Cada grupo define, quando fizer sentido, `error.tsx` e `not-found.tsx`. O layout de `(app)` já traz o `<main>`: as páginas começam em `PageHeader`. Não crie `loading.tsx` em `(app)`: a resposta começaria antes da conferência de permissão, e a tela 403 sairia com status 200. Para carregar em partes, use `Suspense` abaixo da conferência. As páginas ficam finas: leem a URL, conferem a permissão e renderizam componentes de `features/`.
 
 O Next 16 renomeou `middleware.ts` para `proxy.ts`, e `middleware` está depreciado. Por isso, o arquivo é `src/proxy.ts`. Ele faz só a checagem otimista de sessão (ver [security.md](security.md#proteção-de-rotas)). Não confunda com o proxy BFF `/api/backend/[...path]`, que é um Route Handler.
 
@@ -157,7 +158,7 @@ O inverso vale para o erro: a resposta da API vira um `ApiError`, que a tela exi
 
 ## Exemplo completo: funcionalidade `loteamentos`
 
-Modelo a ser copiado para funcionalidades novas, com o contrato real do backend. Depende de FE-08 (`@/shared/auth`), ainda não entregue; a assinatura exata do que vier dela pode ser ajustada na entrega. Nas telas novas, use `DataTable` e `Form` ([ui.md](ui.md#listagens-e-formulários)) em vez da tabela e do formulário manuais deste exemplo.
+Modelo a ser copiado para funcionalidades novas, com o contrato real do backend. Nas telas novas, use `DataTable` e `Form` ([ui.md](ui.md#listagens-e-formulários)) em vez da tabela e do formulário manuais deste exemplo.
 
 Rotas: `GET /v1/loteamentos` (paginada, com `q`), `POST /v1/loteamentos`. Os perfis estão na [matriz](security.md#matriz-de-permissões): todos visualizam; Administrador e Gestor cadastram.
 
@@ -408,7 +409,9 @@ A página é um Server Component: lê a URL e compõe a funcionalidade.
 import Link from 'next/link';
 import { LoteamentosTable } from '@/features/loteamentos/components/loteamentos-table';
 import { loteamentosSearchSchema } from '@/features/loteamentos/schemas/loteamentos-search.schema';
+import { exigirPermissao } from '@/shared/auth/permissao.server';
 import { Permitido } from '@/shared/auth/permitido';
+import { PageHeader } from '@/shared/ui/page-header';
 
 export const metadata = { title: 'Loteamentos' };
 
@@ -417,16 +420,22 @@ export default async function LoteamentosPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  await exigirPermissao('verMapaLotesPainel');
   const search = loteamentosSearchSchema.parse(await searchParams);
 
   return (
-    <main>
-      <h1>Loteamentos</h1>
-      <Permitido acao="gerenciarCadastros">
-        <Link href="/loteamentos/novo">Novo loteamento</Link>
-      </Permitido>
+    <>
+      <PageHeader
+        title="Loteamentos"
+        parents={[{ label: 'Início', href: '/' }]}
+        actions={
+          <Permitido acao="gerenciarCadastros">
+            <Link href="/loteamentos/novo">Novo loteamento</Link>
+          </Permitido>
+        }
+      />
       <LoteamentosTable search={search} />
-    </main>
+    </>
   );
 }
 ```

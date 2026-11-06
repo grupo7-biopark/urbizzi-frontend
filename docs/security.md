@@ -1,6 +1,6 @@
 # Segurança
 
-> **Status:** sessão e proteção de rotas foram entregues na FE-07. As permissões por perfil chegam na FE-08. A regra de autorização vale de verdade no backend (ver [`docs/security.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/security.md) dele). Aqui está como a interface a aplica.
+> **Status:** sessão e proteção de rotas foram entregues na FE-07, e as permissões por perfil, na FE-08. A regra de autorização vale de verdade no backend (ver [`docs/security.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/security.md) dele). Aqui está como a interface a aplica.
 
 ## Princípios
 
@@ -46,20 +46,22 @@ Regras:
 
 São duas camadas, com papéis diferentes:
 
-| Camada     | Arquivo                                  | O que faz                                                                                                              |
-| ---------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Otimista   | `src/proxy.ts`                           | lê só o **cookie**, sem chamar a API: sem sessão, redireciona para `/login?redirect=...`; com sessão, tira de `/login` |
-| Definitiva | layout ou página de `(app)`, no servidor | carrega o usuário de `GET /v1/auth/me` e confere o perfil; sem permissão, mostra a tela 403                            |
+| Camada     | Arquivo                                  | O que faz                                                                                                                          |
+| ---------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Otimista   | `src/proxy.ts`                           | lê só o **cookie**, sem chamar a API: sem sessão, redireciona para `/login?redirect=...`; com sessão, tira de `/login`             |
+| Definitiva | layout e páginas de `(app)`, no servidor | o layout exige a sessão; cada página chama `exigirPermissao()`, que consulta `GET /v1/auth/me` e, sem permissão, mostra a tela 403 |
 
 - `src/proxy.ts` substitui o `middleware.ts`, porque a convenção antiga está depreciada no Next 16. Ele roda em toda rota, inclusive em pré-carregamentos, e a documentação do Next proíbe buscas lentas nele. Não o use como única proteção.
 - O `matcher` dele exclui `/api`, `/_next`, arquivos estáticos e a página pública. Rotas de API respondem `401`, sem redirecionar.
 - Ele também informa a rota atual ao layout, pelo header `x-urbizzi-path`, porque um layout não a conhece.
 - A tela de login mostra a mesma mensagem para senha errada e usuário inativo, porque a API responde igual aos dois, para não revelar quais contas existem.
-- A tela 403 é um componente comum. O arquivo `forbidden.js` do Next ainda é experimental nesta versão: só adote depois de avaliar na FE-08.
+- **A conferência fica em cada página**, porque o layout não roda de novo ao navegar entre telas.
+- A tela 403 usa `forbidden()` e `(app)/forbidden.tsx`, que dependem da opção experimental `authInterrupts` do Next. Avaliado na FE-08: é o único jeito de responder com o status 403 de verdade e interromper a página sem depender de um `return` em cada tela. O uso está isolado em `permissao.server.ts`, então trocá-lo, se a API mudar, é simples.
+- Na resposta 403, o Next envia um HTML sem conteúdo (`<html id="__next_error__">`) e monta a tela no navegador; nada da tela proibida vai na resposta. O título da aba continua sendo o da página pedida, porque o `metadata` de `forbidden.tsx` não tem efeito.
 
 ## Autorização por perfil
 
-O mapa de permissões fica centralizado em `src/shared/auth/permissoes.ts` (FE-08) e espelha a matriz abaixo. Telas e menu consultam esse mapa por `<Permitido acao="...">` e `usePermissao()`. Nunca compare o perfil direto em um componente (`perfil === 'GESTOR'`).
+O mapa de permissões fica centralizado em `src/shared/auth/permissoes.ts` e espelha a matriz abaixo. Nunca compare o perfil direto em um componente (`perfil === 'GESTOR'`).
 
 | Perfil        | Enum            | Papel                                                                                                  |
 | ------------- | --------------- | ------------------------------------------------------------------------------------------------------ |
@@ -69,6 +71,17 @@ O mapa de permissões fica centralizado em `src/shared/auth/permissoes.ts` (FE-0
 | Consulta      | `CONSULTA`      | somente leitura do mapa, dos lotes e do painel                                                         |
 
 `ADMINISTRADOR` não é coringa automático: inclua-o explicitamente no mapa, como no backend.
+
+| Onde                       | Use                                                         | Sem permissão                              |
+| -------------------------- | ----------------------------------------------------------- | ------------------------------------------ |
+| Página (servidor)          | `await exigirPermissao('acao')`, na primeira linha          | tela 403                                   |
+| Busca em Server Component  | `await tratarAcessoNegado(buscar())`                        | tela 403, se a API responder `403`         |
+| Botão ou ação              | `<Permitido acao="acao" donoId={id}>`                       | não aparece                                |
+| Lógica de Client Component | `const pode = usePermissao(); pode('acao', { donoId: id })` | `false`, também enquanto o usuário carrega |
+
+Nas ações marcadas com 👤 na matriz, sem `donoId` a resposta é se o perfil pode agir em algum registro (para o menu ou "Nova reserva"), e com `donoId`, se pode agir naquele registro.
+
+O `403` da API é tratado mesmo com a ação escondida, porque o perfil pode ter mudado no meio da sessão: `DataTable`, `Form` e `useApiMutation` mostram a mensagem de `ACESSO_NEGADO`.
 
 ### Matriz de permissões
 
