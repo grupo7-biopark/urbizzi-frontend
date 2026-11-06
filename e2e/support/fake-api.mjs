@@ -230,6 +230,113 @@ function numeroDeLoteEmUso(quadraId, numero, idIgnorado) {
   );
 }
 
+function criarLote(quadra, dados) {
+  const agora = new Date().toISOString();
+  const lote = {
+    valor: null,
+    exibirValorPublico: false,
+    observacoes: null,
+    ...dados,
+    id: randomUUID(),
+    quadraId: quadra.id,
+    loteamentoId: quadra.loteamentoId,
+    status: 'DISPONIVEL',
+    createdAt: agora,
+    updatedAt: agora,
+  };
+  lotes.set(lote.id, lote);
+  return lote;
+}
+
+function parseImportacao(body) {
+  const texto = body.toString('utf8');
+  const arquivo =
+    /name="arquivo"; filename="([^"]+)"\r\n[^\r]*\r\n\r\n([\s\S]*?)\r\n--/.exec(
+      texto,
+    );
+
+  return {
+    nome: arquivo?.[1] ?? '',
+    conteudo: arquivo?.[2] ?? '',
+    confirmar: /name="confirmar"\r\n\r\ntrue/.test(texto),
+    criarCadastros: /name="criarCadastros"\r\n\r\ntrue/.test(texto),
+  };
+}
+
+/** Só o CSV com `;` que o e2e envia: tudo ou nada, como a API. */
+function importarPlanilha({ conteudo, confirmar, criarCadastros }) {
+  const [, ...linhas] = conteudo.split(/\r?\n/).filter(Boolean);
+  const erros = [];
+  const novosLoteamentos = new Set();
+  const novasQuadras = new Set();
+  const validas = [];
+
+  linhas.forEach((texto, index) => {
+    const [loteamento, quadra, numero, area] = texto.split(';');
+    const mensagens = [];
+    const existente = [...loteamentos.values()].find(
+      ({ nome }) => nome.toLowerCase() === loteamento.toLowerCase(),
+    );
+    const quadraExistente = [...quadras.values()].find(
+      (item) => item.loteamentoId === existente?.id && item.numero === quadra,
+    );
+
+    if (!area) {
+      mensagens.push('area_m2 é obrigatório');
+    }
+    if (!existente && !criarCadastros) {
+      mensagens.push('Loteamento não encontrado');
+    }
+
+    if (mensagens.length > 0) {
+      erros.push({ linha: index + 2, mensagens });
+      return;
+    }
+
+    if (!existente) {
+      novosLoteamentos.add(loteamento);
+    }
+    if (!quadraExistente) {
+      novasQuadras.add(`${loteamento}/${quadra}`);
+    }
+    validas.push({ loteamento, quadra, numero, area });
+  });
+
+  const importado = confirmar && erros.length === 0;
+
+  if (importado) {
+    for (const { loteamento, quadra, numero, area } of validas) {
+      const cadastrado =
+        [...loteamentos.values()].find(
+          ({ nome }) => nome.toLowerCase() === loteamento.toLowerCase(),
+        ) ?? salvarLoteamento(randomUUID(), { nome: loteamento });
+      const quadraCadastrada =
+        [...quadras.values()].find(
+          (item) =>
+            item.loteamentoId === cadastrado.id && item.numero === quadra,
+        ) ??
+        salvarQuadra(randomUUID(), {
+          loteamentoId: cadastrado.id,
+          numero: quadra,
+        });
+
+      criarLote(quadraCadastrada, {
+        numero,
+        areaM2: area.replace(',', '.'),
+      });
+    }
+  }
+
+  return {
+    importado,
+    totalLinhas: linhas.length,
+    lotes: validas.length,
+    loteamentosNovos: novosLoteamentos.size,
+    quadrasNovas: novasQuadras.size,
+    erros,
+  };
+}
+
 function sendLoteDuplicado(response, path) {
   sendError(
     response,
@@ -536,20 +643,7 @@ const routes = {
     } else if (numeroDeLoteEmUso(dados.quadraId, dados.numero)) {
       sendLoteDuplicado(response, path);
     } else {
-      const agora = new Date().toISOString();
-      const lote = {
-        valor: null,
-        exibirValorPublico: false,
-        observacoes: null,
-        ...dados,
-        id: randomUUID(),
-        loteamentoId: quadra.loteamentoId,
-        status: 'DISPONIVEL',
-        createdAt: agora,
-        updatedAt: agora,
-      };
-      lotes.set(lote.id, lote);
-      send(response, 201, lote);
+      send(response, 201, criarLote(quadra, dados));
     }
   }, PERFIS_CADASTRO),
 
@@ -573,6 +667,32 @@ const routes = {
       ),
     );
   }),
+
+  'GET /v1/lotes/importacao/modelo': protegida((_request, response) => {
+    response.writeHead(200, {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="modelo-lotes.csv"',
+    });
+    response.end(
+      '﻿loteamento;quadra;numero;area_m2;valor;exibir_valor\r\nExemplo;A;1;360,00;250000,00;sim\r\n',
+    );
+  }, PERFIS_CADASTRO),
+
+  'POST /v1/lotes/importacao': protegida(async (request, response, path) => {
+    const envio = parseImportacao(await readBody(request));
+
+    if (!/\.(csv|xlsx)$/i.test(envio.nome)) {
+      sendError(
+        response,
+        path,
+        422,
+        'IMPORTACAO_FORMATO_INVALIDO',
+        'Envie um arquivo .csv ou .xlsx',
+      );
+    } else {
+      send(response, 200, importarPlanilha(envio));
+    }
+  }, PERFIS_CADASTRO),
 
   // Só o que o e2e precisa para ter um lote reservado.
   'POST /v1/clientes': protegida(async (request, response) => {

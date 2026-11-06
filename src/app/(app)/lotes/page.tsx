@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ImportarLotesLink } from '@/features/lotes/components/importacao-lotes';
 import {
   LotesTable,
   NovoLoteLink,
@@ -25,7 +26,10 @@ export default async function LotesPage({
         parents={[{ label: 'Início', href: '/' }]}
         actions={
           <Permitido acao="gerenciarCadastros">
-            <NovoLoteLink />
+            <div className="flex flex-wrap gap-2">
+              <ImportarLotesLink />
+              <NovoLoteLink />
+            </div>
           </Permitido>
         }
       />
