@@ -158,7 +158,7 @@ O inverso vale para o erro: a resposta da API vira um `ApiError`, que a tela exi
 
 ## Exemplo completo: funcionalidade `loteamentos`
 
-Modelo a ser copiado para funcionalidades novas, com o contrato real do backend. Nas telas novas, use `DataTable` e `Form` ([ui.md](ui.md#listagens-e-formulários)) em vez da tabela e do formulário manuais deste exemplo.
+Modelo a ser copiado para funcionalidades novas, com o contrato real do backend. A versão completa, com edição, remoção e detalhe, está em `src/features/loteamentos/`. Nas telas novas, use `DataTable` e `Form` ([ui.md](ui.md#listagens-e-formulários)) em vez da tabela e do formulário manuais deste exemplo.
 
 Rotas: `GET /v1/loteamentos` (paginada, com `q`), `POST /v1/loteamentos`. Os perfis estão na [matriz](security.md#matriz-de-permissões): todos visualizam; Administrador e Gestor cadastram.
 

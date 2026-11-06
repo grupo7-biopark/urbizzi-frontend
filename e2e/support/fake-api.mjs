@@ -1,6 +1,6 @@
 // API falsa para o e2e do CI, que não tem o backend real. Implementa só o contrato
-// da autenticação, com tokens de uso único como os da API de verdade, e uma rota
-// restrita a um perfil, para o e2e conferir o 403.
+// da autenticação, com tokens de uso único como os da API de verdade, uma rota
+// restrita a um perfil, para o e2e conferir o 403, e o cadastro de loteamentos.
 import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
 
@@ -83,6 +83,151 @@ async function readJson(request) {
   return chunks.length > 0 ? JSON.parse(Buffer.concat(chunks).toString()) : {};
 }
 
+const PERFIS_CADASTRO = ['ADMINISTRADOR', 'GESTOR'];
+const LOTEAMENTO_SEMENTE_ID = '4f0d7a5c-2e96-4ecf-9b7d-6a1d5c9e3f54';
+
+const loteamentos = new Map();
+// Id da quadra e id do loteamento a que ela pertence.
+const quadras = new Map();
+
+function salvarLoteamento(id, dados, atual = {}) {
+  const agora = new Date().toISOString();
+  const loteamento = {
+    id,
+    nome: atual.nome,
+    descricao: null,
+    localizacao: null,
+    createdAt: agora,
+    ...atual,
+    ...dados,
+    updatedAt: agora,
+  };
+  loteamentos.set(id, loteamento);
+  return loteamento;
+}
+
+salvarLoteamento(LOTEAMENTO_SEMENTE_ID, { nome: 'Loteamento Semente' });
+
+function nomeEmUso(nome, idIgnorado) {
+  return [...loteamentos.values()].some(
+    (item) =>
+      item.id !== idIgnorado && item.nome.toLowerCase() === nome.toLowerCase(),
+  );
+}
+
+/** Confere a sessão e o perfil antes de executar a rota, como os guards da API. */
+function protegida(handler, perfis) {
+  return async (request, response, path, params) => {
+    const usuario = getUsuario(request);
+
+    if (!usuario) {
+      sendError(response, path, 401, 'NAO_AUTENTICADO', 'Não autenticado');
+    } else if (perfis && !perfis.includes(usuario.perfil)) {
+      sendError(response, path, 403, 'ACESSO_NEGADO', 'Forbidden resource');
+    } else {
+      await handler(request, response, path, params);
+    }
+  };
+}
+
+function comLoteamento(handler) {
+  return async (request, response, path, params) => {
+    const loteamento = loteamentos.get(params.id);
+
+    if (loteamento) {
+      await handler(request, response, path, loteamento);
+    } else {
+      sendError(
+        response,
+        path,
+        404,
+        'LOTEAMENTO_NAO_ENCONTRADO',
+        'Loteamento não encontrado',
+      );
+    }
+  };
+}
+
+const dynamicRoutes = [
+  {
+    method: 'GET',
+    pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)$/,
+    handler: protegida(
+      comLoteamento((_request, response, _path, loteamento) =>
+        send(response, 200, loteamento),
+      ),
+    ),
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)$/,
+    handler: protegida(
+      comLoteamento(async (request, response, path, loteamento) => {
+        const dados = await readJson(request);
+
+        if (dados.nome && nomeEmUso(dados.nome, loteamento.id)) {
+          sendError(
+            response,
+            path,
+            409,
+            'LOTEAMENTO_JA_EXISTE',
+            'Já existe um loteamento com esse nome',
+          );
+        } else {
+          send(
+            response,
+            200,
+            salvarLoteamento(loteamento.id, dados, loteamento),
+          );
+        }
+      }),
+      PERFIS_CADASTRO,
+    ),
+  },
+  {
+    method: 'DELETE',
+    pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)$/,
+    handler: protegida(
+      comLoteamento((_request, response, path, loteamento) => {
+        if ([...quadras.values()].includes(loteamento.id)) {
+          sendError(
+            response,
+            path,
+            409,
+            'LOTEAMENTO_COM_QUADRAS',
+            'Não é possível excluir um loteamento com quadras cadastradas',
+          );
+        } else {
+          loteamentos.delete(loteamento.id);
+          send(response, 204);
+        }
+      }),
+      PERFIS_CADASTRO,
+    ),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)\/quadras$/,
+    handler: protegida(
+      comLoteamento(async (request, response, _path, loteamento) => {
+        const { numero } = await readJson(request);
+        const id = randomUUID();
+        quadras.set(id, loteamento.id);
+        send(response, 201, { id, numero, loteamentoId: loteamento.id });
+      }),
+      PERFIS_CADASTRO,
+    ),
+  },
+  {
+    method: 'DELETE',
+    pattern: /^\/v1\/quadras\/(?<id>[^/]+)$/,
+    handler: protegida((_request, response, _path, params) => {
+      quadras.delete(params.id);
+      send(response, 204);
+    }, PERFIS_CADASTRO),
+  },
+];
+
 const routes = {
   'GET /health': (_request, response) => send(response, 200, { status: 'ok' }),
 
@@ -139,6 +284,42 @@ const routes = {
     }
   },
 
+  'GET /v1/loteamentos': protegida((request, response) => {
+    const { searchParams } = new URL(request.url, 'http://localhost');
+    const q = (searchParams.get('q') ?? '').toLowerCase();
+    const page = Number(searchParams.get('page') ?? 1);
+    const pageSize = Number(searchParams.get('pageSize') ?? 20);
+    const encontrados = [...loteamentos.values()]
+      .filter((item) => item.nome.toLowerCase().includes(q))
+      .toReversed();
+
+    send(response, 200, {
+      data: encontrados.slice((page - 1) * pageSize, page * pageSize),
+      meta: {
+        page,
+        pageSize,
+        total: encontrados.length,
+        totalPages: Math.ceil(encontrados.length / pageSize),
+      },
+    });
+  }),
+
+  'POST /v1/loteamentos': protegida(async (request, response, path) => {
+    const dados = await readJson(request);
+
+    if (nomeEmUso(dados.nome)) {
+      sendError(
+        response,
+        path,
+        409,
+        'LOTEAMENTO_JA_EXISTE',
+        'Já existe um loteamento com esse nome',
+      );
+    } else {
+      send(response, 201, salvarLoteamento(randomUUID(), dados));
+    }
+  }, PERFIS_CADASTRO),
+
   'GET /v1/usuarios': (request, response, path) => {
     const usuario = getUsuario(request);
 
@@ -158,9 +339,15 @@ const routes = {
 createServer((request, response) => {
   const path = new URL(request.url, 'http://localhost').pathname;
   const route = routes[`${request.method} ${path}`];
+  const dynamic = dynamicRoutes
+    .filter(({ method }) => method === request.method)
+    .map(({ pattern, handler }) => ({ handler, match: path.match(pattern) }))
+    .find(({ match }) => match);
 
   if (route) {
     void route(request, response, path);
+  } else if (dynamic) {
+    void dynamic.handler(request, response, path, dynamic.match.groups);
   } else {
     sendError(response, path, 404, 'RECURSO_NAO_ENCONTRADO', 'Não encontrado');
   }

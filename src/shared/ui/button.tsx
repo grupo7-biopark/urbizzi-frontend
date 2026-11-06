@@ -16,6 +16,16 @@ type ButtonProps = ComponentProps<'button'> & {
   variant?: ButtonVariant;
 };
 
+/** Aparência de botão para um link: navegação continua sendo `a`, e não `button`. */
+export function buttonClasses(variant: ButtonVariant, className?: string) {
+  return cn(
+    'inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 border px-4 py-2 text-small font-bold',
+    'disabled:cursor-not-allowed disabled:opacity-50',
+    VARIANT_CLASSES[variant],
+    className,
+  );
+}
+
 export function Button({
   variant = 'primario',
   type = 'button',
@@ -25,12 +35,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={cn(
-        'inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 border px-4 py-2 text-small font-bold',
-        'disabled:cursor-not-allowed disabled:opacity-50',
-        VARIANT_CLASSES[variant],
-        className,
-      )}
+      className={buttonClasses(variant, className)}
       {...props}
     />
   );
