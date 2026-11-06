@@ -90,10 +90,23 @@ async function readJson(request) {
 }
 
 // O processamento real leva minutos: aqui, o status avança com o tempo, para o e2e
-// acompanhar a tela mudando sozinha. O relógio começa na primeira listagem feita pela sessão que enviou, porque o
-//  pode levar segundos para compilar a tela. Um nome com "falha" termina em erro.
+// acompanhar a tela mudando sozinha. O relógio começa na primeira listagem feita pela
+// sessão que enviou, porque o `next dev` pode levar segundos para compilar a tela. Um
+// nome com "falha" termina em erro.
 const PLANTA_PROCESSANDO_APOS_MS = 1000;
 const PLANTA_TERMINADA_APOS_MS = 5000;
+// O necessário para o visualizador: 3 níveis de zoom além do tile único.
+const METADADOS_PLANTA_PRONTA = {
+  larguraPx: 2048,
+  alturaPx: 1536,
+  maxZoom: 3,
+  tamanhoTile: 256,
+};
+// WebP de 1 x 1 px: o e2e confere as requisições, e não a imagem.
+const TILE = Buffer.from(
+  'UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA',
+  'base64',
+);
 
 const plantas = [];
 
@@ -110,6 +123,7 @@ function toPlantaDto({ listadaEm, enviadaPor: _enviadaPor, ...planta }) {
 
   return {
     ...planta,
+    ...(status === 'PRONTA' ? METADADOS_PLANTA_PRONTA : {}),
     status,
     mensagemErro:
       status === 'ERRO'
@@ -418,6 +432,39 @@ function comLoteamento(handler) {
 }
 
 const dynamicRoutes = [
+  {
+    method: 'GET',
+    pattern: /^\/v1\/plantas\/ativa$/,
+    handler: protegida((_request, response, path) => {
+      const planta = plantas.find(({ ativa }) => ativa);
+
+      if (planta) {
+        send(response, 200, {
+          ...toPlantaDto(planta),
+          tilesUrl: `/v1/plantas/${planta.id}/tiles/{z}/{x}/{y}.webp`,
+        });
+      } else {
+        sendError(
+          response,
+          path,
+          404,
+          'PLANTA_ATIVA_NAO_ENCONTRADA',
+          'Nenhuma planta ativa encontrada',
+        );
+      }
+    }),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/v1\/plantas\/[^/]+\/tiles\/\d+\/\d+\/\d+\.webp$/,
+    handler: (_request, response) => {
+      response.writeHead(200, {
+        'Content-Type': 'image/webp',
+        'Cache-Control': 'no-store',
+      });
+      response.end(TILE);
+    },
+  },
   {
     method: 'POST',
     pattern: /^\/v1\/plantas\/(?<id>[^/]+)\/ativar$/,

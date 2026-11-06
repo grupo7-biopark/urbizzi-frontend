@@ -10,19 +10,19 @@ Frontend do **Urbizzi**: sistema de gestão de loteamentos (cadastro de loteamen
 
 ## Stack
 
-| Item              | Tecnologia                                             | Situação         |
-| ----------------- | ------------------------------------------------------ | ---------------- |
-| Runtime           | Node.js 24, ESM (`"type": "module"`)                   | em uso           |
-| Framework         | Next.js 16 (App Router), React 19, TypeScript `strict` | em uso           |
-| Estilo            | Tailwind CSS v4, com os tokens da marca                | em uso           |
-| Componentes       | Radix UI (`radix-ui`), só onde há foco e teclado       | em uso           |
-| Validação         | Zod (variáveis de ambiente e formulários)              | em uso           |
-| Lint / formatação | oxlint + Prettier                                      | em uso           |
-| Testes            | Vitest + Testing Library, MSW, Playwright              | em uso           |
-| Infra local       | Docker Compose (`web`)                                 | em uso           |
-| Dados             | TanStack Query, `openapi-fetch`, `openapi-typescript`  | em uso           |
-| Formulários       | `react-hook-form`                                      | em uso           |
-| Mapa              | Leaflet                                                | previsto (FE-27) |
+| Item              | Tecnologia                                             | Situação |
+| ----------------- | ------------------------------------------------------ | -------- |
+| Runtime           | Node.js 24, ESM (`"type": "module"`)                   | em uso   |
+| Framework         | Next.js 16 (App Router), React 19, TypeScript `strict` | em uso   |
+| Estilo            | Tailwind CSS v4, com os tokens da marca                | em uso   |
+| Componentes       | Radix UI (`radix-ui`), só onde há foco e teclado       | em uso   |
+| Validação         | Zod (variáveis de ambiente e formulários)              | em uso   |
+| Lint / formatação | oxlint + Prettier                                      | em uso   |
+| Testes            | Vitest + Testing Library, MSW, Playwright              | em uso   |
+| Infra local       | Docker Compose (`web`)                                 | em uso   |
+| Dados             | TanStack Query, `openapi-fetch`, `openapi-typescript`  | em uso   |
+| Formulários       | `react-hook-form`                                      | em uso   |
+| Mapa              | Leaflet                                                | em uso   |
 
 ## Comandos
 
