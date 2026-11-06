@@ -1,3 +1,5 @@
+// Os nomes com `_` são internos do Leaflet, usados para testar o desenho das formas.
+// oxlint-disable no-underscore-dangle
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import L from 'leaflet';
@@ -158,6 +160,74 @@ describe('VisualizadorPlantaLeaflet', () => {
     const zoomOut = vi.spyOn(mapa, 'zoomOut');
     await user.click(screen.getByRole('button', { name: 'Afastar' }));
     expect(zoomOut).toHaveBeenCalledOnce();
+  });
+
+  it('passa a forma ao marcador e aumenta o destacado', () => {
+    const criados = espionarMarcadores();
+    render(
+      <VisualizadorPlantaLeaflet
+        planta={PLANTA}
+        marcadores={[
+          { ...(MARCADORES[0] as MarcadorPlanta), forma: 'losango' },
+          { ...(MARCADORES[1] as MarcadorPlanta), destacado: true },
+        ]}
+      />,
+    );
+
+    expect(criados[0]?.options).toMatchObject({ forma: 'losango', radius: 7 });
+    expect(criados[1]?.getRadius()).toBeGreaterThan(7);
+  });
+
+  it('desenha cada forma no canvas', () => {
+    const desenho = {
+      beginPath: vi.fn<() => void>(),
+      arc: vi.fn<() => void>(),
+      lineTo: vi.fn<() => void>(),
+      closePath: vi.fn<() => void>(),
+    };
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      new Proxy(desenho, {
+        get: (alvo, nome) =>
+          alvo[nome as keyof typeof desenho] ?? (() => undefined),
+        set: () => true,
+      }) as unknown as CanvasRenderingContext2D,
+    );
+    const criados = espionarMarcadores();
+    render(
+      <VisualizadorPlantaLeaflet
+        planta={PLANTA}
+        marcadores={[
+          { ...(MARCADORES[0] as MarcadorPlanta), forma: 'quadrado' },
+          { ...(MARCADORES[1] as MarcadorPlanta), forma: 'circulo' },
+        ]}
+      />,
+    );
+    const interno = criados[0]?.options.renderer as unknown as {
+      _drawing: boolean;
+      _updateCircle: (marcador: L.CircleMarker) => void;
+    };
+
+    interno._drawing = true;
+    interno._updateCircle(criados[0] as L.CircleMarker);
+    expect(desenho.lineTo).toHaveBeenCalledTimes(4);
+    expect(desenho.closePath).toHaveBeenCalledOnce();
+
+    interno._updateCircle(criados[1] as L.CircleMarker);
+    expect(desenho.arc).toHaveBeenCalledOnce();
+  });
+
+  it('aproxima até o zoom máximo ao receber um foco', () => {
+    const mapas = espionarMapa();
+    const { rerender } = render(<VisualizadorPlantaLeaflet planta={PLANTA} />);
+    const setView = vi.spyOn(mapas[0] as L.Map, 'setView');
+
+    expect(setView).not.toHaveBeenCalled();
+
+    rerender(
+      <VisualizadorPlantaLeaflet planta={PLANTA} foco={{ x: 0.25, y: 0.5 }} />,
+    );
+
+    expect(setView).toHaveBeenCalledWith([-64, 64], 3);
   });
 
   it('centraliza a planta', async () => {
