@@ -109,7 +109,7 @@ function botaoSalvar(page: Page) {
 test('cria, vincula, arrasta e salva, e a lista de pendentes diminui', async ({
   page,
 }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(150_000);
   await page.setViewportSize({ width: 1280, height: 1000 });
   await entrar(page);
   const { id: plantaId } = await garantirPlantaAtiva(page);
@@ -235,7 +235,8 @@ test.describe('com os usuários da API falsa', () => {
     const numero = `REV-${sufixo()}`;
     const { lotes } = await criarLotes(page, [numero]);
     await criar(page, `/v1/plantas/${plantaId}/marcadores/lote`, {
-      marcadores: [{ loteId: lotes[numero], x: 0.7, y: 0.7 }],
+      // No canto: os testes rodam em paralelo, e o principal clica perto do centro.
+      marcadores: [{ loteId: lotes[numero], x: 0.95, y: 0.05 }],
     });
 
     await abrirEditor(page);

@@ -11,7 +11,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  reporter: 'html',
+  // No CI, `list` também: se o job for cancelado, o relatório não chega a ser publicado.
+  reporter: process.env.CI ? [['list'], ['html']] : 'html',
   // O `next dev` compila cada rota no primeiro acesso, o que passa dos 5 s padrão.
   expect: { timeout: 15_000 },
   use: {
