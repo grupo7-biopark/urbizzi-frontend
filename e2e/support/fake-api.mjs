@@ -173,8 +173,8 @@ const LOTEAMENTO_SEMENTE_ID = '4f0d7a5c-2e96-4ecf-9b7d-6a1d5c9e3f54';
 
 const loteamentos = new Map();
 const quadras = new Map();
-// Id do lote e id da quadra a que ele pertence: só o que a remoção da quadra confere.
 const lotes = new Map();
+const clientes = new Set();
 
 function salvarLoteamento(id, dados, atual = {}) {
   const agora = new Date().toISOString();
@@ -219,6 +219,29 @@ function numeroEmUso({ loteamentoId, numero }, idIgnorado) {
       item.loteamentoId === loteamentoId &&
       item.numero.toLowerCase() === numero.toLowerCase(),
   );
+}
+
+function numeroDeLoteEmUso(quadraId, numero, idIgnorado) {
+  return [...lotes.values()].some(
+    (item) =>
+      item.id !== idIgnorado &&
+      item.quadraId === quadraId &&
+      item.numero.toLowerCase() === numero.toLowerCase(),
+  );
+}
+
+function sendLoteDuplicado(response, path) {
+  sendError(
+    response,
+    path,
+    409,
+    'LOTE_JA_EXISTE',
+    'Já existe um lote com esse número nesta quadra',
+  );
+}
+
+function sendLoteNaoEncontrado(response, path) {
+  sendError(response, path, 404, 'LOTE_NAO_ENCONTRADO', 'Lote não encontrado');
 }
 
 function sendQuadraDuplicada(response, path) {
@@ -404,7 +427,7 @@ const dynamicRoutes = [
     method: 'DELETE',
     pattern: /^\/v1\/quadras\/(?<id>[^/]+)$/,
     handler: protegida((_request, response, path, params) => {
-      if ([...lotes.values()].includes(params.id)) {
+      if ([...lotes.values()].some(({ quadraId }) => quadraId === params.id)) {
         sendError(
           response,
           path,
@@ -421,22 +444,155 @@ const dynamicRoutes = [
   {
     method: 'DELETE',
     pattern: /^\/v1\/lotes\/(?<id>[^/]+)$/,
-    handler: protegida((_request, response, _path, params) => {
-      lotes.delete(params.id);
-      send(response, 204);
+    handler: protegida((_request, response, path, params) => {
+      const lote = lotes.get(params.id);
+
+      if (!lote) {
+        sendLoteNaoEncontrado(response, path);
+      } else if (lote.status !== 'DISPONIVEL') {
+        sendError(
+          response,
+          path,
+          409,
+          'LOTE_NAO_DISPONIVEL',
+          'Só um lote disponível pode ser excluído',
+        );
+      } else {
+        lotes.delete(params.id);
+        send(response, 204);
+      }
     }, PERFIS_CADASTRO),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/v1\/lotes\/(?<id>[^/]+)$/,
+    handler: protegida((_request, response, path, params) => {
+      const lote = lotes.get(params.id);
+
+      if (lote) {
+        send(response, 200, lote);
+      } else {
+        sendLoteNaoEncontrado(response, path);
+      }
+    }),
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/v1\/lotes\/(?<id>[^/]+)$/,
+    handler: protegida(async (request, response, path, params) => {
+      const atual = lotes.get(params.id);
+      const dados = await readJson(request);
+
+      if (!atual) {
+        sendLoteNaoEncontrado(response, path);
+      } else if (
+        dados.numero &&
+        numeroDeLoteEmUso(atual.quadraId, dados.numero, atual.id)
+      ) {
+        sendLoteDuplicado(response, path);
+      } else {
+        const lote = { ...atual, ...dados };
+        lotes.set(lote.id, lote);
+        send(response, 200, lote);
+      }
+    }, PERFIS_CADASTRO),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/v1\/quadras\/(?<id>[^/]+)$/,
+    handler: protegida((_request, response, path, params) => {
+      const quadra = quadras.get(params.id);
+
+      if (quadra) {
+        send(response, 200, quadra);
+      } else {
+        sendError(
+          response,
+          path,
+          404,
+          'QUADRA_NAO_ENCONTRADA',
+          'Quadra não encontrada',
+        );
+      }
+    }),
   },
 ];
 
 const routes = {
   'GET /health': (_request, response) => send(response, 200, { status: 'ok' }),
 
-  'POST /v1/lotes': protegida(async (request, response) => {
-    const { quadraId, numero } = await readJson(request);
-    const id = randomUUID();
-    lotes.set(id, quadraId);
-    send(response, 201, { id, quadraId, numero });
+  'POST /v1/lotes': protegida(async (request, response, path) => {
+    const dados = await readJson(request);
+    const quadra = quadras.get(dados.quadraId);
+
+    if (!quadra) {
+      sendError(
+        response,
+        path,
+        404,
+        'QUADRA_NAO_ENCONTRADA',
+        'Quadra não encontrada',
+      );
+    } else if (numeroDeLoteEmUso(dados.quadraId, dados.numero)) {
+      sendLoteDuplicado(response, path);
+    } else {
+      const agora = new Date().toISOString();
+      const lote = {
+        valor: null,
+        exibirValorPublico: false,
+        observacoes: null,
+        ...dados,
+        id: randomUUID(),
+        loteamentoId: quadra.loteamentoId,
+        status: 'DISPONIVEL',
+        createdAt: agora,
+        updatedAt: agora,
+      };
+      lotes.set(lote.id, lote);
+      send(response, 201, lote);
+    }
   }, PERFIS_CADASTRO),
+
+  'GET /v1/lotes': protegida((request, response) => {
+    const { searchParams } = new URL(request.url, 'http://localhost');
+    const filtros = {
+      loteamentoId: searchParams.get('loteamentoId'),
+      quadraId: searchParams.get('quadraId'),
+      status: searchParams.get('status'),
+    };
+    const busca = searchParams.get('q')?.toLowerCase() ?? '';
+
+    sendPagina(
+      request,
+      response,
+      [...lotes.values()].filter(
+        (lote) =>
+          Object.entries(filtros).every(
+            ([campo, valor]) => !valor || lote[campo] === valor,
+          ) && lote.numero.toLowerCase().includes(busca),
+      ),
+    );
+  }),
+
+  // Só o que o e2e precisa para ter um lote reservado.
+  'POST /v1/clientes': protegida(async (request, response) => {
+    const dados = await readJson(request);
+    const id = randomUUID();
+    clientes.add(id);
+    send(response, 201, { ...dados, id });
+  }),
+
+  'POST /v1/reservas': protegida(async (request, response, path) => {
+    const { loteId, clienteId } = await readJson(request);
+    const lote = lotes.get(loteId);
+
+    if (lote && clientes.has(clienteId)) {
+      lote.status = 'RESERVADO';
+      send(response, 201, { id: randomUUID(), loteId, clienteId });
+    } else {
+      sendLoteNaoEncontrado(response, path);
+    }
+  }),
 
   'POST /v1/auth/login': async (request, response, path) => {
     const { email, senha } = await readJson(request);
