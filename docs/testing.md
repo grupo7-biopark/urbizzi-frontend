@@ -59,7 +59,7 @@ Abre o navegador e percorre o sistema como o usuário. Fica para os fluxos que a
 4. Navegação que depende da URL (paginação e filtros mantidos ao recarregar).
 5. Página pública: respostas de rede sem campos sensíveis.
 
-Como o CI não tem o backend, o Playwright sobe uma API falsa (`e2e/support/fake-api.mjs`), que implementa o contrato de autenticação, um usuário de cada perfil e uma rota restrita. `e2e/permissoes.spec.ts` depende desses usuários, por isso é pulado contra o backend real. Os mesmos testes rodam contra o backend real, informando um usuário de teste:
+Como o CI não tem o backend, o Playwright sobe uma API falsa (`e2e/support/fake-api.mjs`), que implementa o contrato de autenticação, um usuário de cada perfil, uma rota restrita e o cadastro de loteamentos. `e2e/permissoes.spec.ts` e parte de `e2e/loteamentos.spec.ts` dependem desses dados, por isso são pulados contra o backend real. Os mesmos testes rodam contra o backend real, informando um usuário de teste:
 
 ```bash
 E2E_API_URL=http://localhost:3000 E2E_EMAIL=... E2E_SENHA=... npx playwright test e2e/auth.spec.ts
