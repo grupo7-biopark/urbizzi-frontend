@@ -4,33 +4,33 @@
  */
 
 export interface paths {
-    "/v1/plantas/{plantaId}/marcadores": {
+    "/v1/reservas/{reservaId}/propostas": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Lista os marcadores da planta */
-        get: operations["MarcadoresController_list_v1"];
+        /** Lista propostas da reserva da mais recente para a mais antiga */
+        get: operations["PropostasController_list_v1"];
         put?: never;
-        /** Posiciona um lote na planta */
-        post: operations["MarcadoresController_create_v1"];
+        /** Envia proposta para análise em uma reserva ativa */
+        post: operations["PropostasController_create_v1"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/plantas/{plantaId}/lotes-sem-marcador": {
+    "/v1/propostas/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Lista lotes ainda não marcados nesta planta */
-        get: operations["MarcadoresController_semMarcador_v1"];
+        /** Consulta uma proposta respeitando o vendedor da reserva */
+        get: operations["PropostasController_find_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -39,50 +39,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/plantas/{plantaId}/marcadores/lote": {
+    "/v1/reservas": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Lista reservas com filtros combinados, por vencimento crescente; Comercial só vê as próprias */
+        get: operations["ReservasConsultaController_list_v1"];
         put?: never;
-        /** Cria até 500 marcadores na mesma transação */
-        post: operations["MarcadoresController_createMany_v1"];
+        /** Reserva lote disponível para o cliente; vendedor é o usuário autenticado */
+        post: operations["ReservasController_create_v1"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/plantas/{plantaId}/marcadores/{id}": {
+    "/v1/reservas/minhas": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Remove um marcador */
-        delete: operations["MarcadoresController_delete_v1"];
-        options?: never;
-        head?: never;
-        /** Move um marcador sem alterar o lote associado */
-        patch: operations["MarcadoresController_mover_v1"];
-        trace?: never;
-    };
-    "/v1/mapa": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Planta ativa e marcadores paginados com status atual e ações do usuário */
-        get: operations["MapaController_consultar_v1"];
+        /** Reservas do usuário autenticado, pelo vencimento mais próximo */
+        get: operations["ReservasConsultaController_minhas_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -91,121 +74,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/plantas": {
+    "/v1/reservas/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Lista as versões da planta, da mais recente para a mais antiga */
-        get: operations["PlantasController_list_v1"];
-        put?: never;
-        /** Envia a planta como imagem única ou como fatias fatia_LL_CC; ela fica ENVIADA aguardando o processamento */
-        post: operations["PlantasController_enviar_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/plantas/ativa": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Planta exibida no mapa, com dimensões, zoom máximo e o modelo de URL dos tiles */
-        get: operations["PlantasController_ativa_v1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/plantas/{id}/tiles/{z}/{x}/{y}.webp": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Tile WebP de uma planta PRONTA. Rota pública (o `<img>` do Leaflet não
-         *     envia token e o link público usa os mesmos tiles), com cache HTTP longo
-         */
-        get: operations["PlantasController_tile_v1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/plantas/{id}/ativar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Torna uma planta PRONTA a exibida no mapa; a anterior é desativada */
-        post: operations["PlantasController_ativar_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/plantas/{id}/reprocessar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Devolve uma planta com ERRO para a fila de processamento */
-        post: operations["PlantasController_reprocessar_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/plantas/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Detalha uma planta, com o status do processamento */
-        get: operations["PlantasController_findById_v1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/historico": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Consulta alterações respeitando propriedade e filtros */
-        get: operations["HistoricoController_list_v1"];
+        /** Consulta a reserva com tempo restante; Comercial só consulta as próprias */
+        get: operations["ReservasController_find_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -393,50 +270,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/reservas": {
+    "/v1/historico": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Lista reservas com filtros combinados, por vencimento crescente; Comercial só vê as próprias */
-        get: operations["ReservasConsultaController_list_v1"];
-        put?: never;
-        /** Reserva lote disponível para o cliente; vendedor é o usuário autenticado */
-        post: operations["ReservasController_create_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/reservas/minhas": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Reservas do usuário autenticado, pelo vencimento mais próximo */
-        get: operations["ReservasConsultaController_minhas_v1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/reservas/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Consulta a reserva com tempo restante; Comercial só consulta as próprias */
-        get: operations["ReservasController_find_v1"];
+        /** Consulta alterações respeitando propriedade e filtros */
+        get: operations["HistoricoController_list_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -481,6 +323,26 @@ export interface paths {
         patch: operations["ClientesController_update_v1"];
         trace?: never;
     };
+    "/v1/clientes/{id}/historico": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar histórico de reservas e propostas do cliente
+         * @description Linha do tempo paginada por início da reserva ou envio da proposta, do mais recente. Administrador e Gestor veem todos os registros; Comercial vê suas reservas e as propostas delas. Consulta não tem acesso.
+         */
+        get: operations["HistoricoClienteController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/configuracoes": {
         parameters: {
             query?: never;
@@ -497,6 +359,216 @@ export interface paths {
         head?: never;
         /** Atualiza os prazos para novas operações */
         patch: operations["ConfiguracoesController_update_v1"];
+        trace?: never;
+    };
+    "/v1/plantas/{plantaId}/marcadores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista os marcadores da planta */
+        get: operations["MarcadoresController_list_v1"];
+        put?: never;
+        /** Posiciona um lote na planta */
+        post: operations["MarcadoresController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas/{plantaId}/lotes-sem-marcador": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista lotes ainda não marcados nesta planta */
+        get: operations["MarcadoresController_semMarcador_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas/{plantaId}/marcadores/lote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cria até 500 marcadores na mesma transação */
+        post: operations["MarcadoresController_createMany_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas/{plantaId}/marcadores/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove um marcador */
+        delete: operations["MarcadoresController_delete_v1"];
+        options?: never;
+        head?: never;
+        /** Move um marcador sem alterar o lote associado */
+        patch: operations["MarcadoresController_mover_v1"];
+        trace?: never;
+    };
+    "/v1/plantas/{plantaId}/marcadores/{id}/revisar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirma a revisão da posição nesta versão */
+        post: operations["MarcadoresController_revisar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mapa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Planta ativa e marcadores paginados com status atual e ações do usuário */
+        get: operations["MapaController_consultar_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista as versões da planta, da mais recente para a mais antiga */
+        get: operations["PlantasController_list_v1"];
+        put?: never;
+        /** Envia a planta como imagem única ou como fatias fatia_LL_CC; ela fica ENVIADA aguardando o processamento */
+        post: operations["PlantasController_enviar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas/ativa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Planta exibida no mapa, com dimensões, zoom máximo e o modelo de URL dos tiles */
+        get: operations["PlantasController_ativa_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas/{id}/tiles/{z}/{x}/{y}.webp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tile WebP de uma planta PRONTA. Rota pública (o `<img>` do Leaflet não
+         *     envia token e o link público usa os mesmos tiles), com cache HTTP longo
+         */
+        get: operations["PlantasController_tile_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas/{id}/ativar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Torna uma planta PRONTA a exibida no mapa; a anterior é desativada */
+        post: operations["PlantasController_ativar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas/{id}/reprocessar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Devolve uma planta com ERRO para a fila de processamento */
+        post: operations["PlantasController_reprocessar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plantas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalha uma planta, com o status do processamento */
+        get: operations["PlantasController_findById_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/health": {
@@ -743,22 +815,40 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        PaginationMetaDto: {
-            /** @example 1 */
-            page: number;
-            /** @example 20 */
-            pageSize: number;
-            /** @example 57 */
-            total: number;
-            /** @example 3 */
-            totalPages: number;
+        CreatePropostaDto: {
+            /**
+             * @description Valor proposto, com até 2 casas decimais.
+             * @example 250000.00
+             */
+            valor: string;
+            /**
+             * @description Condições de pagamento.
+             * @example Pagamento à vista
+             */
+            condicoes: string;
+            /**
+             * @description Observações opcionais.
+             * @example Sujeito à análise do gestor
+             */
+            observacoes?: string | null;
         };
-        MarcadorDto: {
+        PropostaDto: {
+            /** @enum {string} */
+            status: "EM_ANALISE" | "APROVADA" | "REJEITADA";
             id: string;
-            plantaId: string;
-            loteId: string;
-            x: number;
-            y: number;
+            reservaId: string;
+            vendedorId: string;
+            /**
+             * @description Valor monetário como texto decimal.
+             * @example 250000.00
+             */
+            valor: string;
+            condicoes: string;
+            observacoes: string | null;
+            /** Format: date-time */
+            dataEnvio: string;
+            /** Format: date-time */
+            prazoLimite: string;
         };
         ErrorDetailDto: {
             /**
@@ -793,6 +883,447 @@ export interface components {
             path: string;
             /** @example 2026-10-28T12:00:00.000Z */
             timestamp: string;
+        };
+        PaginationMetaDto: {
+            /** @example 1 */
+            page: number;
+            /** @example 20 */
+            pageSize: number;
+            /** @example 57 */
+            total: number;
+            /** @example 3 */
+            totalPages: number;
+        };
+        LoteReservaResumoDto: {
+            id: string;
+            numero: string;
+            quadra: string;
+            loteamentoId: string;
+            loteamento: string;
+        };
+        ClienteReservaResumoDto: {
+            nome: string | null;
+            id: string;
+        };
+        PropostaReservaResumoDto: {
+            /** @enum {string} */
+            status: "EM_ANALISE" | "APROVADA" | "REJEITADA";
+            id: string;
+            valor: string;
+        };
+        ReservaResumoDto: {
+            /** @enum {string} */
+            status: "ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA";
+            /** Format: date-time */
+            dataInicio: string;
+            /** Format: date-time */
+            dataVencimento: string;
+            lote: components["schemas"]["LoteReservaResumoDto"];
+            cliente: components["schemas"]["ClienteReservaResumoDto"];
+            propostaAtual: components["schemas"]["PropostaReservaResumoDto"] | null;
+            id: string;
+            vendedorId: string;
+        };
+        CreateReservaDto: {
+            /**
+             * Format: uuid
+             * @description Lote disponível a reservar.
+             */
+            loteId: string;
+            /**
+             * Format: uuid
+             * @description Cliente previamente cadastrado.
+             */
+            clienteId: string;
+        };
+        ReservaDto: {
+            /** @enum {string} */
+            status: "ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA";
+            id: string;
+            loteId: string;
+            clienteId: string;
+            vendedorId: string;
+            /** Format: date-time */
+            dataInicio: string;
+            /** Format: date-time */
+            dataVencimento: string;
+            /** @description Segundos até o vencimento, nunca negativo; zero para reserva encerrada. */
+            tempoRestanteSegundos: number;
+        };
+        CreateLoteamentoDto: {
+            /**
+             * @description Nome comercial, único entre os loteamentos
+             * @example Residencial Bela Vista
+             */
+            nome: string;
+            /** @example Loteamento residencial com 120 lotes */
+            descricao?: string | null;
+            /** @example Av. Parigot de Souza, Toledo - PR */
+            localizacao?: string | null;
+        };
+        LoteamentoDto: {
+            /** @example 0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
+            id: string;
+            /** @example Residencial Bela Vista */
+            nome: string;
+            /** @example Loteamento residencial com 120 lotes */
+            descricao: string | null;
+            /** @example Av. Parigot de Souza, Toledo - PR */
+            localizacao: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        UpdateLoteamentoDto: {
+            /**
+             * @description Nome comercial, único entre os loteamentos
+             * @example Residencial Bela Vista
+             */
+            nome?: string;
+            /** @example Loteamento residencial com 120 lotes */
+            descricao?: string | null;
+            /** @example Av. Parigot de Souza, Toledo - PR */
+            localizacao?: string | null;
+        };
+        CreateQuadraDto: {
+            /**
+             * @description Identificação da quadra, única no loteamento
+             * @example A
+             */
+            numero: string;
+        };
+        QuadraDto: {
+            /** @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10 */
+            id: string;
+            /** @example 0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
+            loteamentoId: string;
+            /** @example A */
+            numero: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        UpdateQuadraDto: {
+            /**
+             * @description Identificação da quadra, única no loteamento
+             * @example A
+             */
+            numero?: string;
+        };
+        ErroImportacaoDto: {
+            /**
+             * @description Linha da planilha (o cabeçalho é a linha 1)
+             * @example 3
+             */
+            linha: number;
+            /**
+             * @example [
+             *       "area_m2 é obrigatório",
+             *       "Lote já cadastrado no sistema"
+             *     ]
+             */
+            mensagens: string[];
+        };
+        ResultadoImportacaoDto: {
+            /**
+             * @description `true` só quando a importação foi confirmada e gravada
+             * @example false
+             */
+            importado: boolean;
+            /**
+             * @description Linhas preenchidas lidas, sem o cabeçalho
+             * @example 120
+             */
+            totalLinhas: number;
+            /**
+             * @description Lotes válidos, que serão (ou foram) criados
+             * @example 118
+             */
+            lotes: number;
+            /** @example 1 */
+            loteamentosNovos: number;
+            /** @example 4 */
+            quadrasNovas: number;
+            /** @description Linhas com problema; com qualquer erro, nada é gravado */
+            erros: components["schemas"]["ErroImportacaoDto"][];
+        };
+        CreateLoteDto: {
+            /**
+             * Format: uuid
+             * @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10
+             */
+            quadraId: string;
+            /**
+             * @description Número do lote, único na quadra
+             * @example 12
+             */
+            numero: string;
+            /**
+             * @description Área em m², positiva, com até 2 casas decimais
+             * @example 360.00
+             */
+            areaM2: string;
+            /**
+             * @description Valor de venda, positivo, com até 2 casas decimais; `null` se ainda não definido
+             * @example 250000.00
+             */
+            valor?: string | null;
+            /**
+             * @description Exibe o valor no link público (padrão `false`)
+             * @example false
+             */
+            exibirValorPublico?: boolean;
+            /** @example Lote de esquina */
+            observacoes?: string | null;
+        };
+        /** @enum {string} */
+        StatusLote: "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "BLOQUEADO";
+        LoteDto: {
+            /** @example DISPONIVEL */
+            status: components["schemas"]["StatusLote"];
+            /** @example 5d2f8a1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
+            id: string;
+            /** @example 0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
+            loteamentoId: string;
+            /** @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10 */
+            quadraId: string;
+            /** @example 12 */
+            numero: string;
+            /**
+             * @description Área em m², com 2 casas decimais
+             * @example 360.00
+             */
+            areaM2: string;
+            /**
+             * @description Valor de venda, com 2 casas decimais
+             * @example 250000.00
+             */
+            valor: string | null;
+            /** @example false */
+            exibirValorPublico: boolean;
+            /** @example Lote de esquina */
+            observacoes: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        UpdateLoteDto: {
+            /**
+             * @description Número do lote, único na quadra
+             * @example 12
+             */
+            numero?: string;
+            /**
+             * @description Área em m², positiva, com até 2 casas decimais
+             * @example 360.00
+             */
+            areaM2?: string;
+            /**
+             * @description Valor de venda, positivo, com até 2 casas decimais; `null` se ainda não definido
+             * @example 250000.00
+             */
+            valor?: string | null;
+            /**
+             * @description Exibe o valor no link público (padrão `false`)
+             * @example false
+             */
+            exibirValorPublico?: boolean;
+            /** @example Lote de esquina */
+            observacoes?: string | null;
+        };
+        BloquearLoteDto: {
+            /**
+             * @description Justificativa administrativa, sem dados pessoais.
+             * @example Lote indisponível para comercialização
+             */
+            motivo: string;
+        };
+        HistoricoDto: {
+            /**
+             * @description Autor ou null para sistema.
+             * @example { id: "2872822b-14be-41ea-881f-a8c0c11c1ffd", nome: "Usuário Teste" }
+             */
+            usuario: {
+                [key: string]: unknown;
+            } | null;
+            valorAnterior: ({
+                [key: string]: unknown;
+            } | unknown[] | string | number | boolean) | null;
+            valorNovo: ({
+                [key: string]: unknown;
+            } | unknown[] | string | number | boolean) | null;
+            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
+            id: string;
+            /** @example Reserva */
+            entidadeTipo: string;
+            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
+            entidadeId: string;
+            /** @example CANCELAR */
+            acao: string;
+            /** @example Solicitação de cancelamento */
+            motivo: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-11-03T12:00:00Z
+             */
+            createdAt: string;
+        };
+        ClienteResumoDto: {
+            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
+            id: string;
+            /** @example Cliente Teste */
+            nome: string;
+        };
+        ClienteDto: {
+            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
+            id: string;
+            /** @example Cliente Teste */
+            nome: string;
+            /** @example 52998224725 */
+            documento: string;
+            /** @example 45999999999 */
+            telefone: string | null;
+            /** @example cliente@exemplo.com */
+            email: string | null;
+            observacoes: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-11-03T12:00:00Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-11-03T12:00:00Z
+             */
+            updatedAt: string;
+        };
+        CreateClienteDto: {
+            /** @example Cliente Teste */
+            nome: string;
+            /**
+             * @description CPF ou CNPJ numérico, com ou sem formatação.
+             * @example 52998224725
+             */
+            documento: string;
+            /** @example 45999999999 */
+            telefone?: string | null;
+            /**
+             * Format: email
+             * @example cliente@exemplo.com
+             */
+            email?: string | null;
+            /** @example Contato comercial */
+            observacoes?: string | null;
+        };
+        UpdateClienteDto: {
+            /** @example Cliente Teste */
+            nome?: string;
+            /**
+             * @description CPF ou CNPJ numérico, com ou sem formatação.
+             * @example 52998224725
+             */
+            documento?: string;
+            /** @example 45999999999 */
+            telefone?: string | null;
+            /**
+             * Format: email
+             * @example cliente@exemplo.com
+             */
+            email?: string | null;
+            /** @example Contato comercial */
+            observacoes?: string | null;
+        };
+        LoteHistoricoClienteDto: {
+            /** Format: uuid */
+            id: string;
+            numero: string;
+            quadra: string;
+            /** Format: uuid */
+            loteamentoId: string;
+            loteamento: string;
+        };
+        ReservaHistoricoClienteDto: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA";
+            /** Format: date-time */
+            dataInicio: string;
+            /** Format: date-time */
+            dataVencimento: string;
+            lote: components["schemas"]["LoteHistoricoClienteDto"];
+        };
+        DecisaoHistoricoClienteDto: {
+            /** Format: uuid */
+            decididoPorId: string;
+            /** Format: date-time */
+            data: string;
+            motivo: string;
+        };
+        PropostaHistoricoClienteDto: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Valor monetário com duas casas decimais.
+             * @example 250000.00
+             */
+            valor: string;
+            /** @enum {string} */
+            status: "EM_ANALISE" | "APROVADA" | "REJEITADA";
+            /** Format: date-time */
+            dataEnvio: string;
+            /** Format: date-time */
+            prazoLimite: string;
+            decisao: components["schemas"]["DecisaoHistoricoClienteDto"] | null;
+        };
+        HistoricoClienteDto: {
+            /** @enum {string} */
+            tipo: "RESERVA" | "PROPOSTA";
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: date-time
+             * @description Início da reserva ou envio da proposta, usado na ordenação.
+             */
+            data: string;
+            reserva: components["schemas"]["ReservaHistoricoClienteDto"];
+            proposta: components["schemas"]["PropostaHistoricoClienteDto"] | null;
+        };
+        ConfiguracaoDto: {
+            /** @example prazo_reserva_dias */
+            chave: string;
+            /** @example 7 */
+            valor: number;
+        };
+        UpdateConfiguracoesDto: {
+            /**
+             * @description Prazo aplicado a novas reservas.
+             * @example 7
+             */
+            prazoReservaDias?: number;
+            /**
+             * @description Prazo aplicado a novas propostas.
+             * @example 7
+             */
+            prazoAnaliseDiasUteis?: number;
+        };
+        PrazosDto: {
+            /** @example 7 */
+            prazoReservaDias: number;
+            /** @example 7 */
+            prazoAnaliseDiasUteis: number;
+        };
+        MarcadorDto: {
+            /** @description Indica que a posição ainda precisa de conferência. */
+            revisar: boolean;
+            id: string;
+            plantaId: string;
+            loteId: string;
+            x: number;
+            y: number;
         };
         LoteSemMarcadorDto: {
             id: string;
@@ -987,372 +1518,6 @@ export interface components {
              * @example /v1/plantas/7a3e5b2c-8a52-4a8e-9d3f-2c7f1e5a9b10/tiles/{z}/{x}/{y}.webp
              */
             tilesUrl: string;
-        };
-        HistoricoDto: {
-            /**
-             * @description Autor ou null para sistema.
-             * @example { id: "2872822b-14be-41ea-881f-a8c0c11c1ffd", nome: "Usuário Teste" }
-             */
-            usuario: {
-                [key: string]: unknown;
-            } | null;
-            valorAnterior: ({
-                [key: string]: unknown;
-            } | unknown[] | string | number | boolean) | null;
-            valorNovo: ({
-                [key: string]: unknown;
-            } | unknown[] | string | number | boolean) | null;
-            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
-            id: string;
-            /** @example Reserva */
-            entidadeTipo: string;
-            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
-            entidadeId: string;
-            /** @example CANCELAR */
-            acao: string;
-            /** @example Solicitação de cancelamento */
-            motivo: string | null;
-            /**
-             * Format: date-time
-             * @example 2026-11-03T12:00:00Z
-             */
-            createdAt: string;
-        };
-        CreateLoteamentoDto: {
-            /**
-             * @description Nome comercial, único entre os loteamentos
-             * @example Residencial Bela Vista
-             */
-            nome: string;
-            /** @example Loteamento residencial com 120 lotes */
-            descricao?: string | null;
-            /** @example Av. Parigot de Souza, Toledo - PR */
-            localizacao?: string | null;
-        };
-        LoteamentoDto: {
-            /** @example 0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
-            id: string;
-            /** @example Residencial Bela Vista */
-            nome: string;
-            /** @example Loteamento residencial com 120 lotes */
-            descricao: string | null;
-            /** @example Av. Parigot de Souza, Toledo - PR */
-            localizacao: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        UpdateLoteamentoDto: {
-            /**
-             * @description Nome comercial, único entre os loteamentos
-             * @example Residencial Bela Vista
-             */
-            nome?: string;
-            /** @example Loteamento residencial com 120 lotes */
-            descricao?: string | null;
-            /** @example Av. Parigot de Souza, Toledo - PR */
-            localizacao?: string | null;
-        };
-        CreateQuadraDto: {
-            /**
-             * @description Identificação da quadra, única no loteamento
-             * @example A
-             */
-            numero: string;
-        };
-        QuadraDto: {
-            /** @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10 */
-            id: string;
-            /** @example 0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
-            loteamentoId: string;
-            /** @example A */
-            numero: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        UpdateQuadraDto: {
-            /**
-             * @description Identificação da quadra, única no loteamento
-             * @example A
-             */
-            numero?: string;
-        };
-        ErroImportacaoDto: {
-            /**
-             * @description Linha da planilha (o cabeçalho é a linha 1)
-             * @example 3
-             */
-            linha: number;
-            /**
-             * @example [
-             *       "area_m2 é obrigatório",
-             *       "Lote já cadastrado no sistema"
-             *     ]
-             */
-            mensagens: string[];
-        };
-        ResultadoImportacaoDto: {
-            /**
-             * @description `true` só quando a importação foi confirmada e gravada
-             * @example false
-             */
-            importado: boolean;
-            /**
-             * @description Linhas preenchidas lidas, sem o cabeçalho
-             * @example 120
-             */
-            totalLinhas: number;
-            /**
-             * @description Lotes válidos, que serão (ou foram) criados
-             * @example 118
-             */
-            lotes: number;
-            /** @example 1 */
-            loteamentosNovos: number;
-            /** @example 4 */
-            quadrasNovas: number;
-            /** @description Linhas com problema; com qualquer erro, nada é gravado */
-            erros: components["schemas"]["ErroImportacaoDto"][];
-        };
-        CreateLoteDto: {
-            /**
-             * Format: uuid
-             * @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10
-             */
-            quadraId: string;
-            /**
-             * @description Número do lote, único na quadra
-             * @example 12
-             */
-            numero: string;
-            /**
-             * @description Área em m², positiva, com até 2 casas decimais
-             * @example 360.00
-             */
-            areaM2: string;
-            /**
-             * @description Valor de venda, positivo, com até 2 casas decimais; `null` se ainda não definido
-             * @example 250000.00
-             */
-            valor?: string | null;
-            /**
-             * @description Exibe o valor no link público (padrão `false`)
-             * @example false
-             */
-            exibirValorPublico?: boolean;
-            /** @example Lote de esquina */
-            observacoes?: string | null;
-        };
-        /** @enum {string} */
-        StatusLote: "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "BLOQUEADO";
-        LoteDto: {
-            /** @example DISPONIVEL */
-            status: components["schemas"]["StatusLote"];
-            /** @example 5d2f8a1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
-            id: string;
-            /** @example 0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
-            loteamentoId: string;
-            /** @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10 */
-            quadraId: string;
-            /** @example 12 */
-            numero: string;
-            /**
-             * @description Área em m², com 2 casas decimais
-             * @example 360.00
-             */
-            areaM2: string;
-            /**
-             * @description Valor de venda, com 2 casas decimais
-             * @example 250000.00
-             */
-            valor: string | null;
-            /** @example false */
-            exibirValorPublico: boolean;
-            /** @example Lote de esquina */
-            observacoes: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        UpdateLoteDto: {
-            /**
-             * @description Número do lote, único na quadra
-             * @example 12
-             */
-            numero?: string;
-            /**
-             * @description Área em m², positiva, com até 2 casas decimais
-             * @example 360.00
-             */
-            areaM2?: string;
-            /**
-             * @description Valor de venda, positivo, com até 2 casas decimais; `null` se ainda não definido
-             * @example 250000.00
-             */
-            valor?: string | null;
-            /**
-             * @description Exibe o valor no link público (padrão `false`)
-             * @example false
-             */
-            exibirValorPublico?: boolean;
-            /** @example Lote de esquina */
-            observacoes?: string | null;
-        };
-        BloquearLoteDto: {
-            /**
-             * @description Justificativa administrativa, sem dados pessoais.
-             * @example Lote indisponível para comercialização
-             */
-            motivo: string;
-        };
-        LoteReservaResumoDto: {
-            id: string;
-            numero: string;
-            quadra: string;
-            loteamentoId: string;
-            loteamento: string;
-        };
-        ClienteReservaResumoDto: {
-            nome: string | null;
-            id: string;
-        };
-        PropostaReservaResumoDto: {
-            /** @enum {string} */
-            status: "EM_ANALISE" | "APROVADA" | "REJEITADA";
-            id: string;
-            valor: string;
-        };
-        ReservaResumoDto: {
-            /** @enum {string} */
-            status: "ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA";
-            /** Format: date-time */
-            dataInicio: string;
-            /** Format: date-time */
-            dataVencimento: string;
-            lote: components["schemas"]["LoteReservaResumoDto"];
-            cliente: components["schemas"]["ClienteReservaResumoDto"];
-            propostaAtual: components["schemas"]["PropostaReservaResumoDto"] | null;
-            id: string;
-            vendedorId: string;
-        };
-        CreateReservaDto: {
-            /**
-             * Format: uuid
-             * @description Lote disponível a reservar.
-             */
-            loteId: string;
-            /**
-             * Format: uuid
-             * @description Cliente previamente cadastrado.
-             */
-            clienteId: string;
-        };
-        ReservaDto: {
-            /** @enum {string} */
-            status: "ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA";
-            id: string;
-            loteId: string;
-            clienteId: string;
-            vendedorId: string;
-            /** Format: date-time */
-            dataInicio: string;
-            /** Format: date-time */
-            dataVencimento: string;
-            /** @description Segundos até o vencimento, nunca negativo; zero para reserva encerrada. */
-            tempoRestanteSegundos: number;
-        };
-        ClienteResumoDto: {
-            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
-            id: string;
-            /** @example Cliente Teste */
-            nome: string;
-        };
-        ClienteDto: {
-            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
-            id: string;
-            /** @example Cliente Teste */
-            nome: string;
-            /** @example 52998224725 */
-            documento: string;
-            /** @example 45999999999 */
-            telefone: string | null;
-            /** @example cliente@exemplo.com */
-            email: string | null;
-            observacoes: string | null;
-            /**
-             * Format: date-time
-             * @example 2026-11-03T12:00:00Z
-             */
-            createdAt: string;
-            /**
-             * Format: date-time
-             * @example 2026-11-03T12:00:00Z
-             */
-            updatedAt: string;
-        };
-        CreateClienteDto: {
-            /** @example Cliente Teste */
-            nome: string;
-            /**
-             * @description CPF ou CNPJ numérico, com ou sem formatação.
-             * @example 52998224725
-             */
-            documento: string;
-            /** @example 45999999999 */
-            telefone?: string | null;
-            /**
-             * Format: email
-             * @example cliente@exemplo.com
-             */
-            email?: string | null;
-            /** @example Contato comercial */
-            observacoes?: string | null;
-        };
-        UpdateClienteDto: {
-            /** @example Cliente Teste */
-            nome?: string;
-            /**
-             * @description CPF ou CNPJ numérico, com ou sem formatação.
-             * @example 52998224725
-             */
-            documento?: string;
-            /** @example 45999999999 */
-            telefone?: string | null;
-            /**
-             * Format: email
-             * @example cliente@exemplo.com
-             */
-            email?: string | null;
-            /** @example Contato comercial */
-            observacoes?: string | null;
-        };
-        ConfiguracaoDto: {
-            /** @example prazo_reserva_dias */
-            chave: string;
-            /** @example 7 */
-            valor: number;
-        };
-        UpdateConfiguracoesDto: {
-            /**
-             * @description Prazo aplicado a novas reservas.
-             * @example 7
-             */
-            prazoReservaDias?: number;
-            /**
-             * @description Prazo aplicado a novas propostas.
-             * @example 7
-             */
-            prazoAnaliseDiasUteis?: number;
-        };
-        PrazosDto: {
-            /** @example 7 */
-            prazoReservaDias: number;
-            /** @example 7 */
-            prazoAnaliseDiasUteis: number;
         };
         ForgotPasswordDto: {
             /**
@@ -1571,7 +1736,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    MarcadoresController_list_v1: {
+    PropostasController_list_v1: {
         parameters: {
             query: {
                 /** @description Página desejada, começando em 1 */
@@ -1581,7 +1746,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                plantaId: string;
+                reservaId: string;
             };
             cookie?: never;
         };
@@ -1593,7 +1758,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["MarcadorDto"][];
+                        data: components["schemas"]["PropostaDto"][];
                         meta: components["schemas"]["PaginationMetaDto"];
                     };
                 };
@@ -1616,6 +1781,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description Recurso não encontrado */
             404: {
                 headers: {
@@ -1627,18 +1801,18 @@ export interface operations {
             };
         };
     };
-    MarcadoresController_create_v1: {
+    PropostasController_create_v1: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                plantaId: string;
+                reservaId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateMarcadorDto"];
+                "application/json": components["schemas"]["CreatePropostaDto"];
             };
         };
         responses: {
@@ -1647,7 +1821,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MarcadorDto"];
+                    "application/json": components["schemas"]["PropostaDto"];
                 };
             };
             /** @description Dados inválidos (code DADOS_INVALIDOS) */
@@ -1695,21 +1869,23 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
         };
     };
-    MarcadoresController_semMarcador_v1: {
+    PropostasController_find_v1: {
         parameters: {
-            query: {
-                /** @description Página desejada, começando em 1 */
-                page: number;
-                /** @description Itens por página (máximo 100) */
-                pageSize: number;
-                /** @description Filtra os lotes pelo loteamento. */
-                loteamentoId?: string;
-            };
+            query?: never;
             header?: never;
             path: {
-                plantaId: string;
+                id: string;
             };
             cookie?: never;
         };
@@ -1720,189 +1896,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["LoteSemMarcadorDto"][];
-                        meta: components["schemas"]["PaginationMetaDto"];
-                    };
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    MarcadoresController_createMany_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                plantaId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateMarcadoresDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MarcadorDto"][];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Conflito com o estado atual do recurso */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    MarcadoresController_delete_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                plantaId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    MarcadoresController_mover_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                plantaId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CoordenadasMarcadorDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MarcadorDto"];
+                    "application/json": components["schemas"]["PropostaDto"];
                 };
             };
             /** @description Dados inválidos (code DADOS_INVALIDOS) */
@@ -1943,66 +1937,19 @@ export interface operations {
             };
         };
     };
-    MapaController_consultar_v1: {
+    ReservasConsultaController_list_v1: {
         parameters: {
             query: {
                 /** @description Status separados por vírgula. */
-                status?: ("DISPONIVEL" | "RESERVADO" | "VENDIDO" | "BLOQUEADO")[];
+                status?: ("ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA")[];
+                /** @description Vendedor desejado; Comercial é sempre limitado ao próprio usuário. */
+                vendedorId?: string;
                 /** @description Loteamento desejado. */
                 loteamentoId?: string;
-                /** @description Página desejada, começando em 1 */
-                page: number;
-                /** @description Itens por página (máximo 100) */
-                pageSize: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MapaDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    PlantasController_list_v1: {
-        parameters: {
-            query: {
-                /** @description Um ou mais status separados por vírgula */
-                status?: components["schemas"]["StatusPlanta"][];
+                /** @description Início inclusivo do intervalo de vencimento, com fuso. */
+                vencimentoDe?: string;
+                /** @description Fim inclusivo do intervalo de vencimento, com fuso. */
+                vencimentoAte?: string;
                 /** @description Página desejada, começando em 1 */
                 page: number;
                 /** @description Itens por página (máximo 100) */
@@ -2020,7 +1967,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["PlantaDto"][];
+                        data: components["schemas"]["ReservaResumoDto"][];
                         meta: components["schemas"]["PaginationMetaDto"];
                     };
                 };
@@ -2043,9 +1990,18 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
         };
     };
-    PlantasController_enviar_v1: {
+    ReservasController_create_v1: {
         parameters: {
             query?: never;
             header?: never;
@@ -2054,11 +2010,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
-                    nome: string;
-                    /** @description Uma imagem PNG/JPEG ou as fatias fatia_LL_CC.png (linha e coluna a partir de 01), todas com as mesmas dimensões. Até 300 MB por arquivo e 100 arquivos. */
-                    arquivos: string[];
-                };
+                "application/json": components["schemas"]["CreateReservaDto"];
             };
         };
         responses: {
@@ -2067,7 +2019,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PlantaDto"];
+                    "application/json": components["schemas"]["ReservaDto"];
                 };
             };
             /** @description Dados inválidos (code DADOS_INVALIDOS) */
@@ -2097,8 +2049,17 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Arquivo maior que o permitido (code ARQUIVO_MUITO_GRANDE) */
-            413: {
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2117,283 +2078,23 @@ export interface operations {
             };
         };
     };
-    PlantasController_ativa_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlantaAtivaDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    PlantasController_tile_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                /** @description Nível de zoom (0 = imagem inteira em um tile) */
-                z: number;
-                /** @description Coluna do tile no nível, a partir de 0 */
-                x: number;
-                /** @description Linha do tile no nível, a partir de 0 */
-                y: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/webp": string;
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/webp": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/webp": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    PlantasController_ativar_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlantaDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Conflito com o estado atual do recurso */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    PlantasController_reprocessar_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlantaDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Conflito com o estado atual do recurso */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    PlantasController_findById_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlantaDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    HistoricoController_list_v1: {
+    ReservasConsultaController_minhas_v1: {
         parameters: {
             query: {
+                /** @description Status separados por vírgula. */
+                status?: ("ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA")[];
+                /** @description Vendedor desejado; Comercial é sempre limitado ao próprio usuário. */
+                vendedorId?: string;
+                /** @description Loteamento desejado. */
+                loteamentoId?: string;
+                /** @description Início inclusivo do intervalo de vencimento, com fuso. */
+                vencimentoDe?: string;
+                /** @description Fim inclusivo do intervalo de vencimento, com fuso. */
+                vencimentoAte?: string;
                 /** @description Página desejada, começando em 1 */
                 page: number;
                 /** @description Itens por página (máximo 100) */
                 pageSize: number;
-                entidadeTipo?: string;
-                entidadeId?: string;
-                /** @description Autor da alteração. */
-                usuarioId?: string;
-                /** @description Data UTC ou instante ISO 8601 inclusivo. */
-                dataDe?: string;
-                /** @description Data UTC inteira incluída, ou instante ISO 8601 inclusivo. */
-                dataAte?: string;
             };
             header?: never;
             path?: never;
@@ -2407,7 +2108,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["HistoricoDto"][];
+                        data: components["schemas"]["ReservaResumoDto"][];
                         meta: components["schemas"]["PaginationMetaDto"];
                     };
                 };
@@ -2439,8 +2140,56 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Regra de negócio violada */
-            422: {
+        };
+    };
+    ReservasController_find_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3634,23 +3383,21 @@ export interface operations {
             };
         };
     };
-    ReservasConsultaController_list_v1: {
+    HistoricoController_list_v1: {
         parameters: {
             query: {
-                /** @description Status separados por vírgula. */
-                status?: ("ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA")[];
-                /** @description Vendedor desejado; Comercial é sempre limitado ao próprio usuário. */
-                vendedorId?: string;
-                /** @description Loteamento desejado. */
-                loteamentoId?: string;
-                /** @description Início inclusivo do intervalo de vencimento, com fuso. */
-                vencimentoDe?: string;
-                /** @description Fim inclusivo do intervalo de vencimento, com fuso. */
-                vencimentoAte?: string;
                 /** @description Página desejada, começando em 1 */
                 page: number;
                 /** @description Itens por página (máximo 100) */
                 pageSize: number;
+                entidadeTipo?: string;
+                entidadeId?: string;
+                /** @description Autor da alteração. */
+                usuarioId?: string;
+                /** @description Data UTC ou instante ISO 8601 inclusivo. */
+                dataDe?: string;
+                /** @description Data UTC inteira incluída, ou instante ISO 8601 inclusivo. */
+                dataAte?: string;
             };
             header?: never;
             path?: never;
@@ -3664,7 +3411,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["ReservaResumoDto"][];
+                        data: components["schemas"]["HistoricoDto"][];
                         meta: components["schemas"]["PaginationMetaDto"];
                     };
                 };
@@ -3689,74 +3436,6 @@ export interface operations {
             };
             /** @description Perfil sem permissão para a ação */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    ReservasController_create_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateReservaDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReservaDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Conflito com o estado atual do recurso */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3766,127 +3445,6 @@ export interface operations {
             };
             /** @description Regra de negócio violada */
             422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    ReservasConsultaController_minhas_v1: {
-        parameters: {
-            query: {
-                /** @description Status separados por vírgula. */
-                status?: ("ATIVA" | "CANCELADA" | "EXPIRADA" | "CONVERTIDA")[];
-                /** @description Vendedor desejado; Comercial é sempre limitado ao próprio usuário. */
-                vendedorId?: string;
-                /** @description Loteamento desejado. */
-                loteamentoId?: string;
-                /** @description Início inclusivo do intervalo de vencimento, com fuso. */
-                vencimentoDe?: string;
-                /** @description Fim inclusivo do intervalo de vencimento, com fuso. */
-                vencimentoAte?: string;
-                /** @description Página desejada, começando em 1 */
-                page: number;
-                /** @description Itens por página (máximo 100) */
-                pageSize: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["ReservaResumoDto"][];
-                        meta: components["schemas"]["PaginationMetaDto"];
-                    };
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    ReservasController_find_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReservaDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4156,6 +3714,71 @@ export interface operations {
             };
         };
     };
+    HistoricoClienteController_list_v1: {
+        parameters: {
+            query: {
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["HistoricoClienteDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
     ConfiguracoesController_list_v1: {
         parameters: {
             query: {
@@ -4260,6 +3883,883 @@ export interface operations {
             };
             /** @description Regra de negócio violada */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MarcadoresController_list_v1: {
+        parameters: {
+            query: {
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path: {
+                plantaId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MarcadorDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MarcadoresController_create_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plantaId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMarcadorDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarcadorDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MarcadoresController_semMarcador_v1: {
+        parameters: {
+            query: {
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+                /** @description Filtra os lotes pelo loteamento. */
+                loteamentoId?: string;
+            };
+            header?: never;
+            path: {
+                plantaId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LoteSemMarcadorDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MarcadoresController_createMany_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plantaId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMarcadoresDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarcadorDto"][];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MarcadoresController_delete_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plantaId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MarcadoresController_mover_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plantaId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoordenadasMarcadorDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarcadorDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MarcadoresController_revisar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plantaId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarcadorDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MapaController_consultar_v1: {
+        parameters: {
+            query: {
+                /** @description Status separados por vírgula. */
+                status?: ("DISPONIVEL" | "RESERVADO" | "VENDIDO" | "BLOQUEADO")[];
+                /** @description Loteamento desejado. */
+                loteamentoId?: string;
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PlantasController_list_v1: {
+        parameters: {
+            query: {
+                /** @description Um ou mais status separados por vírgula */
+                status?: components["schemas"]["StatusPlanta"][];
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PlantaDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PlantasController_enviar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    nome: string;
+                    /** @default false */
+                    copiarMarcadores?: boolean;
+                    /** @description Uma imagem PNG/JPEG ou as fatias fatia_LL_CC.png (linha e coluna a partir de 01), todas com as mesmas dimensões. Até 300 MB por arquivo e 100 arquivos. */
+                    arquivos: string[];
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlantaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Arquivo maior que o permitido (code ARQUIVO_MUITO_GRANDE) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PlantasController_ativa_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlantaAtivaDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PlantasController_tile_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                /** @description Nível de zoom (0 = imagem inteira em um tile) */
+                z: number;
+                /** @description Coluna do tile no nível, a partir de 0 */
+                x: number;
+                /** @description Linha do tile no nível, a partir de 0 */
+                y: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": string;
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PlantasController_ativar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlantaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PlantasController_reprocessar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlantaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PlantasController_findById_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlantaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
