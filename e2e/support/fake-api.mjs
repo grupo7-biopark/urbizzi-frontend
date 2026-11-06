@@ -199,7 +199,51 @@ const MARCADORES_DO_MAPA = [
   loteamento: 'Loteamento Semente',
   areaM2: '360.00',
   acoes: [],
+  revisar: false,
 }));
+
+function criarMarcador({ loteId, x, y }, plantaId) {
+  const lote = lotes.get(loteId);
+  const marcador = {
+    id: randomUUID(),
+    plantaId,
+    loteId,
+    x,
+    y,
+    numero: lote.numero,
+    quadraId: lote.quadraId,
+    quadra: quadras.get(lote.quadraId).numero,
+    loteamentoId: lote.loteamentoId,
+    loteamento: loteamentos.get(lote.loteamentoId).nome,
+    areaM2: lote.areaM2,
+    valor: lote.valor,
+    status: lote.status,
+    acoes: [],
+    // A cópia de uma planta com outra proporção não existe aqui: pelo número, o e2e
+    // tem um marcador a revisar, sem depender da ordem dos testes.
+    revisar: lote.numero.startsWith('REV'),
+  };
+  MARCADORES_DO_MAPA.push(marcador);
+  return marcador;
+}
+
+function comMarcador(handler) {
+  return protegida((request, response, path, params) => {
+    const marcador = MARCADORES_DO_MAPA.find(({ id }) => id === params.id);
+
+    if (marcador) {
+      return handler(request, response, marcador);
+    }
+
+    return sendError(
+      response,
+      path,
+      404,
+      'MARCADOR_NAO_ENCONTRADO',
+      'Marcador não encontrado',
+    );
+  }, PERFIS_CADASTRO);
+}
 
 const loteamentos = new Map();
 const quadras = new Map();
@@ -448,6 +492,83 @@ function comLoteamento(handler) {
 }
 
 const dynamicRoutes = [
+  {
+    method: 'GET',
+    pattern: /^\/v1\/plantas\/[^/]+\/marcadores$/,
+    handler: protegida((request, response) =>
+      sendPagina(request, response, MARCADORES_DO_MAPA),
+    ),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/v1\/plantas\/(?<plantaId>[^/]+)\/marcadores\/lote$/,
+    handler: protegida(async (request, response, path, { plantaId }) => {
+      const { marcadores } = await readJson(request);
+      const repetido = marcadores.some(({ loteId }) =>
+        MARCADORES_DO_MAPA.some((marcador) => marcador.loteId === loteId),
+      );
+
+      if (repetido) {
+        sendError(
+          response,
+          path,
+          409,
+          'MARCADOR_DUPLICADO',
+          'O lote já tem marcador nesta planta',
+        );
+      } else {
+        send(
+          response,
+          201,
+          marcadores.map((marcador) => criarMarcador(marcador, plantaId)),
+        );
+      }
+    }, PERFIS_CADASTRO),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/v1\/plantas\/[^/]+\/marcadores\/(?<id>[^/]+)\/revisar$/,
+    handler: comMarcador((_request, response, marcador) => {
+      marcador.revisar = false;
+      send(response, 200, marcador);
+    }),
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/v1\/plantas\/[^/]+\/marcadores\/(?<id>[^/]+)$/,
+    handler: comMarcador(async (request, response, marcador) => {
+      Object.assign(marcador, await readJson(request));
+      send(response, 200, marcador);
+    }),
+  },
+  {
+    method: 'DELETE',
+    pattern: /^\/v1\/plantas\/[^/]+\/marcadores\/(?<id>[^/]+)$/,
+    handler: comMarcador((_request, response, marcador) => {
+      MARCADORES_DO_MAPA.splice(MARCADORES_DO_MAPA.indexOf(marcador), 1);
+      send(response, 204);
+    }),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/v1\/plantas\/[^/]+\/lotes-sem-marcador$/,
+    handler: protegida((request, response) => {
+      const loteamentoId = new URL(
+        request.url,
+        'http://localhost',
+      ).searchParams.get('loteamentoId');
+
+      sendPagina(
+        request,
+        response,
+        [...lotes.values()].filter(
+          (lote) =>
+            (!loteamentoId || lote.loteamentoId === loteamentoId) &&
+            !MARCADORES_DO_MAPA.some(({ loteId }) => loteId === lote.id),
+        ),
+      );
+    }),
+  },
   {
     method: 'GET',
     pattern: /^\/v1\/plantas\/ativa$/,
