@@ -1,4 +1,5 @@
 import { EmptyState } from '@/shared/ui/empty-state';
+import { IconConstrucao } from '@/shared/ui/icon';
 import { PageHeader, type BreadcrumbItem } from '@/shared/ui/page-header';
 
 const INICIO: BreadcrumbItem = { label: 'Início', href: '/' };
@@ -17,6 +18,7 @@ export function TelaProvisoria({
     <>
       <PageHeader title={titulo} parents={parents} />
       <EmptyState
+        icon={<IconConstrucao />}
         title="Tela em construção"
         description="Esta funcionalidade ainda não está disponível."
       />

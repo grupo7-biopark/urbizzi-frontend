@@ -166,6 +166,33 @@ test('navegar pelo menu leva à tela e marca o item atual', async ({ page }) => 
   ).toBeVisible();
 });
 
+test.describe('barra lateral', () => {
+  // A barra é escura nos dois temas: confere o tema claro, em que o erro apareceria.
+  test.use({ colorScheme: 'light' });
+
+  test('fica preta com o logo branco, mesmo com a página no tema claro', async ({
+    page,
+  }) => {
+    await entrar(page, 'pessoa@exemplo.com');
+
+    await expect(page.locator('body')).toHaveCSS(
+      'background-color',
+      'rgb(255, 255, 255)',
+    );
+    const barra = page.getByRole('complementary');
+
+    await expect(barra).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+    await expect(barra.getByRole('img', { name: /Urbizzi/ })).toHaveAttribute(
+      'src',
+      /white/,
+    );
+    await expect(menu(page).getByRole('link', { name: 'Início' })).toHaveCSS(
+      'background-color',
+      'rgb(238, 96, 23)',
+    );
+  });
+});
+
 test.describe('no celular', () => {
   test.use({ viewport: { width: 360, height: 740 } });
 
