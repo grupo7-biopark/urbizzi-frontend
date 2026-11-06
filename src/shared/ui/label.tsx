@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactNode } from 'react';
 import { useId } from 'react';
 import { cn } from './cn';
+import { IconAlerta } from './icon';
 
 type LabelProps = ComponentProps<'label'> & {
   required?: boolean;
@@ -15,13 +16,20 @@ export function Label({ required, className, children, ...props }: LabelProps) {
   );
 }
 
-export function FieldError({ className, ...props }: ComponentProps<'p'>) {
+export function FieldError({
+  className,
+  children,
+  ...props
+}: ComponentProps<'p'>) {
   return (
     <p
       role="alert"
-      className={cn('text-small text-danger', className)}
+      className={cn('flex items-start gap-1 text-small text-danger', className)}
       {...props}
-    />
+    >
+      <IconAlerta className="mt-0.5 size-4" />
+      {children}
+    </p>
   );
 }
 
@@ -76,7 +84,7 @@ export function FieldLayout({
   children,
 }: FieldLayoutProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1.5">
       <Label htmlFor={controlId} required={required}>
         {label}
       </Label>
@@ -91,6 +99,12 @@ export function FieldLayout({
   );
 }
 
-/** A borda precisa de 3:1 sobre o fundo; o token `border` (prata) é só decorativo. */
+/**
+ * A borda precisa de 3:1 sobre o fundo; o token `border` (prata) é só decorativo.
+ * O foco encosta na borda para não formar uma linha dupla.
+ */
 export const CONTROL_CLASSES =
-  'w-full border border-ink-muted bg-surface px-3 py-2 text-body text-ink placeholder:text-ink-muted disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-danger';
+  'w-full border border-ink-muted bg-surface px-3 py-1.5 text-body text-ink transition-colors duration-150 placeholder:text-ink-muted not-disabled:hover:border-ink focus-visible:outline-offset-0 disabled:cursor-not-allowed disabled:bg-surface-hover disabled:opacity-50 aria-invalid:border-danger not-disabled:aria-invalid:hover:border-danger';
+
+/** Mesma altura dos botões: 44px no toque e 40px a partir de `lg`. */
+export const CONTROL_HEIGHT_CLASSES = 'min-h-11 lg:min-h-10';

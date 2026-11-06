@@ -25,7 +25,7 @@ export function TabsTrigger({
   return (
     <RadixTabs.Trigger
       className={cn(
-        '-mb-px cursor-pointer border-b-2 border-transparent px-4 py-2 text-small whitespace-nowrap text-ink-muted',
+        '-mb-px min-h-11 cursor-pointer border-b-2 border-transparent px-4 py-2 text-small whitespace-nowrap text-ink-muted transition-colors duration-150 lg:min-h-10',
         'hover:text-ink data-[state=active]:border-accent data-[state=active]:font-bold data-[state=active]:text-ink',
         'disabled:cursor-not-allowed disabled:opacity-50',
         className,

@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 import {
   FormProvider,
@@ -17,7 +18,8 @@ import {
 } from 'react-hook-form';
 import type { z } from 'zod';
 import { ApiError, getErrorMessage } from '@/shared/api/errors';
-import { Button } from './button';
+import { Alert } from './alert';
+import { Button, buttonClasses } from './button';
 import { Input } from './input';
 import { MaskedInput, type MaskName } from './masked-input';
 import { Select } from './select';
@@ -59,6 +61,8 @@ type FormProps<Input extends FieldValues, Output> = {
   /** Rejeite com o `ApiError` para o erro aparecer no formulário (`mutateAsync`). */
   onSubmit: (values: Output) => Promise<unknown>;
   submitLabel?: string;
+  /** Para onde "Cancelar" volta. O botão fica ao lado do de enviar. */
+  cancelHref?: string;
   /** Códigos de erro que dizem respeito a um campo (`LOTEAMENTO_JA_EXISTE`: `nome`). */
   fieldsByCode?: Partial<Record<string, Path<Input>>>;
   children: ReactNode;
@@ -69,6 +73,7 @@ export function Form<Input extends FieldValues, Output>({
   defaultValues,
   onSubmit,
   submitLabel = 'Salvar',
+  cancelHref,
   fieldsByCode,
   children,
 }: FormProps<Input, Output>) {
@@ -91,17 +96,20 @@ export function Form<Input extends FieldValues, Output>({
       <form
         onSubmit={(event) => void form.handleSubmit(handleValid)(event)}
         noValidate
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-5"
       >
         {children}
-        {errors.root ? (
-          <p role="alert" className="text-small text-danger">
-            {errors.root.message}
-          </p>
-        ) : null}
-        <Button type="submit" disabled={isSubmitting} className="self-start">
-          {submitLabel}
-        </Button>
+        {errors.root ? <Alert>{errors.root.message}</Alert> : null}
+        <div className="flex flex-wrap gap-2 border-t border-border pt-5 *:grow sm:*:grow-0">
+          <Button type="submit" loading={isSubmitting}>
+            {submitLabel}
+          </Button>
+          {cancelHref ? (
+            <Link href={cancelHref} className={buttonClasses('secundario')}>
+              Cancelar
+            </Link>
+          ) : null}
+        </div>
       </form>
     </FormProvider>
   );

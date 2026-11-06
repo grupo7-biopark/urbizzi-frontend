@@ -2,6 +2,7 @@
 
 import { useState, type ReactElement } from 'react';
 import { getErrorMessage } from '@/shared/api/errors';
+import { Alert } from './alert';
 import { Button } from './button';
 import { Dialog } from './dialog';
 import { Textarea } from './textarea';
@@ -84,7 +85,8 @@ export function ConfirmDialog({
           </Button>
           <Button
             variant="perigo"
-            disabled={isPending || isMissingMotivo}
+            loading={isPending}
+            disabled={isMissingMotivo}
             onClick={() => void handleConfirm()}
           >
             {confirmLabel}
@@ -100,11 +102,7 @@ export function ConfirmDialog({
           onChange={(event) => setText(event.target.value)}
         />
       ) : null}
-      {error ? (
-        <p role="alert" className="text-small text-danger">
-          {getErrorMessage(error)}
-        </p>
-      ) : null}
+      {error ? <Alert>{getErrorMessage(error)}</Alert> : null}
     </Dialog>
   );
 }

@@ -23,7 +23,7 @@ export function getPaginationItems(
 }
 
 const ITEM_CLASSES =
-  'inline-flex min-h-10 min-w-10 items-center justify-center border px-3 text-small';
+  'inline-flex min-h-11 min-w-11 items-center justify-center gap-1 border px-3 text-small tabular-nums transition-colors duration-150 lg:min-h-10 lg:min-w-10';
 
 type PaginationProps = {
   meta: { page: number; totalPages: number };
@@ -73,7 +73,7 @@ export function Pagination({
               ITEM_CLASSES,
               item === page
                 ? 'border-accent bg-accent font-bold text-on-accent'
-                : 'border-transparent hover:bg-surface-alt',
+                : 'border-transparent hover:bg-surface-hover',
             )}
           >
             {item}
@@ -103,7 +103,7 @@ function PageStep({ label, href }: { label: string; href?: string }) {
   return (
     <Link
       href={href}
-      className={cn(ITEM_CLASSES, 'border-ink hover:bg-surface-alt')}
+      className={cn(ITEM_CLASSES, 'border-ink-muted hover:bg-surface-hover')}
     >
       {label}
     </Link>

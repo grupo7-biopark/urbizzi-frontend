@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Button } from './button';
+import { Button, buttonClasses } from './button';
 import { Checkbox } from './checkbox';
 import { Input } from './input';
 import { Select } from './select';
@@ -36,10 +36,56 @@ describe('Button', () => {
     ['secundario', 'border-ink'],
     ['perigo', 'bg-danger'],
     ['fantasma', 'border-transparent'],
+    ['perigoSutil', 'text-danger'],
   ] as const)('aplica a variante %s', (variant, classe) => {
     render(<Button variant={variant}>Ação</Button>);
 
     expect(screen.getByRole('button')).toHaveClass(classe);
+  });
+
+  it('em andamento, fica inativo e mantém o nome', async () => {
+    const onClick = vi.fn<() => void>();
+    render(
+      <Button loading onClick={onClick}>
+        Salvar
+      </Button>,
+    );
+
+    const botao = screen.getByRole('button', { name: 'Salvar' });
+
+    expect(botao).toBeDisabled();
+    expect(botao).toHaveAttribute('aria-busy', 'true');
+
+    await userEvent.click(botao);
+
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it('fora de andamento, não se anuncia como ocupado', () => {
+    render(<Button>Salvar</Button>);
+
+    expect(screen.getByRole('button')).not.toHaveAttribute('aria-busy');
+  });
+
+  // `:enabled` nunca casa com `<a>`: o link com aparência de botão ficaria sem hover.
+  it.each([
+    'primario',
+    'secundario',
+    'perigo',
+    'fantasma',
+    'perigoSutil',
+  ] as const)('a variante %s tem hover também em link', (variant) => {
+    expect(buttonClasses(variant)).toContain('not-disabled:hover:');
+    expect(buttonClasses(variant)).not.toContain('enabled:');
+  });
+});
+
+describe('Input com ícone', () => {
+  it('mostra o ícone e abre espaço para ele', () => {
+    render(<Input label="Buscar" icon={<svg data-testid="lupa" />} />);
+
+    expect(screen.getByTestId('lupa')).toBeInTheDocument();
+    expect(screen.getByLabelText('Buscar')).toHaveClass('pl-10');
   });
 });
 

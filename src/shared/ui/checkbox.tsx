@@ -28,7 +28,7 @@ export function Checkbox({
           <input
             type="checkbox"
             className={cn(
-              'peer size-5 cursor-pointer appearance-none border border-ink-muted bg-surface checked:border-accent checked:bg-accent',
+              'peer size-5 cursor-pointer appearance-none border border-ink-muted bg-surface transition-colors duration-150 not-disabled:hover:border-ink checked:border-accent checked:bg-accent not-disabled:checked:hover:border-accent',
               'disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-danger',
               className,
             )}
@@ -43,7 +43,7 @@ export function Checkbox({
             <path d="M2 6.5 5 9.5 10 3" />
           </svg>
         </span>
-        <label htmlFor={controlProps.id} className="text-body">
+        <label htmlFor={controlProps.id} className="cursor-pointer text-body">
           {label}
           {required ? <span aria-hidden="true"> *</span> : null}
         </label>

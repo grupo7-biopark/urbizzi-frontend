@@ -4,7 +4,10 @@ import { cn } from './cn';
 export function Table({ className, ...props }: ComponentProps<'table'>) {
   return (
     <table
-      className={cn('w-full border-collapse text-left text-small', className)}
+      className={cn(
+        'w-full border-collapse text-left text-small tabular-nums',
+        className,
+      )}
       {...props}
     />
   );
@@ -30,12 +33,15 @@ export function TableHead({
   return (
     <th
       scope={scope}
-      className={cn('px-3 py-2 align-bottom font-bold', className)}
+      className={cn(
+        'px-4 py-2.5 align-middle font-bold text-ink-muted',
+        className,
+      )}
       {...props}
     />
   );
 }
 
 export function TableCell({ className, ...props }: ComponentProps<'td'>) {
-  return <td className={cn('px-3 py-2 align-top', className)} {...props} />;
+  return <td className={cn('px-4 py-3 align-middle', className)} {...props} />;
 }

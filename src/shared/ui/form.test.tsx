@@ -63,6 +63,38 @@ function Exemplo({
   );
 }
 
+describe('Form: rodapé', () => {
+  it('põe Cancelar como link ao lado do envio, só quando informado', () => {
+    const { rerender } = render(
+      <Form
+        schema={schema}
+        defaultValues={VAZIO}
+        onSubmit={() => Promise.resolve()}
+        cancelHref="/loteamentos"
+      >
+        <FormInput name="nome" label="Nome" />
+      </Form>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Cancelar' })).toHaveAttribute(
+      'href',
+      '/loteamentos',
+    );
+
+    rerender(
+      <Form
+        schema={schema}
+        defaultValues={VAZIO}
+        onSubmit={() => Promise.resolve()}
+      >
+        <FormInput name="nome" label="Nome" />
+      </Form>,
+    );
+
+    expect(screen.queryByRole('link', { name: 'Cancelar' })).toBeNull();
+  });
+});
+
 function enviarParaApi(values: Valores) {
   return unwrap(
     api.POST('/v1/loteamentos', {

@@ -8,6 +8,8 @@ import {
   type ChangeEvent,
   type ReactNode,
 } from 'react';
+import { buttonClasses } from './button';
+import { IconBusca, IconFechar } from './icon';
 import { Input } from './input';
 import { Select } from './select';
 import { hasActiveFilters, useListParams } from './use-list-params';
@@ -56,6 +58,7 @@ export function DebouncedSearch({
       ref={inputRef}
       label={label}
       type="search"
+      icon={<IconBusca className="size-4" />}
       value={text}
       onChange={handleChange}
     />
@@ -117,11 +120,12 @@ export function FilterBar({ children }: { children: ReactNode }) {
   return (
     <search
       aria-label="Filtros"
-      className="grid gap-4 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end"
+      className="grid gap-3 border border-border bg-surface-panel p-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end lg:*:[div]:w-72"
     >
       {children}
       {hasActiveFilters(params) ? (
-        <Link href={pathname} className="py-2 text-small text-ink underline">
+        <Link href={pathname} className={buttonClasses('fantasma')}>
+          <IconFechar className="size-4" />
           Limpar filtros
         </Link>
       ) : null}
