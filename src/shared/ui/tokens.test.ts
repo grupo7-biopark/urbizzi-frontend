@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const css = readFileSync(join(process.cwd(), 'src/app/globals.css'), 'utf8');
-const rootBlock = /:root \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+const rootBlock =
+  /:root,\s*\[data-theme\] \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
 const tokens = new Map(
   [...rootBlock.matchAll(/--([\w-]+):\s*([^;]+);/g)].map((match) => [
     match[1],
@@ -52,6 +53,13 @@ const TEXTO: [string, string][] = [
   ['ink', 'surface'],
   ['ink', 'surface-alt'],
   ['ink-muted', 'surface'],
+  ['ink', 'surface-canvas'],
+  ['ink-muted', 'surface-canvas'],
+  ['ink', 'surface-panel'],
+  ['ink-muted', 'surface-panel'],
+  ['danger', 'surface-panel'],
+  ['ink', 'surface-hover'],
+  ['ink-muted', 'surface-hover'],
   ['on-accent', 'accent'],
   ['danger', 'surface'],
   ['on-danger', 'danger'],
@@ -66,8 +74,13 @@ const NAO_TEXTO: [string, string][] = [
   ['ink-muted', 'surface'],
   ['ink', 'surface'],
   ['ink', 'accent'],
+  ['ink-muted', 'surface-panel'],
   ['accent', 'surface'],
+  ['accent', 'surface-panel'],
+  // Títulos grandes em laranja, como o código das páginas 403 e 404.
+  ['accent', 'surface-canvas'],
   ['danger', 'surface'],
+  ['status-disponivel', 'surface-panel'],
   ...STATUS.map((status): [string, string] => [`status-${status}`, 'surface']),
 ];
 
