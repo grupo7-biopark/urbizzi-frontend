@@ -185,6 +185,22 @@ function ativarPlanta(request, response, path, id) {
 const PERFIS_CADASTRO = ['ADMINISTRADOR', 'GESTOR'];
 const LOTEAMENTO_SEMENTE_ID = '4f0d7a5c-2e96-4ecf-9b7d-6a1d5c9e3f54';
 
+// Fixos: o e2e clica neles pela posição, e o backend real os recebe pela API.
+const MARCADORES_DO_MAPA = [
+  { numero: 'M1', x: 0.5, y: 0.5, status: 'DISPONIVEL', valor: '250000.00' },
+  { numero: 'M2', x: 0.25, y: 0.25, status: 'BLOQUEADO', valor: null },
+].map((marcador) => ({
+  ...marcador,
+  id: randomUUID(),
+  loteId: randomUUID(),
+  quadraId: randomUUID(),
+  quadra: 'Q1',
+  loteamentoId: LOTEAMENTO_SEMENTE_ID,
+  loteamento: 'Loteamento Semente',
+  areaM2: '360.00',
+  acoes: [],
+}));
+
 const loteamentos = new Map();
 // Id da quadra e id do loteamento a que ela pertence.
 const quadras = new Map();
@@ -368,6 +384,44 @@ const dynamicRoutes = [
 
 const routes = {
   'GET /health': (_request, response) => send(response, 200, { status: 'ok' }),
+
+  'GET /v1/mapa': protegida((request, response, path) => {
+    const planta = plantas.find(({ ativa }) => ativa);
+
+    if (!planta) {
+      sendError(
+        response,
+        path,
+        404,
+        'PLANTA_ATIVA_NAO_ENCONTRADA',
+        'Nenhuma planta ativa encontrada',
+      );
+      return;
+    }
+
+    const { searchParams } = new URL(request.url, 'http://localhost');
+    const loteamentoId = searchParams.get('loteamentoId');
+    const status = searchParams.get('status');
+    const data = MARCADORES_DO_MAPA.filter(
+      (marcador) =>
+        (!loteamentoId || marcador.loteamentoId === loteamentoId) &&
+        (!status || marcador.status === status),
+    );
+
+    send(response, 200, {
+      planta: {
+        id: planta.id,
+        nome: planta.nome,
+        versao: planta.versao,
+        ...METADADOS_PLANTA_PRONTA,
+        tilesUrl: `/v1/plantas/${planta.id}/tiles/{z}/{x}/{y}.webp`,
+      },
+      marcadores: {
+        data,
+        meta: { page: 1, pageSize: 100, total: data.length, totalPages: 1 },
+      },
+    });
+  }),
 
   'POST /v1/auth/login': async (request, response, path) => {
     const { email, senha } = await readJson(request);

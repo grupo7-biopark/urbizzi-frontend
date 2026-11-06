@@ -12,6 +12,7 @@ const TILE = /\/plantas\/[^/]+\/tiles\/(\d+)\/(\d+)\/(\d+)\.webp/;
 const LARGURA = 2048;
 const ALTURA = 1536;
 const ZOOM_MAXIMO = 3;
+const LOTEAMENTO_SEMENTE_ID = '4f0d7a5c-2e96-4ecf-9b7d-6a1d5c9e3f54';
 
 async function entrar(page: Page, email = EMAIL) {
   await page.goto('/login');
@@ -159,8 +160,152 @@ test('carrega a planta, baixa só os tiles visíveis e dá zoom', async ({
   await expect(page.getByRole('button', { name: 'Afastar' })).toBeDisabled();
 });
 
+async function garantirPlantaAtiva(page: Page) {
+  const ativa = await page.request.get('/api/backend/v1/plantas/ativa');
+
+  if (!ativa.ok()) {
+    await ativarPlantaDeTeste(page);
+  }
+
+  return (
+    await page.request.get('/api/backend/v1/plantas/ativa')
+  ).json() as Promise<{
+    id: string;
+  }>;
+}
+
+/**
+ * Deixa no mapa o lote M1, disponível, no centro da planta, e o M2, bloqueado. A API
+ * falsa já os tem; no backend real, são criados em um loteamento só para o teste.
+ */
+async function prepararLotes(page: Page, plantaId: string) {
+  if (!SEM_API_FALSA) {
+    return { loteamentoId: LOTEAMENTO_SEMENTE_ID };
+  }
+
+  async function criar(caminho: string, data: unknown = {}) {
+    const resposta = await page.request.post(`/api/backend${caminho}`, {
+      headers: { origin: new URL(page.url()).origin },
+      data: data as object,
+    });
+    expect(resposta.ok(), `${caminho}: ${await resposta.text()}`).toBe(true);
+    return (await resposta.json()) as { id: string };
+  }
+
+  const loteamento = await criar('/v1/loteamentos', {
+    nome: `Loteamento do Mapa ${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+  });
+  const quadra = await criar(`/v1/loteamentos/${loteamento.id}/quadras`, {
+    numero: 'Q1',
+  });
+
+  for (const { numero, x, y } of [
+    { numero: 'M1', x: 0.5, y: 0.5 },
+    { numero: 'M2', x: 0.25, y: 0.25 },
+  ]) {
+    const lote = await criar('/v1/lotes', {
+      quadraId: quadra.id,
+      numero,
+      areaM2: '360.00',
+      valor: numero === 'M1' ? '250000.00' : null,
+    });
+    await criar(`/v1/plantas/${plantaId}/marcadores`, {
+      loteId: lote.id,
+      x,
+      y,
+    });
+    if (numero === 'M2') {
+      await criar(`/v1/lotes/${lote.id}/bloquear`, { motivo: 'Teste do mapa' });
+    }
+  }
+
+  return { loteamentoId: loteamento.id };
+}
+
+test('filtra por status, abre o lote pelo marcador e encontra pela busca', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await entrar(page);
+  const { id: plantaId } = await garantirPlantaAtiva(page);
+  const { loteamentoId } = await prepararLotes(page, plantaId);
+
+  await page.goto(`/mapa?loteamentoId=${loteamentoId}`);
+  const mapa = page.getByRole('application', { name: /^Planta / });
+  await expect(mapa).toBeVisible();
+  await expect(page.getByText('2 lotes no mapa')).toBeVisible();
+
+  const legenda = page.getByRole('list', { name: 'Legenda do mapa' });
+  for (const status of ['Disponível', 'Reservado', 'Vendido', 'Bloqueado']) {
+    await expect(legenda.getByText(status)).toBeVisible();
+  }
+
+  // O filtro vai para a URL, junto com o loteamento, e sobrevive ao recarregar
+  await page.getByLabel('Status').selectOption({ label: 'Bloqueado' });
+  await expect(page).toHaveURL(/status=BLOQUEADO/);
+  await expect(page).toHaveURL(new RegExp(`loteamentoId=${loteamentoId}`));
+  await expect(page.getByText('1 lote no mapa')).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel('Status')).toHaveValue('BLOQUEADO');
+  await expect(page.getByText('1 lote no mapa')).toBeVisible();
+  await page.getByLabel('Status').selectOption({ label: 'Todos' });
+  await expect(page.getByText('2 lotes no mapa')).toBeVisible();
+
+  // O M1 está no centro da planta, que começa centralizada
+  await expect(page.getByRole('button', { name: 'Afastar' })).toBeDisabled();
+  const caixa = await mapa.boundingBox();
+  await page.mouse.click(
+    (caixa?.x ?? 0) + (caixa?.width ?? 0) / 2,
+    (caixa?.y ?? 0) + (caixa?.height ?? 0) / 2,
+  );
+  const painel = page.getByRole('dialog', { name: 'Lote M1' });
+  await expect(painel).toBeVisible();
+  await expect(painel.getByText('Q1')).toBeVisible();
+  await expect(painel.getByText('360,00 m²')).toBeVisible();
+  await expect(painel.getByText('R$ 250.000,00')).toBeVisible();
+  await expect(painel.getByText('Disponível')).toBeVisible();
+  await expect(
+    painel.getByRole('link', { name: 'Ver detalhes do lote' }),
+  ).toHaveAttribute('href', /^\/lotes\/[\w-]+$/);
+  await painel.getByRole('button', { name: 'Fechar' }).click();
+  await expect(painel).toBeHidden();
+
+  // A busca aproxima até o marcador, e os dados também se abrem sem o mouse
+  await expect(page.getByRole('button', { name: 'Aproximar' })).toBeEnabled();
+  await page.getByLabel('Buscar lote por número').fill('m2');
+  await page.getByRole('button', { name: /^Lote M2, quadra Q1/ }).click();
+  await expect(page.getByRole('button', { name: 'Aproximar' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Ver dados do lote' }).click();
+  const painelBuscado = page.getByRole('dialog', { name: 'Lote M2' });
+  await expect(painelBuscado.getByText('Bloqueado')).toBeVisible();
+  await expect(painelBuscado.getByText('Não definido')).toBeVisible();
+});
+
 test.describe('com os usuários da API falsa', () => {
   test.skip(SEM_API_FALSA, 'Depende dos usuários da API falsa.');
+
+  test('no celular, o painel do lote sobe de baixo', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 360, height: 740 });
+    await entrar(page, 'gestor@exemplo.com');
+    await garantirPlantaAtiva(page);
+
+    await page.goto(`/mapa?loteamentoId=${LOTEAMENTO_SEMENTE_ID}`);
+    await page.getByLabel('Buscar lote por número').fill('M1');
+    await page.getByRole('button', { name: /^Lote M1, quadra Q1/ }).click();
+    await page.getByRole('button', { name: 'Ver dados do lote' }).click();
+
+    const painel = page.getByRole('dialog', { name: 'Lote M1' });
+    await expect(painel).toBeVisible();
+    await expect
+      .poll(async () => {
+        const caixa = await painel.boundingBox();
+        return Math.round((caixa?.y ?? 0) + (caixa?.height ?? 0));
+      })
+      .toBe(740);
+    expect((await painel.boundingBox())?.width).toBe(360);
+  });
 
   test('Consulta vê o mapa, sem controles de cadastro', async ({ page }) => {
     test.setTimeout(120_000);
