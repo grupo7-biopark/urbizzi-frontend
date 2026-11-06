@@ -5,6 +5,7 @@ import { useState, type FormEvent } from 'react';
 import { z } from 'zod';
 import { ApiError, getErrorMessage } from '@/shared/api/errors';
 import { navigateTo } from '@/shared/auth/navigation';
+import { Alert } from '@/shared/ui/alert';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { useLogin } from '../hooks/use-login';
@@ -61,16 +62,19 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
         required
         error={errors.senha ?? getApiFieldError(login.error, 'senha')}
       />
-      {login.error ? (
-        <p role="alert" className="text-small text-danger">
-          {getErrorMessage(login.error)}
-        </p>
-      ) : null}
+      {login.error ? <Alert>{getErrorMessage(login.error)}</Alert> : null}
       {/* Depois do sucesso, continua inativo até a navegação terminar. */}
-      <Button type="submit" disabled={login.isPending || login.isSuccess}>
+      <Button
+        type="submit"
+        loading={login.isPending || login.isSuccess}
+        className="mt-1"
+      >
         Entrar
       </Button>
-      <Link href="/recuperar-senha" className="text-small text-ink underline">
+      <Link
+        href="/recuperar-senha"
+        className="self-center py-2 text-small text-ink underline underline-offset-2"
+      >
         Esqueci minha senha
       </Link>
     </form>
