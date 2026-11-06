@@ -20,7 +20,7 @@ src/
 ├── app/                          # só rotas: páginas finas que compõem funcionalidades
 │   ├── layout.tsx                # layout raiz
 │   ├── globals.css
-│   ├── (auth)/                   # login; recuperação de senha prevista (FE-09)
+│   ├── (auth)/                   # login e recuperação de senha
 │   ├── (app)/                    # telas internas, com sessão e menu por perfil
 │   ├── (publico)/                # previsto: mapa público por token
 │   └── api/

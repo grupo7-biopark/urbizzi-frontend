@@ -65,7 +65,7 @@ Como o CI não tem o backend, o Playwright sobe uma API falsa (`e2e/support/fake
 E2E_API_URL=http://localhost:3000 E2E_EMAIL=... E2E_SENHA=... npx playwright test e2e/auth.spec.ts
 ```
 
-Nesse modo, a API limita a 5 logins por minuto: espere um minuto antes de repetir. Se já houver um servidor na porta 3001, o Playwright o reaproveita com a `API_URL` que ele tiver. Os demais fluxos contra o backend real entram na FE-35.
+Nesse modo, a API limita a 5 logins por minuto: espere um minuto antes de repetir. `e2e/recuperacao-senha.spec.ts` também precisa de `E2E_MAILPIT_URL` (`http://127.0.0.1:8025`), porque lê o link do e-mail, e cria uma conta só para o teste, que desativa no fim. Se já houver um servidor na porta 3001, o Playwright o reaproveita com a `API_URL` que ele tiver. Os demais fluxos contra o backend real entram na FE-35.
 
 ## Uso do MSW
 

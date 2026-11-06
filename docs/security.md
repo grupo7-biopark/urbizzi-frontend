@@ -55,6 +55,7 @@ São duas camadas, com papéis diferentes:
 - O `matcher` dele exclui `/api`, `/_next`, arquivos estáticos e a página pública. Rotas de API respondem `401`, sem redirecionar.
 - Ele também informa a rota atual ao layout, pelo header `x-urbizzi-path`, porque um layout não a conhece.
 - A tela de login mostra a mesma mensagem para senha errada e usuário inativo, porque a API responde igual aos dois, para não revelar quais contas existem.
+- A recuperação de senha mostra a mesma mensagem, exista ou não o e-mail. Em `/redefinir-senha`, o token fica só em memória: sai da URL e do histórico ao abrir, e a página usa `no-referrer`. Recarregar pede um novo link. O link do e-mail vem de `PASSWORD_RESET_URL`, no backend, que precisa apontar para esta rota.
 - **A conferência fica em cada página**, porque o layout não roda de novo ao navegar entre telas.
 - A tela 403 usa `forbidden()` e `(app)/forbidden.tsx`, que dependem da opção experimental `authInterrupts` do Next. Avaliado na FE-08: é o único jeito de responder com o status 403 de verdade e interromper a página sem depender de um `return` em cada tela. O uso está isolado em `permissao.server.ts`, então trocá-lo, se a API mudar, é simples.
 - Na resposta 403, o Next envia um HTML sem conteúdo (`<html id="__next_error__">`) e monta a tela no navegador; nada da tela proibida vai na resposta. O título da aba continua sendo o da página pedida, porque o `metadata` de `forbidden.tsx` não tem efeito.
