@@ -1,11 +1,17 @@
 import type { Metadata } from 'next';
-import { TelaProvisoria } from '@/features/navegacao/components/tela-provisoria';
+import { PlantaAtivaVisualizador } from '@/features/mapa/components/planta-ativa';
 import { exigirPermissao } from '@/shared/auth/permissao.server';
+import { PageHeader } from '@/shared/ui/page-header';
 
 export const metadata: Metadata = { title: 'Mapa' };
 
 export default async function MapaPage() {
   await exigirPermissao('verMapaLotesPainel');
 
-  return <TelaProvisoria titulo="Mapa" />;
+  return (
+    <>
+      <PageHeader title="Mapa" parents={[{ label: 'Início', href: '/' }]} />
+      <PlantaAtivaVisualizador />
+    </>
+  );
 }
