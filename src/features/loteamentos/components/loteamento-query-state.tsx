@@ -3,7 +3,8 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import Link from 'next/link';
 import { ApiError, getErrorMessage } from '@/shared/api/errors';
-import { Button } from '@/shared/ui/button';
+import { Button, buttonClasses } from '@/shared/ui/button';
+import { ErrorState } from '@/shared/ui/empty-state';
 import { Skeleton } from '@/shared/ui/skeleton';
 import type { Loteamento } from '../api/loteamentos.api';
 
@@ -21,20 +22,19 @@ export function LoteamentoQueryState({
     query.error instanceof ApiError && query.error.statusCode === 404;
 
   return (
-    <div
-      role="alert"
-      className="flex flex-col items-center gap-4 border border-border p-8 text-center"
-    >
-      <p>{getErrorMessage(query.error)}</p>
-      {naoEncontrado ? (
-        <Link href="/loteamentos" className="text-ink underline">
-          Voltar aos loteamentos
-        </Link>
-      ) : (
-        <Button variant="secundario" onClick={() => void query.refetch()}>
-          Tentar novamente
-        </Button>
-      )}
-    </div>
+    <ErrorState
+      message={getErrorMessage(query.error)}
+      action={
+        naoEncontrado ? (
+          <Link href="/loteamentos" className={buttonClasses('secundario')}>
+            Voltar aos loteamentos
+          </Link>
+        ) : (
+          <Button variant="secundario" onClick={() => void query.refetch()}>
+            Tentar novamente
+          </Button>
+        )
+      }
+    />
   );
 }

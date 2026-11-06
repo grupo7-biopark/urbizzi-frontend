@@ -5,8 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Permitido } from '@/shared/auth/permitido';
 import { buttonClasses } from '@/shared/ui/button';
+import { cn } from '@/shared/ui/cn';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { IconConstrucao, IconEditar } from '@/shared/ui/icon';
 import { PageHeader, type BreadcrumbItem } from '@/shared/ui/page-header';
+import { Panel } from '@/shared/ui/panel';
 import { loteamentoDetailOptions } from '../api/loteamentos.queries';
 import { EditarLoteamentoForm } from './loteamento-form';
 import { LoteamentoQueryState } from './loteamento-query-state';
@@ -20,8 +23,13 @@ const PARENTS: BreadcrumbItem[] = [
 function Dado({ termo, valor }: { termo: string; valor: string | null }) {
   return (
     <div className="flex flex-col gap-1">
-      <dt className="text-small font-bold">{termo}</dt>
-      <dd className="wrap-anywhere whitespace-pre-line">
+      <dt className="text-caption text-ink-muted">{termo}</dt>
+      <dd
+        className={cn(
+          'wrap-anywhere whitespace-pre-line',
+          valor === null && 'text-ink-muted',
+        )}
+      >
         {valor ?? 'Não informada'}
       </dd>
     </div>
@@ -55,6 +63,7 @@ export function LoteamentoDetalhe({ id }: { id: string }) {
                 href={`/loteamentos/${id}/editar`}
                 className={buttonClasses('secundario')}
               >
+                <IconEditar className="size-4" />
                 Editar
               </Link>
               {/* Tira o detalhe do histórico: "voltar" não leva a um registro removido. */}
@@ -66,19 +75,20 @@ export function LoteamentoDetalhe({ id }: { id: string }) {
           </Permitido>
         }
       />
-      <dl className="flex flex-col gap-4">
-        <Dado termo="Descrição" valor={loteamento.descricao} />
-        <Dado termo="Localização" valor={loteamento.localizacao} />
-      </dl>
-      <section aria-labelledby="quadras-titulo" className="flex flex-col gap-4">
-        <h2 id="quadras-titulo" className="font-display text-section-label">
-          Quadras
-        </h2>
+      <Panel title="Dados">
+        <dl className="grid gap-5 md:grid-cols-2">
+          <Dado termo="Descrição" valor={loteamento.descricao} />
+          <Dado termo="Localização" valor={loteamento.localizacao} />
+        </dl>
+      </Panel>
+      <Panel title="Quadras">
         <EmptyState
+          bare
+          icon={<IconConstrucao />}
           title="Quadras em construção"
           description="O cadastro de quadras deste loteamento ainda não está disponível."
         />
-      </section>
+      </Panel>
     </>
   );
 }

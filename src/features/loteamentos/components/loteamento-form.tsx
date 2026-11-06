@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Form, FormInput, FormTextarea } from '@/shared/ui/form';
+import { Panel } from '@/shared/ui/panel';
 import type { Loteamento } from '../api/loteamentos.api';
 import { useCreateLoteamento } from '../hooks/use-create-loteamento';
 import { useUpdateLoteamento } from '../hooks/use-update-loteamento';
@@ -34,19 +34,17 @@ export function NovoLoteamentoForm() {
   }
 
   return (
-    <div className="flex max-w-xl flex-col gap-4">
+    <Panel className="max-w-2xl">
       <Form
         schema={loteamentoFormSchema}
         defaultValues={{ nome: '', descricao: '', localizacao: '' }}
         onSubmit={handleSubmit}
+        cancelHref="/loteamentos"
         fieldsByCode={FIELDS_BY_CODE}
       >
         <Campos />
       </Form>
-      <Link href="/loteamentos" className="self-start text-ink underline">
-        Cancelar
-      </Link>
-    </div>
+    </Panel>
   );
 }
 
@@ -65,7 +63,7 @@ export function EditarLoteamentoForm({
   }
 
   return (
-    <div className="flex max-w-xl flex-col gap-4">
+    <Panel className="max-w-2xl">
       <Form
         schema={loteamentoFormSchema}
         defaultValues={{
@@ -74,13 +72,11 @@ export function EditarLoteamentoForm({
           localizacao: loteamento.localizacao ?? '',
         }}
         onSubmit={handleSubmit}
+        cancelHref={detalheHref}
         fieldsByCode={FIELDS_BY_CODE}
       >
         <Campos />
       </Form>
-      <Link href={detalheHref} className="self-start text-ink underline">
-        Cancelar
-      </Link>
-    </div>
+    </Panel>
   );
 }
