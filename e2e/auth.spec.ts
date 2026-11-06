@@ -43,7 +43,7 @@ test('leva ao login sem sessão e, ao entrar, volta à página de destino', asyn
   await preencherLogin(page);
 
   await expect(page).toHaveURL('/?origem=teste');
-  await expect(page.getByRole('heading', { name: 'Urbizzi' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible();
 
   // Nenhum token fica ao alcance do JavaScript da página.
   expect(await page.evaluate(() => document.cookie)).not.toContain('urbizzi');

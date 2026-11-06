@@ -1,6 +1,7 @@
 'use client';
 
 import { getErrorMessage } from '@/shared/api/errors';
+import { ROTULOS_PERFIL } from '@/shared/auth/permissoes';
 import { useUsuarioAtual } from '@/shared/auth/use-usuario-atual';
 import { Button } from '@/shared/ui/button';
 import { Skeleton } from '@/shared/ui/skeleton';
@@ -11,11 +12,18 @@ export function UserMenu() {
   const logout = useLogout();
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex min-w-0 flex-wrap items-center gap-4">
       {isPending ? (
         <Skeleton aria-label="Carregando usuário" className="h-5 w-32" />
       ) : (
-        <span className="text-small">{usuario?.nome}</span>
+        usuario && (
+          <div className="flex min-w-0 flex-col text-small">
+            <span className="truncate font-bold">{usuario.nome}</span>
+            <span className="text-ink-muted">
+              {ROTULOS_PERFIL[usuario.perfil]}
+            </span>
+          </div>
+        )
       )}
       {logout.error ? (
         <p role="alert" className="text-small text-danger">
