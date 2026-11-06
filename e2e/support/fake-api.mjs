@@ -2,7 +2,7 @@
 // da autenticação, com tokens de uso único como os da API de verdade, uma rota
 // restrita a um perfil, para o e2e conferir o 403, o cadastro de loteamentos e o
 // envio e a ativação de plantas.
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
 
 const PORT = Number(process.env.FAKE_API_PORT ?? 3999);
@@ -37,7 +37,19 @@ const USUARIOS = [
     'consulta@exemplo.com',
     'CONSULTA',
   ),
+  // Só para o e2e de recuperação, que troca a senha.
+  makeUsuario(
+    '4fad7a5c-2e96-4ecf-9b7d-6a1d5c9e3f54',
+    'Recuperação Teste',
+    'recuperacao@exemplo.com',
+    'CONSULTA',
+  ),
 ];
+
+// E-mail do dono de cada token de recuperação ainda não usado.
+const tokensDeRecuperacao = new Map();
+// Só o que foi redefinido: os demais usam a senha padrão.
+const senhasRedefinidas = new Map();
 
 // Cada token aponta para o dono, para `/v1/auth/me` responder o perfil certo.
 const accessTokens = new Map();
@@ -941,7 +953,7 @@ const routes = {
 
     const usuario = USUARIOS.find((item) => item.email === email);
 
-    if (usuario && senha === SENHA) {
+    if (usuario && senha === (senhasRedefinidas.get(email) ?? SENHA)) {
       send(response, 200, issueTokens(usuario));
     } else {
       sendError(
@@ -952,6 +964,47 @@ const routes = {
         'E-mail ou senha inválidos',
       );
     }
+  },
+
+  // Responde igual, exista ou não a conta, como a API de verdade.
+  'POST /v1/auth/forgot-password': async (request, response) => {
+    const { email } = await readJson(request);
+
+    if (USUARIOS.some((item) => item.email === email)) {
+      tokensDeRecuperacao.set(randomBytes(32).toString('base64url'), email);
+    }
+    send(response, 204);
+  },
+
+  'POST /v1/auth/reset-password': async (request, response, path) => {
+    const { token, senha } = await readJson(request);
+    const email = tokensDeRecuperacao.get(token);
+
+    if (email) {
+      tokensDeRecuperacao.delete(token);
+      senhasRedefinidas.set(email, senha);
+      send(response, 204);
+    } else {
+      sendError(
+        response,
+        path,
+        401,
+        'TOKEN_RECUPERACAO_INVALIDO',
+        'Token de recuperação inválido ou expirado',
+      );
+    }
+  },
+
+  // Faz o papel da caixa de entrada, que no backend real é o Mailpit.
+  'GET /__e2e/token-recuperacao': (request, response) => {
+    const email = new URL(request.url, 'http://localhost').searchParams.get(
+      'email',
+    );
+    const token = [...tokensDeRecuperacao.entries()]
+      .filter(([, dono]) => dono === email)
+      .at(-1)?.[0];
+
+    send(response, 200, { token: token ?? null });
   },
 
   'POST /v1/auth/refresh': async (request, response, path) => {
