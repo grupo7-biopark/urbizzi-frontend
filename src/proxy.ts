@@ -8,8 +8,7 @@ import {
   REFRESH_COOKIE,
 } from '@/shared/auth/session-paths';
 
-// Abertas com ou sem sessão. As telas de senha são entregues na FE-09, e o
-// catálogo responde 404 em produção.
+// Abertas com ou sem sessão. O catálogo responde 404 em produção.
 const PUBLIC_PATHS = new Set([
   '/design-system',
   '/recuperar-senha',
