@@ -7,7 +7,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.NEXT_PUBLIC_APP_URL),
-  title: 'Urbizzi',
+  title: { default: 'Urbizzi', template: '%s | Urbizzi' },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

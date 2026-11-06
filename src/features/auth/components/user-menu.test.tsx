@@ -31,13 +31,14 @@ function mockUsuario() {
 }
 
 describe('UserMenu', () => {
-  it('mostra o carregamento e depois o nome do usuário', async () => {
+  it('mostra o carregamento e depois o nome e o perfil do usuário', async () => {
     mockUsuario();
 
     renderWithQuery(<UserMenu />);
 
     expect(screen.getByLabelText('Carregando usuário')).toBeInTheDocument();
     expect(await screen.findByText('Pessoa Teste')).toBeInTheDocument();
+    expect(screen.getByText('Comercial')).toBeInTheDocument();
   });
 
   it('sai da conta e vai ao login', async () => {

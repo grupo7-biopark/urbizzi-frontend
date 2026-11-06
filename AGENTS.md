@@ -91,34 +91,34 @@ Depois de `npm install <pacote>` ou `npm uninstall <pacote>`, confira se o `pack
    - `hooks/use-<acao>-<entidade>.ts`
    - `schemas/<entidade>-form.schema.ts` e `schemas/<modulo>-search.schema.ts`
    - `components/<modulo>-table.tsx` e `components/<entidade>-form.tsx`
-4. Crie a rota em `src/app/(app)/<modulo>/page.tsx`, conferindo a permissão na [matriz](docs/security.md#matriz-de-permissões).
+4. Crie a rota em `src/app/(app)/<modulo>/page.tsx`, começando por `await exigirPermissao(...)`, conforme a [matriz](docs/security.md#matriz-de-permissões). Se a tela tem item no menu, a rota já existe como provisória: substitua-a e ajuste `features/navegacao/menu.ts` se preciso.
 5. Trate os estados de carregamento, vazio e erro, e confira no celular e nos dois temas.
 6. Escreva os testes: unitários dos schemas, de componente com MSW e e2e do fluxo principal.
 7. Rode a verificação completa (seção [Comandos](#comandos)) e abra o PR usando o template, com capturas de tela.
 
 ## O que já existe em `src/`
 
-| Caminho                                         | O que é                                                                                                                            |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `instrumentation.ts`, `instrumentation-node.ts` | validam o ambiente ao subir o servidor e encerram o processo se houver erro                                                        |
-| `shared/config/env.schema.ts`                   | schemas Zod das variáveis e `parseEnv()`                                                                                           |
-| `shared/config/env.server.ts`                   | `getServerEnv()`, só no servidor                                                                                                   |
-| `shared/config/env.public.ts`                   | `publicEnv`, disponível também no navegador                                                                                        |
-| `app/layout.tsx`, `app/fonts.ts`                | layout raiz e fontes da marca, servidas pelo próprio Next                                                                          |
-| `app/globals.css`                               | tokens de cor e tipografia, temas claro e escuro                                                                                   |
-| `app/design-system/page.tsx`                    | catálogo de tokens e componentes, só em desenvolvimento (`/design-system`)                                                         |
-| `shared/ui/`                                    | design system: componentes base, logos, `DataTable`, `Form`, `ConfirmDialog` e máscaras (ver [docs/ui.md](docs/ui.md))             |
-| `app/(app)/layout.tsx`, `app/(app)/page.tsx`    | layout com sessão obrigatória e página inicial provisória                                                                          |
-| `app/(auth)/`                                   | login e aviso de sessão indisponível                                                                                               |
-| `app/api/auth/`, `app/api/backend/[...path]/`   | login, logout, renovação e proxy BFF autenticado                                                                                   |
-| `proxy.ts`                                      | checagem otimista de sessão nas páginas                                                                                            |
-| `features/auth/`                                | formulário de login e menu do usuário                                                                                              |
-| `shared/auth/`                                  | cookies de sessão, renovação única, `getUsuarioAtual()` e `useUsuarioAtual()`                                                      |
-| `app/api/health/route.ts`                       | `GET /api/health`, informando também se a API foi alcançada                                                                        |
-| `shared/api/`                                   | `schema.d.ts` gerado, clientes (`client.ts`, `client.server.ts`), `unwrap()`, `ApiError`, paginação, query string e TanStack Query |
-| `test/`                                         | servidor do MSW, `http` tipado pelo contrato, `renderWithQuery`, navegação simulada e factories                                    |
-
-Previsto em issues futuras (não use antes de existir): permissões em `shared/auth/` (FE-08).
+| Caminho                                                                                 | O que é                                                                                                                                            |
+| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `instrumentation.ts`, `instrumentation-node.ts`                                         | validam o ambiente ao subir o servidor e encerram o processo se houver erro                                                                        |
+| `shared/config/env.schema.ts`                                                           | schemas Zod das variáveis e `parseEnv()`                                                                                                           |
+| `shared/config/env.server.ts`                                                           | `getServerEnv()`, só no servidor                                                                                                                   |
+| `shared/config/env.public.ts`                                                           | `publicEnv`, disponível também no navegador                                                                                                        |
+| `app/layout.tsx`, `app/fonts.ts`                                                        | layout raiz e fontes da marca, servidas pelo próprio Next                                                                                          |
+| `app/globals.css`                                                                       | tokens de cor e tipografia, temas claro e escuro                                                                                                   |
+| `app/design-system/page.tsx`                                                            | catálogo de tokens e componentes, só em desenvolvimento (`/design-system`)                                                                         |
+| `shared/ui/`                                                                            | design system: componentes base, logos, `DataTable`, `Form`, `ConfirmDialog`, máscaras, `PageHeader` e `StatusPage` (ver [docs/ui.md](docs/ui.md)) |
+| `app/(app)/layout.tsx`, `features/navegacao/`                                           | layout com sessão obrigatória, menu por perfil e telas provisórias, que cada issue substitui pela definitiva                                       |
+| `app/(app)/forbidden.tsx`, `app/not-found.tsx`, `app/error.tsx`, `app/(app)/error.tsx`  | páginas 403, 404 e de erro                                                                                                                         |
+| `shared/auth/permissoes.ts`, `permitido.tsx`, `use-permissao.ts`, `permissao.server.ts` | mapa de permissões, `<Permitido>`, `usePermissao()`, `exigirPermissao()` e `tratarAcessoNegado()`                                                  |
+| `app/(auth)/`                                                                           | login e aviso de sessão indisponível                                                                                                               |
+| `app/api/auth/`, `app/api/backend/[...path]/`                                           | login, logout, renovação e proxy BFF autenticado                                                                                                   |
+| `proxy.ts`                                                                              | checagem otimista de sessão nas páginas                                                                                                            |
+| `features/auth/`                                                                        | formulário de login e menu do usuário                                                                                                              |
+| `shared/auth/`                                                                          | cookies de sessão, renovação única, `getUsuarioAtual()` e `useUsuarioAtual()`                                                                      |
+| `app/api/health/route.ts`                                                               | `GET /api/health`, informando também se a API foi alcançada                                                                                        |
+| `shared/api/`                                                                           | `schema.d.ts` gerado, clientes (`client.ts`, `client.server.ts`), `unwrap()`, `ApiError`, paginação, query string e TanStack Query                 |
+| `test/`                                                                                 | servidor do MSW, `http` tipado pelo contrato, `renderWithQuery`, navegação simulada e factories                                                    |
 
 <!-- BEGIN:nextjs-agent-rules -->
 
