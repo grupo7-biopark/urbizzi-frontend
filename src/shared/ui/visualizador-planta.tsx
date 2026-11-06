@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { cn } from './cn';
 import type { DimensoesPlanta, PontoNormalizado } from './coordenadas-planta';
+import type { FormaMarcador } from './forma-marcador';
 import { Skeleton } from './skeleton';
 
 export type PlantaVisualizada = DimensoesPlanta & {
@@ -16,12 +17,17 @@ export type MarcadorPlanta = PontoNormalizado & {
   id: string;
   /** Nome do token de cor, como `--status-disponivel`: acompanha o tema. */
   cor: string;
+  forma?: FormaMarcador;
+  /** Maior que os demais, para ser encontrado depois de uma busca. */
+  destacado?: boolean;
 };
 
 export type VisualizadorPlantaProps = {
   planta: PlantaVisualizada;
   marcadores?: MarcadorPlanta[];
   onMarcadorClick?: (id: string) => void;
+  /** Ao mudar, aproxima até o zoom máximo neste ponto. */
+  foco?: PontoNormalizado | null;
   className?: string;
 };
 
