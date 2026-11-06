@@ -34,6 +34,18 @@ export function latLngParaNormalizado(
   return { x: (lng * escala) / larguraPx, y: (0 - lat * escala) / alturaPx };
 }
 
+export function estaNaPlanta({ x, y }: PontoNormalizado) {
+  return x >= 0 && x <= 1 && y >= 0 && y <= 1;
+}
+
+/** O ponto mais próximo dentro da imagem: a API só aceita coordenadas de 0 a 1. */
+export function limitarAPlanta({ x, y }: PontoNormalizado): PontoNormalizado {
+  return {
+    x: Math.min(Math.max(x, 0), 1),
+    y: Math.min(Math.max(y, 0), 1),
+  };
+}
+
 /** Canto inferior esquerdo e superior direito da imagem. */
 export function limitesDaPlanta(dimensoes: DimensoesPlanta): [LatLng, LatLng] {
   return [

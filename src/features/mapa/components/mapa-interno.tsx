@@ -210,7 +210,7 @@ function PainelDoLote({
   );
 }
 
-function SemPlantaAtiva() {
+export function SemPlantaAtiva() {
   return (
     <EmptyState
       icon={<IconMapa />}

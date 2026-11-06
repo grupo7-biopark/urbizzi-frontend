@@ -7,7 +7,14 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import { Button } from './button';
 import { cn } from './cn';
-import { limitesDaPlanta, normalizadoParaLatLng } from './coordenadas-planta';
+import {
+  estaNaPlanta,
+  latLngParaNormalizado,
+  limitarAPlanta,
+  limitesDaPlanta,
+  normalizadoParaLatLng,
+  type PontoNormalizado,
+} from './coordenadas-planta';
 import { getVerticesDaForma, type FormaMarcador } from './forma-marcador';
 import {
   IconCentralizar,
@@ -23,6 +30,7 @@ import type {
 
 const RAIO_MARCADOR = 7;
 const RAIO_DESTACADO = 12;
+const ESPERA_DO_CLIQUE_MS = 50;
 // Abaixo do zoom 0 a pirâmide não tem tile: o Leaflet reduz o do zoom 0.
 const MENOR_ZOOM_DA_CAMADA = -5;
 const TEMA_ESCURO = '(prefers-color-scheme: dark)';
@@ -110,12 +118,20 @@ export default function VisualizadorPlantaLeaflet({
   marcadores = SEM_MARCADORES,
   onMarcadorClick,
   foco = null,
+  onPlantaClick,
+  onMarcadorArrastado,
+  onCentroChange,
   className,
 }: VisualizadorPlantaProps) {
   const { nome, larguraPx, alturaPx, maxZoom, tamanhoTile, tilesUrl } = planta;
   const raiz = useRef<HTMLDivElement>(null);
   const elementoMapa = useRef<HTMLDivElement>(null);
   const onClickRef = useRef(onMarcadorClick);
+  const onPlantaClickRef = useRef(onPlantaClick);
+  const onArrastadoRef = useRef(onMarcadorArrastado);
+  const onCentroRef = useRef(onCentroChange);
+  // O navegador dispara um clique ao soltar: não pode virar um marcador novo.
+  const ignorarClique = useRef(false);
   const [zoom, setZoom] = useState<{ atual: number; minimo: number } | null>(
     null,
   );
@@ -124,7 +140,10 @@ export default function VisualizadorPlantaLeaflet({
 
   useEffect(() => {
     onClickRef.current = onMarcadorClick;
-  }, [onMarcadorClick]);
+    onPlantaClickRef.current = onPlantaClick;
+    onArrastadoRef.current = onMarcadorArrastado;
+    onCentroRef.current = onCentroChange;
+  }, [onMarcadorClick, onPlantaClick, onMarcadorArrastado, onCentroChange]);
 
   // O mapa do Leaflet vive fora do React: é criado uma vez por planta.
   useEffect(() => {
@@ -195,6 +214,39 @@ export default function VisualizadorPlantaLeaflet({
     }
   }, [instancia, foco, larguraPx, alturaPx, maxZoom]);
 
+  useEffect(() => {
+    if (!instancia) {
+      return undefined;
+    }
+
+    const { mapa } = instancia;
+    const dimensoes = { larguraPx, alturaPx, maxZoom };
+    const aoClicar = ({ latlng }: L.LeafletMouseEvent) => {
+      const ponto = latLngParaNormalizado([latlng.lat, latlng.lng], dimensoes);
+
+      // A planta tem uma folga em volta, e fora da imagem não há o que marcar.
+      if (!ignorarClique.current && estaNaPlanta(ponto)) {
+        onPlantaClickRef.current?.(ponto);
+      }
+    };
+    const aoMoverMapa = () => {
+      const { lat, lng } = mapa.getCenter();
+
+      onCentroRef.current?.(
+        limitarAPlanta(latLngParaNormalizado([lat, lng], dimensoes)),
+      );
+    };
+
+    mapa.on('click', aoClicar);
+    mapa.on('moveend', aoMoverMapa);
+    aoMoverMapa();
+
+    return () => {
+      mapa.off('click', aoClicar);
+      mapa.off('moveend', aoMoverMapa);
+    };
+  }, [instancia, larguraPx, alturaPx, maxZoom]);
+
   // O canvas guarda a cor resolvida: repinta quando o tema muda, sem recriar nada.
   useEffect(() => {
     const elemento = raiz.current;
@@ -203,22 +255,74 @@ export default function VisualizadorPlantaLeaflet({
       return undefined;
     }
 
-    const { camada, renderer } = instancia;
-    const desenhados = marcadores.map((marcador) => ({
-      token: marcador.cor,
-      circulo: L.circleMarker(
-        normalizadoParaLatLng(marcador, { larguraPx, alturaPx, maxZoom }),
+    const { mapa, camada, renderer } = instancia;
+    const dimensoes = { larguraPx, alturaPx, maxZoom };
+
+    // O `L.CircleMarker` não é arrastável, e o Leaflet só arrasta o `L.Marker`, com
+    // um elemento por marcador. Só com o mouse: o toque usa "Mover para o centro".
+    function iniciarArraste(circulo: L.CircleMarker, id: string) {
+      let ponto: PontoNormalizado | null = null;
+      const aoMover = ({ latlng }: L.LeafletMouseEvent) => {
+        ponto = limitarAPlanta(
+          latLngParaNormalizado([latlng.lat, latlng.lng], dimensoes),
+        );
+        circulo.setLatLng(normalizadoParaLatLng(ponto, dimensoes));
+      };
+      const aoSoltar = (evento: MouseEvent) => {
+        mapa.off('mousemove', aoMover);
+        document.removeEventListener('mouseup', aoSoltar);
+        mapa.dragging.enable();
+
+        // A posição final é onde o botão foi solto: o último `mousemove` pode se perder.
+        if (ponto) {
+          const { lat, lng } = mapa.mouseEventToLatLng(evento);
+
+          ponto = limitarAPlanta(latLngParaNormalizado([lat, lng], dimensoes));
+        }
+
+        if (ponto) {
+          ignorarClique.current = true;
+          setTimeout(() => {
+            ignorarClique.current = false;
+          }, ESPERA_DO_CLIQUE_MS);
+          onArrastadoRef.current?.(id, ponto);
+        }
+      };
+
+      mapa.dragging.disable();
+      mapa.on('mousemove', aoMover);
+      document.addEventListener('mouseup', aoSoltar);
+    }
+
+    const desenhados = marcadores.map((marcador) => {
+      const circulo = L.circleMarker(
+        normalizadoParaLatLng(marcador, dimensoes),
         {
           renderer,
           radius: marcador.destacado ? RAIO_DESTACADO : RAIO_MARCADOR,
           weight: 2,
           fillOpacity: 1,
           forma: marcador.forma,
+          // Sem isto, o clique no marcador também seria um clique na planta.
+          bubblingMouseEvents: false,
         } as OpcoesMarcador,
-      )
-        .on('click', () => onClickRef.current?.(marcador.id))
-        .addTo(camada),
-    }));
+      );
+
+      circulo
+        .on('click', () => {
+          if (!ignorarClique.current) {
+            onClickRef.current?.(marcador.id);
+          }
+        })
+        .on('mousedown', () => {
+          if (onArrastadoRef.current) {
+            iniciarArraste(circulo, marcador.id);
+          }
+        })
+        .addTo(camada);
+
+      return { token: marcador.cor, circulo };
+    });
     const pintar = () => {
       const contorno = lerToken(elemento, '--surface');
 
