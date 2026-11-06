@@ -214,6 +214,7 @@ export function LoteamentosTable({ search }: { search: LoteamentosSearch }) {
 - O link para o detalhe fica no nome da linha, em negrito. Não acrescente um botão "Ver".
 - `sortKey` na coluna ativa a ordenação. Só informe se a rota aceitar `orderBy`: hoje, nenhuma aceita.
 - Mudar um filtro ou a ordem volta à primeira página, e o estado todo fica na URL (`useListParams`).
+- Em filtros dependentes (quadra depende do loteamento), `clears` no `UrlSelectFilter` limpa o filtro dependente, e `disabled` o trava até haver o que escolher.
 - Busca que aceita dado pessoal não vai para a URL: use `DebouncedSearch`, com estado local, em vez de `UrlSearchFilter` ([security.md](security.md#lgpd-na-interface)).
 - O `useSearchParams` dos blocos exige um limite de `Suspense` em página estática. Uma página que lê `searchParams` é dinâmica e não precisa dele.
 
@@ -245,6 +246,7 @@ export function LoteamentoForm({ onSuccess }: { onSuccess: () => void }) {
 
 - `onSubmit` precisa **rejeitar** com o `ApiError` (`mutateAsync`, e não `mutate`): é assim que o `Form` mostra `details` embaixo de cada campo, inclusive em caminhos aninhados (`endereco.cep`), e o restante no alerta.
 - `fieldsByCode` leva ao campo um erro que a API não associa a ele.
+- `resetAfterSubmit` limpa o formulário ao salvar e volta o foco ao campo informado, para cadastrar vários itens em sequência (quadras do loteamento).
 - `cancelHref` põe "Cancelar" ao lado do botão de enviar. Envolva o formulário em um `Panel` com `max-w-2xl`: linhas longas demais dificultam o preenchimento.
 - Valide no schema Zod, com texto em português, o que a API também valida: as mensagens de `details` podem vir em inglês ([api-integration.md](api-integration.md#tratamento-de-erros)).
 - Fora de um `Form`, `useApiMutation` avisa o erro com um Toast. Em um `409`, ela também invalida as queries, porque a tela mostra um estado que já mudou.

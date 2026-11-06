@@ -202,8 +202,9 @@ const MARCADORES_DO_MAPA = [
 }));
 
 const loteamentos = new Map();
-// Id da quadra e id do loteamento a que ela pertence.
 const quadras = new Map();
+const lotes = new Map();
+const clientes = new Set();
 
 function salvarLoteamento(id, dados, atual = {}) {
   const agora = new Date().toISOString();
@@ -222,6 +223,189 @@ function salvarLoteamento(id, dados, atual = {}) {
 }
 
 salvarLoteamento(LOTEAMENTO_SEMENTE_ID, { nome: 'Loteamento Semente' });
+
+function salvarQuadra(id, dados, atual = {}) {
+  const agora = new Date().toISOString();
+  const quadra = {
+    id,
+    createdAt: agora,
+    ...atual,
+    ...dados,
+    updatedAt: agora,
+  };
+  quadras.set(id, quadra);
+  return quadra;
+}
+
+salvarQuadra(randomUUID(), {
+  loteamentoId: LOTEAMENTO_SEMENTE_ID,
+  numero: 'Quadra Semente',
+});
+
+function numeroEmUso({ loteamentoId, numero }, idIgnorado) {
+  return [...quadras.values()].some(
+    (item) =>
+      item.id !== idIgnorado &&
+      item.loteamentoId === loteamentoId &&
+      item.numero.toLowerCase() === numero.toLowerCase(),
+  );
+}
+
+function numeroDeLoteEmUso(quadraId, numero, idIgnorado) {
+  return [...lotes.values()].some(
+    (item) =>
+      item.id !== idIgnorado &&
+      item.quadraId === quadraId &&
+      item.numero.toLowerCase() === numero.toLowerCase(),
+  );
+}
+
+function criarLote(quadra, dados) {
+  const agora = new Date().toISOString();
+  const lote = {
+    valor: null,
+    exibirValorPublico: false,
+    observacoes: null,
+    ...dados,
+    id: randomUUID(),
+    quadraId: quadra.id,
+    loteamentoId: quadra.loteamentoId,
+    status: 'DISPONIVEL',
+    createdAt: agora,
+    updatedAt: agora,
+  };
+  lotes.set(lote.id, lote);
+  return lote;
+}
+
+function parseImportacao(body) {
+  const texto = body.toString('utf8');
+  const arquivo =
+    /name="arquivo"; filename="([^"]+)"\r\n[^\r]*\r\n\r\n([\s\S]*?)\r\n--/.exec(
+      texto,
+    );
+
+  return {
+    nome: arquivo?.[1] ?? '',
+    conteudo: arquivo?.[2] ?? '',
+    confirmar: /name="confirmar"\r\n\r\ntrue/.test(texto),
+    criarCadastros: /name="criarCadastros"\r\n\r\ntrue/.test(texto),
+  };
+}
+
+/** Só o CSV com `;` que o e2e envia: tudo ou nada, como a API. */
+function importarPlanilha({ conteudo, confirmar, criarCadastros }) {
+  const [, ...linhas] = conteudo.split(/\r?\n/).filter(Boolean);
+  const erros = [];
+  const novosLoteamentos = new Set();
+  const novasQuadras = new Set();
+  const validas = [];
+
+  linhas.forEach((texto, index) => {
+    const [loteamento, quadra, numero, area] = texto.split(';');
+    const mensagens = [];
+    const existente = [...loteamentos.values()].find(
+      ({ nome }) => nome.toLowerCase() === loteamento.toLowerCase(),
+    );
+    const quadraExistente = [...quadras.values()].find(
+      (item) => item.loteamentoId === existente?.id && item.numero === quadra,
+    );
+
+    if (!area) {
+      mensagens.push('area_m2 é obrigatório');
+    }
+    if (!existente && !criarCadastros) {
+      mensagens.push('Loteamento não encontrado');
+    }
+
+    if (mensagens.length > 0) {
+      erros.push({ linha: index + 2, mensagens });
+      return;
+    }
+
+    if (!existente) {
+      novosLoteamentos.add(loteamento);
+    }
+    if (!quadraExistente) {
+      novasQuadras.add(`${loteamento}/${quadra}`);
+    }
+    validas.push({ loteamento, quadra, numero, area });
+  });
+
+  const importado = confirmar && erros.length === 0;
+
+  if (importado) {
+    for (const { loteamento, quadra, numero, area } of validas) {
+      const cadastrado =
+        [...loteamentos.values()].find(
+          ({ nome }) => nome.toLowerCase() === loteamento.toLowerCase(),
+        ) ?? salvarLoteamento(randomUUID(), { nome: loteamento });
+      const quadraCadastrada =
+        [...quadras.values()].find(
+          (item) =>
+            item.loteamentoId === cadastrado.id && item.numero === quadra,
+        ) ??
+        salvarQuadra(randomUUID(), {
+          loteamentoId: cadastrado.id,
+          numero: quadra,
+        });
+
+      criarLote(quadraCadastrada, {
+        numero,
+        areaM2: area.replace(',', '.'),
+      });
+    }
+  }
+
+  return {
+    importado,
+    totalLinhas: linhas.length,
+    lotes: validas.length,
+    loteamentosNovos: novosLoteamentos.size,
+    quadrasNovas: novasQuadras.size,
+    erros,
+  };
+}
+
+function sendLoteDuplicado(response, path) {
+  sendError(
+    response,
+    path,
+    409,
+    'LOTE_JA_EXISTE',
+    'Já existe um lote com esse número nesta quadra',
+  );
+}
+
+function sendLoteNaoEncontrado(response, path) {
+  sendError(response, path, 404, 'LOTE_NAO_ENCONTRADO', 'Lote não encontrado');
+}
+
+function sendQuadraDuplicada(response, path) {
+  sendError(
+    response,
+    path,
+    409,
+    'QUADRA_JA_EXISTE',
+    'Já existe uma quadra com esse número neste loteamento',
+  );
+}
+
+function sendPagina(request, response, itens) {
+  const { searchParams } = new URL(request.url, 'http://localhost');
+  const page = Number(searchParams.get('page') ?? 1);
+  const pageSize = Number(searchParams.get('pageSize') ?? 20);
+
+  send(response, 200, {
+    data: itens.slice((page - 1) * pageSize, page * pageSize),
+    meta: {
+      page,
+      pageSize,
+      total: itens.length,
+      totalPages: Math.max(Math.ceil(itens.length / pageSize), 1),
+    },
+  });
+}
 
 function nomeEmUso(nome, idIgnorado) {
   return [...loteamentos.values()].some(
@@ -343,7 +527,11 @@ const dynamicRoutes = [
     pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)$/,
     handler: protegida(
       comLoteamento((_request, response, path, loteamento) => {
-        if ([...quadras.values()].includes(loteamento.id)) {
+        if (
+          [...quadras.values()].some(
+            ({ loteamentoId }) => loteamentoId === loteamento.id,
+          )
+        ) {
           sendError(
             response,
             path,
@@ -363,22 +551,140 @@ const dynamicRoutes = [
     method: 'POST',
     pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)\/quadras$/,
     handler: protegida(
-      comLoteamento(async (request, response, _path, loteamento) => {
+      comLoteamento(async (request, response, path, loteamento) => {
         const { numero } = await readJson(request);
-        const id = randomUUID();
-        quadras.set(id, loteamento.id);
-        send(response, 201, { id, numero, loteamentoId: loteamento.id });
+        const quadra = { loteamentoId: loteamento.id, numero };
+
+        if (numeroEmUso(quadra)) {
+          sendQuadraDuplicada(response, path);
+        } else {
+          send(response, 201, salvarQuadra(randomUUID(), quadra));
+        }
       }),
       PERFIS_CADASTRO,
     ),
   },
   {
+    method: 'GET',
+    pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)\/quadras$/,
+    handler: protegida(
+      comLoteamento((request, response, _path, loteamento) =>
+        sendPagina(
+          request,
+          response,
+          [...quadras.values()].filter(
+            ({ loteamentoId }) => loteamentoId === loteamento.id,
+          ),
+        ),
+      ),
+    ),
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/v1\/quadras\/(?<id>[^/]+)$/,
+    handler: protegida(async (request, response, path, params) => {
+      const atual = quadras.get(params.id);
+      const { numero } = await readJson(request);
+
+      if (numeroEmUso({ ...atual, numero }, params.id)) {
+        sendQuadraDuplicada(response, path);
+      } else {
+        send(response, 200, salvarQuadra(params.id, { numero }, atual));
+      }
+    }, PERFIS_CADASTRO),
+  },
+  {
     method: 'DELETE',
     pattern: /^\/v1\/quadras\/(?<id>[^/]+)$/,
-    handler: protegida((_request, response, _path, params) => {
-      quadras.delete(params.id);
-      send(response, 204);
+    handler: protegida((_request, response, path, params) => {
+      if ([...lotes.values()].some(({ quadraId }) => quadraId === params.id)) {
+        sendError(
+          response,
+          path,
+          409,
+          'QUADRA_COM_LOTES',
+          'Não é possível excluir uma quadra com lotes cadastrados',
+        );
+      } else {
+        quadras.delete(params.id);
+        send(response, 204);
+      }
     }, PERFIS_CADASTRO),
+  },
+  {
+    method: 'DELETE',
+    pattern: /^\/v1\/lotes\/(?<id>[^/]+)$/,
+    handler: protegida((_request, response, path, params) => {
+      const lote = lotes.get(params.id);
+
+      if (!lote) {
+        sendLoteNaoEncontrado(response, path);
+      } else if (lote.status !== 'DISPONIVEL') {
+        sendError(
+          response,
+          path,
+          409,
+          'LOTE_NAO_DISPONIVEL',
+          'Só um lote disponível pode ser excluído',
+        );
+      } else {
+        lotes.delete(params.id);
+        send(response, 204);
+      }
+    }, PERFIS_CADASTRO),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/v1\/lotes\/(?<id>[^/]+)$/,
+    handler: protegida((_request, response, path, params) => {
+      const lote = lotes.get(params.id);
+
+      if (lote) {
+        send(response, 200, lote);
+      } else {
+        sendLoteNaoEncontrado(response, path);
+      }
+    }),
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/v1\/lotes\/(?<id>[^/]+)$/,
+    handler: protegida(async (request, response, path, params) => {
+      const atual = lotes.get(params.id);
+      const dados = await readJson(request);
+
+      if (!atual) {
+        sendLoteNaoEncontrado(response, path);
+      } else if (
+        dados.numero &&
+        numeroDeLoteEmUso(atual.quadraId, dados.numero, atual.id)
+      ) {
+        sendLoteDuplicado(response, path);
+      } else {
+        const lote = { ...atual, ...dados };
+        lotes.set(lote.id, lote);
+        send(response, 200, lote);
+      }
+    }, PERFIS_CADASTRO),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/v1\/quadras\/(?<id>[^/]+)$/,
+    handler: protegida((_request, response, path, params) => {
+      const quadra = quadras.get(params.id);
+
+      if (quadra) {
+        send(response, 200, quadra);
+      } else {
+        sendError(
+          response,
+          path,
+          404,
+          'QUADRA_NAO_ENCONTRADA',
+          'Quadra não encontrada',
+        );
+      }
+    }),
   },
 ];
 
@@ -421,6 +727,92 @@ const routes = {
         meta: { page: 1, pageSize: 100, total: data.length, totalPages: 1 },
       },
     });
+  }),
+
+  'POST /v1/lotes': protegida(async (request, response, path) => {
+    const dados = await readJson(request);
+    const quadra = quadras.get(dados.quadraId);
+
+    if (!quadra) {
+      sendError(
+        response,
+        path,
+        404,
+        'QUADRA_NAO_ENCONTRADA',
+        'Quadra não encontrada',
+      );
+    } else if (numeroDeLoteEmUso(dados.quadraId, dados.numero)) {
+      sendLoteDuplicado(response, path);
+    } else {
+      send(response, 201, criarLote(quadra, dados));
+    }
+  }, PERFIS_CADASTRO),
+
+  'GET /v1/lotes': protegida((request, response) => {
+    const { searchParams } = new URL(request.url, 'http://localhost');
+    const filtros = {
+      loteamentoId: searchParams.get('loteamentoId'),
+      quadraId: searchParams.get('quadraId'),
+      status: searchParams.get('status'),
+    };
+    const busca = searchParams.get('q')?.toLowerCase() ?? '';
+
+    sendPagina(
+      request,
+      response,
+      [...lotes.values()].filter(
+        (lote) =>
+          Object.entries(filtros).every(
+            ([campo, valor]) => !valor || lote[campo] === valor,
+          ) && lote.numero.toLowerCase().includes(busca),
+      ),
+    );
+  }),
+
+  'GET /v1/lotes/importacao/modelo': protegida((_request, response) => {
+    response.writeHead(200, {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="modelo-lotes.csv"',
+    });
+    response.end(
+      '﻿loteamento;quadra;numero;area_m2;valor;exibir_valor\r\nExemplo;A;1;360,00;250000,00;sim\r\n',
+    );
+  }, PERFIS_CADASTRO),
+
+  'POST /v1/lotes/importacao': protegida(async (request, response, path) => {
+    const envio = parseImportacao(await readBody(request));
+
+    if (!/\.(csv|xlsx)$/i.test(envio.nome)) {
+      sendError(
+        response,
+        path,
+        422,
+        'IMPORTACAO_FORMATO_INVALIDO',
+        'Envie um arquivo .csv ou .xlsx',
+      );
+    } else {
+      send(response, 200, importarPlanilha(envio));
+    }
+  }, PERFIS_CADASTRO),
+
+  // Só o que o e2e precisa para ter um lote reservado.
+  'POST /v1/clientes': protegida(async (request, response) => {
+    const dados = await readJson(request);
+    const id = randomUUID();
+    clientes.add(id);
+    send(response, 201, { ...dados, id });
+  }),
+
+  'POST /v1/reservas': protegida(async (request, response, path) => {
+    const { loteId, clienteId } = await readJson(request);
+    const lote = lotes.get(loteId);
+
+    if (lote && clientes.has(clienteId)) {
+      lote.status = 'RESERVADO';
+      send(response, 201, { id: randomUUID(), loteId, clienteId });
+    } else {
+      sendLoteNaoEncontrado(response, path);
+    }
   }),
 
   'POST /v1/auth/login': async (request, response, path) => {

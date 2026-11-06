@@ -9,5 +9,8 @@ export const loteamentosSearchSchema = z.object({
 
 export type LoteamentosSearch = z.infer<typeof loteamentosSearchSchema>;
 
+/** A lista de quadras fica no detalhe do loteamento: a URL guarda só a página. */
+export const quadrasSearchSchema = loteamentosSearchSchema.omit({ q: true });
+
 /** O id vai direto para a API: fora do formato, a rota não existe. */
 export const loteamentoIdSchema = z.uuid();
