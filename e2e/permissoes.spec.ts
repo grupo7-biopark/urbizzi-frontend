@@ -14,6 +14,7 @@ const ROTAS = {
   Mapa: '/mapa',
   Loteamentos: '/loteamentos',
   Lotes: '/lotes',
+  Plantas: '/plantas',
   Clientes: '/clientes',
   Reservas: '/reservas',
   Propostas: '/propostas',
@@ -39,6 +40,7 @@ const COMERCIAL: Tela[] = [
 ];
 const GESTOR: Tela[] = [
   ...CONSULTA,
+  'Plantas',
   'Clientes',
   'Reservas',
   'Propostas',

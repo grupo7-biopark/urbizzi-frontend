@@ -37,6 +37,8 @@ export function Input({
       className={cn(
         CONTROL_CLASSES,
         CONTROL_HEIGHT_CLASSES,
+        // O botão nativo de `type="file"` tem cantos arredondados e foge da marca.
+        'file:mr-3 file:cursor-pointer file:border-0 file:bg-surface-hover file:px-3 file:py-1 file:text-small file:font-bold file:text-ink',
         Boolean(icon) && 'pl-10',
         className,
       )}

@@ -44,6 +44,10 @@ export const IconLoteamentos = criarIcone('M3 3h18v18H3zM3 12h18M12 3v18');
 export const IconLotes = criarIcone(
   'M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M9 9h6v6H9z',
 );
+export const IconPlantas = criarIcone(
+  'M3 3h18v18H3zM3 9h7v6H3M14 3v7h7M10 21v-6h5v6',
+);
+export const IconEnviar = criarIcone('M12 16V4M7 9l5-5 5 5M4 20h16');
 export const IconClientes = criarIcone(
   'M5 3h8v8H5zM3 21v-6h12v6M17 3h3v8h-3M19 15h2v6h-2',
 );

@@ -9,6 +9,7 @@ import {
   IconLotes,
   IconMapa,
   IconPendencias,
+  IconPlantas,
   IconPropostas,
   IconReservas,
   IconUsuarios,
@@ -67,6 +68,14 @@ export const ITENS_MENU: ItemMenu[] = [
     grupo: 'Cadastros',
     icone: IconLotes,
     descricao: 'Lotes, áreas, valores e disponibilidade.',
+  },
+  {
+    label: 'Plantas',
+    href: '/plantas',
+    acao: 'gerenciarPlanta',
+    grupo: 'Cadastros',
+    icone: IconPlantas,
+    descricao: 'Versões da planta exibida no mapa.',
   },
   {
     label: 'Clientes',

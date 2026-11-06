@@ -1,6 +1,7 @@
 // API falsa para o e2e do CI, que não tem o backend real. Implementa só o contrato
 // da autenticação, com tokens de uso único como os da API de verdade, uma rota
-// restrita a um perfil, para o e2e conferir o 403, e o cadastro de loteamentos.
+// restrita a um perfil, para o e2e conferir o 403, o cadastro de loteamentos e o
+// envio e a ativação de plantas.
 import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
 
@@ -75,12 +76,96 @@ function sendError(response, path, statusCode, code, message) {
   });
 }
 
-async function readJson(request) {
+async function readBody(request) {
   const chunks = [];
   for await (const chunk of request) {
     chunks.push(chunk);
   }
-  return chunks.length > 0 ? JSON.parse(Buffer.concat(chunks).toString()) : {};
+  return Buffer.concat(chunks);
+}
+
+async function readJson(request) {
+  const body = await readBody(request);
+  return body.length > 0 ? JSON.parse(body.toString()) : {};
+}
+
+// O processamento real leva minutos: aqui, o status avança com o tempo, para o e2e
+// acompanhar a tela mudando sozinha. O relógio começa na primeira listagem feita pela sessão que enviou, porque o
+//  pode levar segundos para compilar a tela. Um nome com "falha" termina em erro.
+const PLANTA_PROCESSANDO_APOS_MS = 1000;
+const PLANTA_TERMINADA_APOS_MS = 5000;
+
+const plantas = [];
+
+function toPlantaDto({ listadaEm, enviadaPor: _enviadaPor, ...planta }) {
+  const decorrido = listadaEm === null ? 0 : Date.now() - listadaEm;
+  const falhou = planta.nome.includes('falha');
+  let status = 'ENVIADA';
+
+  if (decorrido >= PLANTA_TERMINADA_APOS_MS) {
+    status = falhou ? 'ERRO' : 'PRONTA';
+  } else if (decorrido >= PLANTA_PROCESSANDO_APOS_MS) {
+    status = 'PROCESSANDO';
+  }
+
+  return {
+    ...planta,
+    status,
+    mensagemErro:
+      status === 'ERRO'
+        ? 'Não foi possível processar a planta. Envie os arquivos novamente.'
+        : null,
+  };
+}
+
+function exigirGestao(request, response, path) {
+  const usuario = getUsuario(request);
+
+  if (!usuario) {
+    sendError(response, path, 401, 'NAO_AUTENTICADO', 'Não autenticado');
+  } else if (!['ADMINISTRADOR', 'GESTOR'].includes(usuario.perfil)) {
+    sendError(response, path, 403, 'ACESSO_NEGADO', 'Forbidden resource');
+  }
+
+  return usuario;
+}
+
+/** O bastante para os campos de texto e os nomes de arquivo do multipart. */
+function parseEnvioPlanta(body) {
+  const texto = body.toString('latin1');
+
+  return {
+    nome: /name="nome"\r\n\r\n([^\r]*)/.exec(texto)?.[1] ?? '',
+    copiarMarcadores: /name="copiarMarcadores"\r\n\r\ntrue/.test(texto),
+    arquivos: [...texto.matchAll(/name="arquivos"; filename="([^"]+)"/g)].map(
+      (match) => match[1],
+    ),
+  };
+}
+
+function ativarPlanta(request, response, path, id) {
+  if (!exigirGestao(request, response, path)) {
+    return;
+  }
+
+  const planta = plantas.find((item) => item.id === id);
+
+  if (!planta) {
+    sendError(response, path, 404, 'PLANTA_NAO_ENCONTRADA', 'Não encontrada');
+  } else if (toPlantaDto(planta).status !== 'PRONTA') {
+    sendError(
+      response,
+      path,
+      409,
+      'PLANTA_NAO_PRONTA',
+      'A planta não está pronta',
+    );
+  } else {
+    plantas.forEach((item) => {
+      item.ativa = item === planta;
+    });
+    send(response, 200, toPlantaDto(planta));
+  }
 }
 
 const PERFIS_CADASTRO = ['ADMINISTRADOR', 'GESTOR'];
@@ -149,6 +234,12 @@ function comLoteamento(handler) {
 }
 
 const dynamicRoutes = [
+  {
+    method: 'POST',
+    pattern: /^\/v1\/plantas\/(?<id>[^/]+)\/ativar$/,
+    handler: (request, response, path, { id }) =>
+      ativarPlanta(request, response, path, id),
+  },
   {
     method: 'GET',
     pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)$/,
@@ -334,6 +425,75 @@ const routes = {
       });
     }
   },
+
+  'GET /v1/plantas': (request, response, path) => {
+    if (!getUsuario(request)) {
+      sendError(response, path, 401, 'NAO_AUTENTICADO', 'Não autenticado');
+      return;
+    }
+
+    const pagina = plantas.slice(0, 20);
+
+    pagina.forEach((item) => {
+      if (item.enviadaPor === request.headers.authorization) {
+        item.listadaEm ??= Date.now();
+      }
+    });
+
+    send(response, 200, {
+      data: pagina.map(toPlantaDto),
+      meta: {
+        page: 1,
+        pageSize: 20,
+        total: plantas.length,
+        totalPages: plantas.length > 0 ? 1 : 0,
+      },
+    });
+  },
+
+  'POST /v1/plantas': async (request, response, path) => {
+    const body = await readBody(request);
+    const usuario = exigirGestao(request, response, path);
+
+    if (!usuario) {
+      return;
+    }
+
+    const { nome, arquivos, copiarMarcadores } = parseEnvioPlanta(body);
+
+    if (copiarMarcadores && !plantas.some((item) => item.ativa)) {
+      sendError(
+        response,
+        path,
+        404,
+        'PLANTA_ATIVA_NAO_ENCONTRADA',
+        'Não há planta ativa para copiar os marcadores',
+      );
+      return;
+    }
+
+    const planta = {
+      id: randomUUID(),
+      nome,
+      versao: plantas.length + 1,
+      ativa: false,
+      gradeLinhas: arquivos.length > 1 ? Math.sqrt(arquivos.length) : 1,
+      gradeColunas: arquivos.length > 1 ? Math.sqrt(arquivos.length) : 1,
+      larguraPx: null,
+      alturaPx: null,
+      maxZoom: null,
+      tamanhoTile: null,
+      criadoPorId: usuario.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      listadaEm: null,
+      // Testes em paralelo listam as mesmas plantas: só a sessão que enviou conta.
+      enviadaPor: request.headers.authorization,
+    };
+
+    plantas.unshift(planta);
+    send(response, 201, toPlantaDto(planta));
+  },
 };
 
 createServer((request, response) => {
@@ -345,7 +505,10 @@ createServer((request, response) => {
     .find(({ match }) => match);
 
   if (route) {
-    void route(request, response, path);
+    // Um envio cancelado interrompe a leitura do corpo: não pode derrubar a API falsa.
+    Promise.resolve(route(request, response, path)).catch(() => {
+      response.destroy();
+    });
   } else if (dynamic) {
     void dynamic.handler(request, response, path, dynamic.match.groups);
   } else {

@@ -23,6 +23,7 @@ const COMERCIAL = [
 ];
 const GESTOR = [
   ...TODOS_VEEM,
+  'Plantas',
   'Clientes',
   'Reservas',
   'Propostas',

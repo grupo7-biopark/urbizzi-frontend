@@ -20,6 +20,7 @@ import type { z } from 'zod';
 import { ApiError, getErrorMessage } from '@/shared/api/errors';
 import { Alert } from './alert';
 import { Button, buttonClasses } from './button';
+import { Checkbox } from './checkbox';
 import { Input } from './input';
 import { MaskedInput, type MaskName } from './masked-input';
 import { Select } from './select';
@@ -153,6 +154,16 @@ export function FormSelect({
   const error = useFieldError(name);
 
   return <Select {...props} {...register(name)} error={error} />;
+}
+
+export function FormCheckbox({
+  name,
+  ...props
+}: NamedField<ComponentProps<typeof Checkbox>>) {
+  const { register } = useFormContext();
+  const error = useFieldError(name);
+
+  return <Checkbox {...props} {...register(name)} error={error} />;
 }
 
 type FormMaskedInputProps = NamedField<

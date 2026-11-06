@@ -57,6 +57,12 @@ Os dois clientes nascem de `createApi()` (`shared/api/create-api.ts`), e estes c
 - **`fetch` lido a cada chamada**: por padrão, o `openapi-fetch` guarda o `globalThis.fetch` ao ser criado. Como o cliente nasce no import, antes de `server.listen()`, o MSW não interceptaria nada e os testes fariam requisições reais.
 - **Arrays separados por vírgula**: o padrão do `openapi-fetch` repetiria o parâmetro (`status=A&status=B`), mas o formato documentado pela API é `status=A,B`. Por isso, o `querySerializer` é o `toQueryString()`.
 
+### Envio de arquivos
+
+`uploadFormData()` (`shared/api/upload.ts`) envia um `FormData` pelo proxy e é a exceção ao `openapi-fetch`: ele usa XHR, porque o `fetch` não informa o progresso do envio. Como o `unwrap()`, rejeita com `ApiError`, e cancelar pelo `signal` rejeita com `AbortError` (`isAbort()`, em `shared/api/request.ts`). Componentes continuam chamando a função de `features/<modulo>/api/`.
+
+Acima de 10 MB, o proxy repassa o corpo em fluxo e não consegue reenviá-lo depois de renovar a sessão (ver [security.md](security.md#sessão-bff--cookies-httponly)). Por isso, em `401 NAO_AUTENTICADO`, `uploadFormData()` repete o envio uma vez. Se a sessão acabou de vez, o `401` se repete e o `QueryClient` leva ao login.
+
 ## Tratamento de erros
 
 Toda resposta de erro da API tem o mesmo formato:

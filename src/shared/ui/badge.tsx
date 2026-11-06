@@ -9,6 +9,7 @@ const TONE_CLASSES = {
   bloqueado: 'bg-status-bloqueado text-on-status-bloqueado',
   perigo: 'bg-danger text-on-danger',
   neutro: 'bg-surface-alt text-ink',
+  destaque: 'bg-accent text-on-accent',
 };
 
 type BadgeProps = ComponentProps<'span'> & {
