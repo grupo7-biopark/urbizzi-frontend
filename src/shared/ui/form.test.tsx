@@ -63,6 +63,51 @@ function Exemplo({
   );
 }
 
+describe('Form: resetAfterSubmit', () => {
+  const schemaNome = z.object({ nome: z.string().min(1) });
+
+  function FormSequencia({
+    onSubmit,
+  }: {
+    onSubmit: (values: { nome: string }) => Promise<unknown>;
+  }) {
+    return (
+      <Form
+        schema={schemaNome}
+        defaultValues={{ nome: '' }}
+        onSubmit={onSubmit}
+        resetAfterSubmit="nome"
+      >
+        <FormInput name="nome" label="Nome" />
+      </Form>
+    );
+  }
+
+  it('limpa e volta o foco ao campo depois de salvar', async () => {
+    const user = userEvent.setup();
+    render(<FormSequencia onSubmit={() => Promise.resolve()} />);
+
+    await user.type(screen.getByLabelText('Nome'), 'A');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => expect(screen.getByLabelText('Nome')).toHaveValue(''));
+    expect(screen.getByLabelText('Nome')).toHaveFocus();
+  });
+
+  it('mantém o que foi digitado quando a API recusa', async () => {
+    const user = userEvent.setup();
+    render(
+      <FormSequencia onSubmit={() => Promise.reject(new Error('falha'))} />,
+    );
+
+    await user.type(screen.getByLabelText('Nome'), 'A');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nome')).toHaveValue('A');
+  });
+});
+
 describe('Form: rodapé', () => {
   it('põe Cancelar como link ao lado do envio, só quando informado', () => {
     const { rerender } = render(

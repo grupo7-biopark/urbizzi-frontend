@@ -63,12 +63,24 @@ function mockLista(linhas = [LOTEAMENTO]) {
   return buscas;
 }
 
+function mockQuadras() {
+  server.use(
+    http.get('/v1/loteamentos/{loteamentoId}/quadras', ({ response }) =>
+      response(200).json({
+        data: [],
+        meta: { page: 1, pageSize: 20, total: 0, totalPages: 1 },
+      }),
+    ),
+  );
+}
+
 function mockDetalhe() {
   server.use(
     http.get('/v1/loteamentos/{id}', ({ response }) =>
       response(200).json(LOTEAMENTO),
     ),
   );
+  mockQuadras();
 }
 
 function mockErroNaRemocao() {
@@ -248,7 +260,7 @@ describe('LoteamentoDetalhe', () => {
     setTestUrl(`/loteamentos/${ID}`);
   });
 
-  it('mostra os dados, a entrada das quadras e a trilha', async () => {
+  it('mostra os dados, as quadras e a trilha', async () => {
     mockPerfil('CONSULTA');
     mockDetalhe();
 
@@ -346,6 +358,8 @@ describe('LoteamentoDetalhe', () => {
           : HttpResponse.json(LOTEAMENTO),
       ),
     );
+    // Depois do curinga acima, que também casaria com a rota de quadras.
+    mockQuadras();
     const user = userEvent.setup();
     renderTela(<LoteamentoDetalhe id={ID} />);
 
