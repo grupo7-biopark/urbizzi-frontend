@@ -172,8 +172,9 @@ const PERFIS_CADASTRO = ['ADMINISTRADOR', 'GESTOR'];
 const LOTEAMENTO_SEMENTE_ID = '4f0d7a5c-2e96-4ecf-9b7d-6a1d5c9e3f54';
 
 const loteamentos = new Map();
-// Id da quadra e id do loteamento a que ela pertence.
 const quadras = new Map();
+// Id do lote e id da quadra a que ele pertence: só o que a remoção da quadra confere.
+const lotes = new Map();
 
 function salvarLoteamento(id, dados, atual = {}) {
   const agora = new Date().toISOString();
@@ -192,6 +193,59 @@ function salvarLoteamento(id, dados, atual = {}) {
 }
 
 salvarLoteamento(LOTEAMENTO_SEMENTE_ID, { nome: 'Loteamento Semente' });
+
+function salvarQuadra(id, dados, atual = {}) {
+  const agora = new Date().toISOString();
+  const quadra = {
+    id,
+    createdAt: agora,
+    ...atual,
+    ...dados,
+    updatedAt: agora,
+  };
+  quadras.set(id, quadra);
+  return quadra;
+}
+
+salvarQuadra(randomUUID(), {
+  loteamentoId: LOTEAMENTO_SEMENTE_ID,
+  numero: 'Quadra Semente',
+});
+
+function numeroEmUso({ loteamentoId, numero }, idIgnorado) {
+  return [...quadras.values()].some(
+    (item) =>
+      item.id !== idIgnorado &&
+      item.loteamentoId === loteamentoId &&
+      item.numero.toLowerCase() === numero.toLowerCase(),
+  );
+}
+
+function sendQuadraDuplicada(response, path) {
+  sendError(
+    response,
+    path,
+    409,
+    'QUADRA_JA_EXISTE',
+    'Já existe uma quadra com esse número neste loteamento',
+  );
+}
+
+function sendPagina(request, response, itens) {
+  const { searchParams } = new URL(request.url, 'http://localhost');
+  const page = Number(searchParams.get('page') ?? 1);
+  const pageSize = Number(searchParams.get('pageSize') ?? 20);
+
+  send(response, 200, {
+    data: itens.slice((page - 1) * pageSize, page * pageSize),
+    meta: {
+      page,
+      pageSize,
+      total: itens.length,
+      totalPages: Math.max(Math.ceil(itens.length / pageSize), 1),
+    },
+  });
+}
 
 function nomeEmUso(nome, idIgnorado) {
   return [...loteamentos.values()].some(
@@ -280,7 +334,11 @@ const dynamicRoutes = [
     pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)$/,
     handler: protegida(
       comLoteamento((_request, response, path, loteamento) => {
-        if ([...quadras.values()].includes(loteamento.id)) {
+        if (
+          [...quadras.values()].some(
+            ({ loteamentoId }) => loteamentoId === loteamento.id,
+          )
+        ) {
           sendError(
             response,
             path,
@@ -300,20 +358,71 @@ const dynamicRoutes = [
     method: 'POST',
     pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)\/quadras$/,
     handler: protegida(
-      comLoteamento(async (request, response, _path, loteamento) => {
+      comLoteamento(async (request, response, path, loteamento) => {
         const { numero } = await readJson(request);
-        const id = randomUUID();
-        quadras.set(id, loteamento.id);
-        send(response, 201, { id, numero, loteamentoId: loteamento.id });
+        const quadra = { loteamentoId: loteamento.id, numero };
+
+        if (numeroEmUso(quadra)) {
+          sendQuadraDuplicada(response, path);
+        } else {
+          send(response, 201, salvarQuadra(randomUUID(), quadra));
+        }
       }),
       PERFIS_CADASTRO,
     ),
   },
   {
+    method: 'GET',
+    pattern: /^\/v1\/loteamentos\/(?<id>[^/]+)\/quadras$/,
+    handler: protegida(
+      comLoteamento((request, response, _path, loteamento) =>
+        sendPagina(
+          request,
+          response,
+          [...quadras.values()].filter(
+            ({ loteamentoId }) => loteamentoId === loteamento.id,
+          ),
+        ),
+      ),
+    ),
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/v1\/quadras\/(?<id>[^/]+)$/,
+    handler: protegida(async (request, response, path, params) => {
+      const atual = quadras.get(params.id);
+      const { numero } = await readJson(request);
+
+      if (numeroEmUso({ ...atual, numero }, params.id)) {
+        sendQuadraDuplicada(response, path);
+      } else {
+        send(response, 200, salvarQuadra(params.id, { numero }, atual));
+      }
+    }, PERFIS_CADASTRO),
+  },
+  {
     method: 'DELETE',
     pattern: /^\/v1\/quadras\/(?<id>[^/]+)$/,
+    handler: protegida((_request, response, path, params) => {
+      if ([...lotes.values()].includes(params.id)) {
+        sendError(
+          response,
+          path,
+          409,
+          'QUADRA_COM_LOTES',
+          'Não é possível excluir uma quadra com lotes cadastrados',
+        );
+      } else {
+        quadras.delete(params.id);
+        send(response, 204);
+      }
+    }, PERFIS_CADASTRO),
+  },
+  {
+    method: 'DELETE',
+    pattern: /^\/v1\/lotes\/(?<id>[^/]+)$/,
     handler: protegida((_request, response, _path, params) => {
-      quadras.delete(params.id);
+      lotes.delete(params.id);
       send(response, 204);
     }, PERFIS_CADASTRO),
   },
@@ -321,6 +430,13 @@ const dynamicRoutes = [
 
 const routes = {
   'GET /health': (_request, response) => send(response, 200, { status: 'ok' }),
+
+  'POST /v1/lotes': protegida(async (request, response) => {
+    const { quadraId, numero } = await readJson(request);
+    const id = randomUUID();
+    lotes.set(id, quadraId);
+    send(response, 201, { id, quadraId, numero });
+  }, PERFIS_CADASTRO),
 
   'POST /v1/auth/login': async (request, response, path) => {
     const { email, senha } = await readJson(request);
