@@ -37,7 +37,9 @@ export function StatusPage({
         <p className="font-display text-display text-accent">{code}</p>
       ) : null}
       <h1 className="text-heading">{title}</h1>
-      <p {...(alert ? { role: 'alert' } : {})}>{description}</p>
+      <p {...(alert ? { role: 'alert' } : {})} className="max-w-prose">
+        {description}
+      </p>
       {action}
     </Container>
   );

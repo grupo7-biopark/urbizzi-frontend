@@ -6,31 +6,34 @@
 
 Use os componentes de `src/shared/ui/` e os tokens do tema. Não recrie botão, campo ou diálogo dentro de uma funcionalidade. Se faltar uma variação, adicione-a ao design system. Para ver tudo funcionando, abra [`/design-system`](http://localhost:3001/design-system), disponível só em desenvolvimento.
 
-| Arquivo                                          | Exporta                                                                               | Observações                                                                                                                           |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `button.tsx`                                     | `Button`, `buttonClasses`                                                             | `variant`: `primario`, `secundario`, `perigo`, `fantasma`. `type` padrão é `button`. `buttonClasses` dá aparência de botão a um link. |
-| `input.tsx`, `textarea.tsx`, `select.tsx`        | `Input`, `Textarea`, `Select`                                                         | `label` obrigatório; `error` e `hint` ligados ao campo. Aceitam `{...register('campo')}`                                              |
-| `checkbox.tsx`, `switch.tsx`                     | `Checkbox`, `Switch`                                                                  | inputs nativos, com `label` obrigatório                                                                                               |
-| `label.tsx`                                      | `Label`, `FieldError`                                                                 | para campos fora dos componentes acima                                                                                                |
-| `dialog.tsx`, `drawer.tsx`                       | `Dialog`, `DialogClose`, `Drawer`                                                     | `title` obrigatório; `trigger`, ou controle com `open` e `onOpenChange`                                                               |
-| `dropdown.tsx`                                   | `Dropdown`, `DropdownItem`, `DropdownSeparator`                                       | `variant="perigo"` em ações destrutivas                                                                                               |
-| `tabs.tsx`                                       | `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`                                      | dê `aria-label` ao `TabsList`                                                                                                         |
-| `table.tsx`                                      | `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`             |                                                                                                                                       |
-| `badge.tsx`                                      | `Badge`, `StatusLoteBadge`, `StatusPropostaBadge`                                     | sempre com cor e texto                                                                                                                |
-| `toast.tsx`                                      | `ToastProvider`, `useToast`                                                           | o provider está no layout de `(app)` e em `/design-system`                                                                            |
-| `skeleton.tsx`, `spinner.tsx`, `empty-state.tsx` | `Skeleton`, `Spinner`, `EmptyState`                                                   | `Skeleton` exige `aria-label`                                                                                                         |
-| `pagination.tsx`                                 | `Pagination`                                                                          | recebe `meta` da API e `getPageHref(page)`; `label` diferencia duas na mesma tela                                                     |
-| `data-table.tsx`                                 | `DataTable`                                                                           | listagem paginada com estado na URL; vira cartões no celular                                                                          |
-| `list-filters.tsx`                               | `FilterBar`, `UrlSearchFilter`, `UrlSelectFilter`, `DebouncedSearch`                  | filtros sincronizados com a URL                                                                                                       |
-| `use-list-params.ts`                             | `useListParams`, `hasActiveFilters`                                                   | lê e altera o estado da listagem na URL                                                                                               |
-| `form.tsx`                                       | `Form`, `FormInput`, `FormTextarea`, `FormSelect`, `FormMaskedInput`, `applyApiError` | `react-hook-form` com Zod e erros da API no campo                                                                                     |
-| `masked-input.tsx`, `masks.ts`                   | `MaskedInput`, máscaras e formatadores                                                | ver [Máscaras](#máscaras)                                                                                                             |
-| `confirm-dialog.tsx`                             | `ConfirmDialog`                                                                       | confirmação com motivo                                                                                                                |
-| `use-api-mutation.ts`                            | `useApiMutation`                                                                      | mutação com Toast e invalidação                                                                                                       |
-| `tooltip.tsx`                                    | `Tooltip`                                                                             | só complementa: não existe no toque                                                                                                   |
-| `logo.tsx`                                       | `Logo`, `LogoSimbolo`                                                                 | ver [Logos](#logos)                                                                                                                   |
-| `page-header.tsx`                                | `PageHeader`                                                                          | `h1`, trilha de navegação e ação primária de toda tela interna                                                                        |
-| `status-page.tsx`                                | `StatusPage`                                                                          | páginas 403, 404 e de erro; `standalone` traz `main` e logo fora de `(app)`                                                           |
+| Arquivo                                          | Exporta                                                                               | Observações                                                                                     |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `button.tsx`                                     | `Button`, `buttonClasses`                                                             | ver [Ações](#ações). `type` padrão é `button`. `buttonClasses` dá aparência de botão a um link. |
+| `icon.tsx`                                       | `IconBusca`, `IconEditar` etc.                                                        | ver [Ícones](#ícones)                                                                           |
+| `panel.tsx`                                      | `Panel`                                                                               | bloco de conteúdo; com `title`, vira uma seção nomeada                                          |
+| `alert.tsx`                                      | `Alert`                                                                               | erro que não pertence a um campo: formulário, diálogo, login                                    |
+| `input.tsx`, `textarea.tsx`, `select.tsx`        | `Input`, `Textarea`, `Select`                                                         | `label` obrigatório; `error` e `hint` ligados ao campo. Aceitam `{...register('campo')}`        |
+| `checkbox.tsx`, `switch.tsx`                     | `Checkbox`, `Switch`                                                                  | inputs nativos, com `label` obrigatório                                                         |
+| `label.tsx`                                      | `Label`, `FieldError`                                                                 | para campos fora dos componentes acima                                                          |
+| `dialog.tsx`, `drawer.tsx`                       | `Dialog`, `DialogClose`, `Drawer`                                                     | `title` obrigatório; `trigger`, ou controle com `open` e `onOpenChange`                         |
+| `dropdown.tsx`                                   | `Dropdown`, `DropdownItem`, `DropdownSeparator`                                       | `variant="perigo"` em ações destrutivas                                                         |
+| `tabs.tsx`                                       | `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`                                      | dê `aria-label` ao `TabsList`                                                                   |
+| `table.tsx`                                      | `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`             |                                                                                                 |
+| `badge.tsx`                                      | `Badge`, `StatusLoteBadge`, `StatusPropostaBadge`                                     | sempre com cor e texto                                                                          |
+| `toast.tsx`                                      | `ToastProvider`, `useToast`                                                           | o provider está no layout de `(app)` e em `/design-system`                                      |
+| `skeleton.tsx`, `spinner.tsx`, `empty-state.tsx` | `Skeleton`, `Spinner`, `EmptyState`, `ErrorState`                                     | `Skeleton` exige `aria-label`; `EmptyState` aceita `icon` e, dentro de um `Panel`, `bare`       |
+| `pagination.tsx`                                 | `Pagination`                                                                          | recebe `meta` da API e `getPageHref(page)`; `label` diferencia duas na mesma tela               |
+| `data-table.tsx`                                 | `DataTable`                                                                           | listagem paginada com estado na URL; vira cartões no celular                                    |
+| `list-filters.tsx`                               | `FilterBar`, `UrlSearchFilter`, `UrlSelectFilter`, `DebouncedSearch`                  | filtros sincronizados com a URL                                                                 |
+| `use-list-params.ts`                             | `useListParams`, `hasActiveFilters`                                                   | lê e altera o estado da listagem na URL                                                         |
+| `form.tsx`                                       | `Form`, `FormInput`, `FormTextarea`, `FormSelect`, `FormMaskedInput`, `applyApiError` | `react-hook-form` com Zod e erros da API no campo                                               |
+| `masked-input.tsx`, `masks.ts`                   | `MaskedInput`, máscaras e formatadores                                                | ver [Máscaras](#máscaras)                                                                       |
+| `confirm-dialog.tsx`                             | `ConfirmDialog`                                                                       | confirmação com motivo                                                                          |
+| `use-api-mutation.ts`                            | `useApiMutation`                                                                      | mutação com Toast e invalidação                                                                 |
+| `tooltip.tsx`                                    | `Tooltip`                                                                             | só complementa: não existe no toque                                                             |
+| `logo.tsx`                                       | `Logo`, `LogoSimbolo`                                                                 | ver [Logos](#logos)                                                                             |
+| `page-header.tsx`                                | `PageHeader`                                                                          | `h1`, trilha de navegação e ação primária de toda tela interna                                  |
+| `status-page.tsx`                                | `StatusPage`                                                                          | páginas 403, 404 e de erro; `standalone` traz `main` e logo fora de `(app)`                     |
 
 Dialog, Drawer, Dropdown, Tabs, Toast e Tooltip usam Radix UI, que cuida de foco, teclado e ARIA. Select, Checkbox e Switch são nativos, porque já funcionam bem no teclado e no celular.
 
@@ -54,26 +57,32 @@ Nas telas, use os tokens **semânticos**, que se adaptam ao tema. As utilidades 
 | `on-accent`   | preto   | preto   | texto e ícone sobre `accent`                                   |
 | `border`      | prata   | carvão  | divisores decorativos, **não** borda de campo (não atinge 3:1) |
 
-O tema segue o sistema operacional; `data-theme="light"` ou `"dark"` no `<html>` força um deles.
+O tema segue o sistema operacional; `data-theme="light"` ou `"dark"` no `<html>` força um deles. O atributo também vale em um trecho da página: a barra lateral e a gaveta do menu usam `data-theme="dark"` para ficarem pretas nos dois temas, com os mesmos tokens de sempre (`bg-surface`, `text-ink`, `hover:bg-surface-hover`). Um token novo em `:root` já vale para esses trechos, porque o bloco é compartilhado com `[data-theme]`.
 
 #### Combinações de texto aprovadas
 
 Todas são verificadas em `src/shared/ui/tokens.test.ts`, nos dois temas.
 
-| Fundo         | Texto permitido              | Não use                                  |
-| ------------- | ---------------------------- | ---------------------------------------- |
-| `surface`     | `ink`, `ink-muted`, `danger` | `border`, `cinza-oliva`                  |
-| `surface-alt` | **só `ink`**                 | `ink-muted` (4,29:1), `accent`, `danger` |
-| `accent`      | **só `on-accent`**           | branco (3,32:1)                          |
+| Fundo            | Texto permitido              | Não use                                                                      |
+| ---------------- | ---------------------------- | ---------------------------------------------------------------------------- |
+| `surface`        | `ink`, `ink-muted`, `danger` | `border`, `cinza-oliva`                                                      |
+| `surface-alt`    | **só `ink`**                 | `ink-muted` (4,29:1), `accent`, `danger`                                     |
+| `surface-canvas` | `ink`, `ink-muted`           | `border`, `cinza-oliva`                                                      |
+| `surface-panel`  | `ink`, `ink-muted`, `danger` | `border`, `cinza-oliva`                                                      |
+| `surface-hover`  | `ink`, `ink-muted`           | `danger`: o destaque de perigo inverte as cores (`bg-danger text-on-danger`) |
+| `accent`         | **só `on-accent`**           | branco (3,32:1)                                                              |
 
-Laranja como texto sobre branco tem 3,32:1: só em títulos de 24px ou mais, nunca em texto corrido. Sobre preto, tem 6,32:1 e vale em qualquer tamanho.
+Laranja como texto sobre branco tem 3,32:1 e, sobre `surface-canvas`, 3,04:1: só em títulos de 24px ou mais, nunca em texto corrido. Sobre preto, tem 6,32:1 e vale em qualquer tamanho.
 
 #### Cores que não vêm do manual
 
-O manual não define cor de perigo nem de status. Os valores abaixo são **propostas** do grupo, escolhidos para atender ao contraste, e podem mudar.
+O manual não define cor de perigo, de status nem tons para a área de trabalho: prata e carvão são pesados demais para fundo de tela e hover. Os valores abaixo são **propostas** do grupo, escolhidos para atender ao contraste, e podem mudar.
 
 | Token                                            | Claro   | Escuro  |
 | ------------------------------------------------ | ------- | ------- |
+| `surface-canvas` (fundo da área de trabalho)     | #F4F5F5 | preto   |
+| `surface-panel` (painéis, diálogos, cabeçalho)   | branco  | #141515 |
+| `surface-hover` (hover e blocos de ícone)        | #E7E8E8 | #26282A |
 | `danger`                                         | #B91C1C | #F87171 |
 | `status-disponivel` (verde)                      | #16A34A | #22C55E |
 | `status-reservado` (azul)                        | #1D4ED8 | #60A5FA |
@@ -89,13 +98,51 @@ Inter e Bebas Neue, carregadas com `next/font` em `src/app/fonts.ts`, sem requis
 | Classe                            | Tamanho           | Uso                                                                         |
 | --------------------------------- | ----------------- | --------------------------------------------------------------------------- |
 | `text-display`                    | 48/52, Inter 900  | título de destaque                                                          |
-| `text-heading`                    | 28/32, Inter 900  | título de seção e diálogo                                                   |
+| `text-heading`                    | 28/32, Inter 900  | título da tela (`h1`)                                                       |
+| `text-title`                      | 20/28, Inter 900  | título de diálogo e gaveta                                                  |
 | `font-display text-section-label` | 20/24, Bebas Neue | rótulos curtos em versal, seguidos de filete de 1px. Nunca em texto corrido |
 | `text-body`                       | 16/24, Inter 400  | texto                                                                       |
 | `text-small`                      | 14/20, Inter 400  | texto de apoio                                                              |
 | `text-caption`                    | 12/16, Inter 700  | legendas e metadados                                                        |
 
 Em texto corrido, escreva **Urbizzi**, com inicial maiúscula. A caixa baixa é só do logo.
+
+### Ações
+
+Cada tela tem **uma** ação primária. O peso visual acompanha a importância, não a frequência: o que se repete em cada linha precisa ser discreto, senão compete com os dados.
+
+| Onde                | Use                                                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------------------- |
+| Ação principal      | `primario`, só uma por tela                                                                          |
+| Ações do cabeçalho  | `secundario`; a destrutiva em `perigoSutil`                                                          |
+| Ações por linha     | `fantasma` e `perigoSutil`, com `size="compacto"` e coluna `acoes: true`                             |
+| Confirmar exclusão  | `perigo`, só dentro do `ConfirmDialog`                                                               |
+| Só ícone            | `size="icone"`, sempre com `aria-label`                                                              |
+| Durante uma chamada | `loading`: inativa o botão e mostra o progresso, mantendo o texto. Não troque o texto por "Salvando" |
+
+As alturas são 44px no toque e 40px a partir de `lg`, iguais às dos campos, para botão e campo alinharem na mesma linha. `size="compacto"` desce a 32px a partir de `md`.
+
+### Ícones
+
+Use `icon.tsx`: são SVGs próprios, com pontas e cantos retos como o manual pede, sem dependência externa. Bibliotecas como o Lucide têm pontas arredondadas. Faltou um? Acrescente com `criarIcone`, em uma grade de 24px e traço 2.
+
+Os ícones são decorativos (`aria-hidden`): o nome vem do texto ao lado ou do `aria-label`. Ícone não substitui rótulo na navegação, e `size-4` é o tamanho ao lado de texto `small`.
+
+### Movimento
+
+Transições de cor em 150ms (`transition-colors duration-150`) em tudo que reage ao ponteiro, e entrada de sobreposições com `animate-subir`, `animate-surgir` e `animate-gaveta-*`. A entrada anima só `transform`, nunca a opacidade do painel, para o contraste valer desde o início. `prefers-reduced-motion` desliga tudo, em `globals.css`.
+
+### Estrutura da tela
+
+O fundo da área de trabalho é `surface-canvas`, e o conteúdo fica em blocos `surface-panel` com borda `border`. A separação vem de borda e fundo, nunca de sombra. Títulos de bloco usam `Panel title`, que aplica o rótulo em versal com filete.
+
+```tsx
+<PageHeader title="Lote 12" parents={parents} actions={<Acoes />} />
+<Panel title="Dados">...</Panel>
+<Panel title="Propostas">
+  <EmptyState bare title="Nenhuma proposta" />
+</Panel>
+```
 
 ### Logos
 
@@ -160,7 +207,9 @@ export function LoteamentosTable({ search }: { search: LoteamentosSearch }) {
 }
 ```
 
-- `DataTable` trata carregamento, erro com "Tentar novamente", vazio, "nenhum resultado para os filtros" e página além da última. No celular, cada linha vira um cartão.
+- `DataTable` trata carregamento, erro com "Tentar novamente", vazio, "nenhum resultado para os filtros" e página além da última, e mostra o total de resultados. No celular, cada linha vira um cartão, com o rótulo acima do valor.
+- Na coluna, `acoes: true` alinha os botões à direita e os leva ao rodapé do cartão no celular; `align: 'right'` alinha números e valores, para compará-los na vertical.
+- O link para o detalhe fica no nome da linha, em negrito. Não acrescente um botão "Ver".
 - `sortKey` na coluna ativa a ordenação. Só informe se a rota aceitar `orderBy`: hoje, nenhuma aceita.
 - Mudar um filtro ou a ordem volta à primeira página, e o estado todo fica na URL (`useListParams`).
 - Busca que aceita dado pessoal não vai para a URL: use `DebouncedSearch`, com estado local, em vez de `UrlSearchFilter` ([security.md](security.md#lgpd-na-interface)).
@@ -194,6 +243,7 @@ export function LoteamentoForm({ onSuccess }: { onSuccess: () => void }) {
 
 - `onSubmit` precisa **rejeitar** com o `ApiError` (`mutateAsync`, e não `mutate`): é assim que o `Form` mostra `details` embaixo de cada campo, inclusive em caminhos aninhados (`endereco.cep`), e o restante no alerta.
 - `fieldsByCode` leva ao campo um erro que a API não associa a ele.
+- `cancelHref` põe "Cancelar" ao lado do botão de enviar. Envolva o formulário em um `Panel` com `max-w-2xl`: linhas longas demais dificultam o preenchimento.
 - Valide no schema Zod, com texto em português, o que a API também valida: as mensagens de `details` podem vir em inglês ([api-integration.md](api-integration.md#tratamento-de-erros)).
 - Fora de um `Form`, `useApiMutation` avisa o erro com um Toast. Em um `409`, ela também invalida as queries, porque a tela mostra um estado que já mudou.
 
@@ -236,6 +286,10 @@ Moeda e área são digitadas da direita para a esquerda, em centavos. Nenhuma fu
 
 Toda tela interna começa com `PageHeader`. Informe em `parents` as telas acima, e o título entra sozinho na trilha. Defina também `metadata.title`: o layout raiz completa a aba como "Loteamentos | Urbizzi". O `<main>` e o menu vêm do layout de `(app)`.
 
+### Menu
+
+Cada item de `features/navegacao/menu.ts` tem `grupo`, `icone` e `descricao`, usados no menu e nos atalhos da tela inicial. Uma tela nova entra na lista e aparece nos dois, com a mesma permissão.
+
 ### Listagem
 
 1. `PageHeader` com o título e a ação primária (ex.: "Novo loteamento"), escondida para quem não tem permissão.
@@ -253,7 +307,7 @@ Toda tela interna começa com `PageHeader`. Informe em `parents` as telas acima,
 
 ### Detalhe
 
-Cabeçalho com identificação e Badge de status; seções em blocos; ações conforme o perfil e o status. Ações indisponíveis para o perfil não aparecem. Dados que o perfil não pode ver não são apenas escondidos com CSS: eles não devem chegar à tela (ver [security.md](security.md#lgpd-na-interface)).
+Cabeçalho com identificação e Badge de status; seções em blocos `Panel`; ações conforme o perfil e o status. Ações indisponíveis para o perfil não aparecem. Dados que o perfil não pode ver não são apenas escondidos com CSS: eles não devem chegar à tela (ver [security.md](security.md#lgpd-na-interface)).
 
 ### Confirmação com motivo
 
@@ -268,10 +322,10 @@ Ações destrutivas ou de negócio (cancelar, rejeitar, bloquear, desativar, exc
 
 Toda tela ou bloco com dados trata os três estados, além do sucesso:
 
-| Estado     | Como                                                            | Texto                                                                   |
-| ---------- | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Carregando | `Skeleton` no formato do conteúdo; `Spinner` só em ações curtas | sem texto, com `aria-label`                                             |
-| Vazio      | `EmptyState`, com ação quando houver                            | distingue "nenhum cadastro ainda" de "nenhum resultado para os filtros" |
-| Erro       | mensagem de `getErrorMessage()`, com opção de tentar novamente  | nunca mostra detalhes técnicos                                          |
+| Estado     | Como                                                                                                | Texto                                                                   |
+| ---------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Carregando | `Skeleton` no formato do conteúdo; `Spinner` só em ações curtas                                     | sem texto, com `aria-label`                                             |
+| Vazio      | `EmptyState`, com ação quando houver                                                                | distingue "nenhum cadastro ainda" de "nenhum resultado para os filtros" |
+| Erro       | `ErrorState` com `getErrorMessage()` e opção de tentar novamente; em formulário ou diálogo, `Alert` | nunca mostra detalhes técnicos                                          |
 
 O status do lote e o da proposta são sempre exibidos pelo Badge, com os valores do contrato traduzidos para texto de tela (`DISPONIVEL` → "Disponível"). O status da proposta é visível só internamente, nunca no link público.

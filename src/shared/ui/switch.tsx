@@ -24,11 +24,11 @@ export function Switch({ label, className, ...props }: SwitchProps) {
         />
         <span
           aria-hidden="true"
-          className="absolute inset-0 border border-ink-muted bg-surface peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink"
+          className="absolute inset-0 border border-ink-muted bg-surface transition-colors duration-150 peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink"
         />
         <span
           aria-hidden="true"
-          className="absolute top-1 left-1 size-4 bg-ink peer-checked:translate-x-5 peer-checked:bg-on-accent"
+          className="absolute top-1 left-1 size-4 bg-ink transition-[translate,background-color] duration-150 peer-checked:translate-x-5 peer-checked:bg-on-accent"
         />
       </span>
       {label}

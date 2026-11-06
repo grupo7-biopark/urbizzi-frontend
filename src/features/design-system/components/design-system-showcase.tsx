@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useState, type ReactNode } from 'react';
+import { Alert } from '@/shared/ui/alert';
 import { Badge, StatusLoteBadge, StatusPropostaBadge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
@@ -11,10 +12,12 @@ import {
   DropdownItem,
   DropdownSeparator,
 } from '@/shared/ui/dropdown';
-import { EmptyState } from '@/shared/ui/empty-state';
+import { EmptyState, ErrorState } from '@/shared/ui/empty-state';
+import { IconBusca, IconEditar, IconMais, IconRemover } from '@/shared/ui/icon';
 import { Input } from '@/shared/ui/input';
 import { Logo, LogoSimbolo } from '@/shared/ui/logo';
 import { Pagination } from '@/shared/ui/pagination';
+import { Panel } from '@/shared/ui/panel';
 import { Select } from '@/shared/ui/select';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { Spinner } from '@/shared/ui/spinner';
@@ -46,6 +49,9 @@ const CORES = [
   { nome: 'cinza-carvao', classe: 'bg-cinza-carvao' },
   { nome: 'surface', classe: 'bg-surface' },
   { nome: 'surface-alt', classe: 'bg-surface-alt' },
+  { nome: 'surface-canvas', classe: 'bg-surface-canvas' },
+  { nome: 'surface-panel', classe: 'bg-surface-panel' },
+  { nome: 'surface-hover', classe: 'bg-surface-hover' },
   { nome: 'ink', classe: 'bg-ink' },
   { nome: 'ink-muted', classe: 'bg-ink-muted' },
   { nome: 'accent', classe: 'bg-accent' },
@@ -178,6 +184,7 @@ export function DesignSystemShowcase() {
           <div className="flex flex-col gap-3">
             <p className="text-display">display</p>
             <p className="text-heading">heading</p>
+            <p className="text-title">title</p>
             <p className="font-display text-section-label">section-label</p>
             <p className="text-body">
               body: Inter Regular para textos e dados.
@@ -232,13 +239,41 @@ export function DesignSystemShowcase() {
             <Button variant="secundario">Secundário</Button>
             <Button variant="perigo">Perigo</Button>
             <Button variant="fantasma">Fantasma</Button>
+            <Button variant="perigoSutil">Perigo sutil</Button>
             <Button disabled>Desabilitado</Button>
+            <Button loading>Salvando</Button>
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button>
+              <IconMais className="size-4" />
+              Com ícone
+            </Button>
+            <Button variant="fantasma" size="compacto">
+              <IconEditar className="size-4" />
+              Compacto
+            </Button>
+            <Button variant="perigoSutil" size="compacto">
+              <IconRemover className="size-4" />
+              Compacto de perigo
+            </Button>
+          </div>
+        </Secao>
+
+        <Secao titulo="Painel e alerta">
+          <Panel title="Dados do lote">
+            <p>Bloco de conteúdo sobre o fundo da área de trabalho.</p>
+          </Panel>
+          <Alert>O lote não está mais disponível.</Alert>
         </Secao>
 
         <Secao titulo="Formulário">
           <div className="grid gap-4 md:grid-cols-2">
             <Input label="Nome" required hint="Como aparece nas listagens." />
+            <Input
+              label="Com ícone"
+              type="search"
+              icon={<IconBusca className="size-4" />}
+            />
             <Input
               label="Documento"
               defaultValue="000"
@@ -358,6 +393,10 @@ export function DesignSystemShowcase() {
               title="Nenhum loteamento encontrado"
               description="Cadastre o primeiro loteamento para começar."
               action={<Button>Novo loteamento</Button>}
+            />
+            <ErrorState
+              message="Não foi possível carregar os lotes."
+              action={<Button variant="secundario">Tentar novamente</Button>}
             />
           </div>
         </Secao>

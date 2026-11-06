@@ -1,7 +1,9 @@
 import type { ComponentProps } from 'react';
 import { cn } from './cn';
+import { IconChevronBaixo } from './icon';
 import {
   CONTROL_CLASSES,
+  CONTROL_HEIGHT_CLASSES,
   FieldLayout,
   useFieldControl,
   type FieldProps,
@@ -42,7 +44,8 @@ export function Select({
         <select
           className={cn(
             CONTROL_CLASSES,
-            'min-h-10 cursor-pointer appearance-none pr-9',
+            CONTROL_HEIGHT_CLASSES,
+            'cursor-pointer appearance-none pr-9',
             className,
           )}
           {...controlProps}
@@ -50,13 +53,7 @@ export function Select({
         >
           {children}
         </select>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 12 12"
-          className="pointer-events-none absolute top-1/2 right-3 size-3 -translate-y-1/2 fill-current"
-        >
-          <path d="M0 3h12L6 10z" />
-        </svg>
+        <IconChevronBaixo className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2" />
       </div>
     </FieldLayout>
   );

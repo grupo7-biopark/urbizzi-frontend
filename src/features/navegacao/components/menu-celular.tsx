@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Drawer } from '@/shared/ui/drawer';
+import { IconMenu } from '@/shared/ui/icon';
 import { MenuNavegacao } from './menu-navegacao';
 
 export function MenuCelular() {
@@ -12,9 +13,14 @@ export function MenuCelular() {
     <Drawer
       side="left"
       title="Menu"
+      tema="dark"
       open={aberto}
       onOpenChange={setAberto}
-      trigger={<Button variant="secundario">Menu</Button>}
+      trigger={
+        <Button variant="fantasma" size="icone" aria-label="Menu">
+          <IconMenu />
+        </Button>
+      }
     >
       <MenuNavegacao onNavigate={() => setAberto(false)} />
     </Drawer>

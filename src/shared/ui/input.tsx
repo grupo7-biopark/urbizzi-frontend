@@ -1,13 +1,18 @@
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { cn } from './cn';
 import {
   CONTROL_CLASSES,
+  CONTROL_HEIGHT_CLASSES,
   FieldLayout,
   useFieldControl,
   type FieldProps,
 } from './label';
 
-type InputProps = ComponentProps<'input'> & FieldProps;
+type InputProps = ComponentProps<'input'> &
+  FieldProps & {
+    /** Ícone decorativo à esquerda, como a lupa da busca. */
+    icon?: ReactNode;
+  };
 
 export function Input({
   label,
@@ -15,6 +20,7 @@ export function Input({
   hint,
   id,
   required,
+  icon,
   className,
   ...props
 }: InputProps) {
@@ -26,6 +32,19 @@ export function Input({
     required,
   });
 
+  const input = (
+    <input
+      className={cn(
+        CONTROL_CLASSES,
+        CONTROL_HEIGHT_CLASSES,
+        Boolean(icon) && 'pl-10',
+        className,
+      )}
+      {...controlProps}
+      {...props}
+    />
+  );
+
   return (
     <FieldLayout
       label={label}
@@ -36,11 +55,16 @@ export function Input({
       hintId={hintId}
       errorId={errorId}
     >
-      <input
-        className={cn(CONTROL_CLASSES, 'min-h-10', className)}
-        {...controlProps}
-        {...props}
-      />
+      {icon ? (
+        <div className="relative">
+          <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-muted">
+            {icon}
+          </span>
+          {input}
+        </div>
+      ) : (
+        input
+      )}
     </FieldLayout>
   );
 }

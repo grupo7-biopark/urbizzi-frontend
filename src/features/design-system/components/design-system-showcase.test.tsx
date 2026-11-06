@@ -11,7 +11,8 @@ afterEach(() => {
   delete document.documentElement.dataset.theme;
 });
 
-it('não tem violações de acessibilidade', async () => {
+// O axe percorre o catálogo inteiro, o que passa dos 5 s padrão com a suíte em paralelo.
+it('não tem violações de acessibilidade', { timeout: 30_000 }, async () => {
   renderWithQuery(<DesignSystemShowcase />);
   await screen.findByRole('table', { name: 'Lotes de exemplo' });
 

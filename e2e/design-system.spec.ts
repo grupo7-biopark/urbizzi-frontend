@@ -3,6 +3,9 @@ import { expect, test } from '@playwright/test';
 
 test.describe.configure({ mode: 'serial' });
 
+// Sem transições: a troca de tema não pode ser medida no meio da mudança de cor.
+test.use({ contextOptions: { reducedMotion: 'reduce' } });
+
 const TEMAS = [
   { nome: 'Claro', superficie: 'rgb(255, 255, 255)' },
   { nome: 'Escuro', superficie: 'rgb(0, 0, 0)' },

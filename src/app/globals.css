@@ -19,7 +19,13 @@
   }
 }
 
-:root {
+/*
+ * Repetidos em `[data-theme]` porque um token é resolvido onde é declarado e herdado
+ * pronto: sem isso, um trecho com tema próprio, como a barra lateral, manteria as
+ * cores do tema da página.
+ */
+:root,
+[data-theme] {
   color-scheme: light dark;
 
   /* Marca: manual "Urbizzi Marcas e Variações" */
@@ -38,6 +44,11 @@
   --accent: var(--laranja);
   --on-accent: var(--preto);
   --border: light-dark(var(--prata), var(--cinza-carvao));
+
+  /* Propostas: o manual só tem prata e carvão, pesados demais para fundo de tela e hover. */
+  --surface-canvas: light-dark(#f4f5f5, var(--preto));
+  --surface-panel: light-dark(var(--branco), #141515);
+  --surface-hover: light-dark(#e7e8e8, #26282a);
 
   /* Propostas: o manual não define cor para perigo nem para status */
   --danger: light-dark(#b91c1c, #f87171);
@@ -80,6 +91,9 @@
   --text-heading: 1.75rem;
   --text-heading--line-height: 2rem;
   --text-heading--font-weight: 900;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.75rem;
+  --text-title--font-weight: 900;
   --text-section-label: 1.25rem;
   --text-section-label--line-height: 1.5rem;
   --text-section-label--font-weight: 400;
@@ -90,6 +104,36 @@
   --text-caption: 0.75rem;
   --text-caption--line-height: 1rem;
   --text-caption--font-weight: 700;
+
+  /* Só `transform` nos painéis: mudar a opacidade afetaria o contraste durante a entrada. */
+  --animate-surgir: surgir 150ms ease-out;
+  --animate-subir: subir 150ms ease-out;
+  --animate-gaveta-esquerda: gaveta-esquerda 200ms ease-out;
+  --animate-gaveta-direita: gaveta-direita 200ms ease-out;
+
+  @keyframes surgir {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes subir {
+    from {
+      transform: translateY(0.5rem);
+    }
+  }
+
+  @keyframes gaveta-esquerda {
+    from {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes gaveta-direita {
+    from {
+      transform: translateX(100%);
+    }
+  }
 }
 
 @theme inline {
@@ -112,6 +156,9 @@
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
   --color-border: var(--border);
+  --color-surface-canvas: var(--surface-canvas);
+  --color-surface-panel: var(--surface-panel);
+  --color-surface-hover: var(--surface-hover);
 
   --color-danger: var(--danger);
   --color-on-danger: var(--on-danger);
@@ -131,5 +178,32 @@
   :focus-visible {
     outline: 2px solid var(--ink);
     outline-offset: 2px;
+  }
+
+  /* O cabeçalho do celular é fixo: o foco e as âncoras não podem ficar atrás dele. */
+  html {
+    scroll-padding-top: 5rem;
+  }
+
+  h1,
+  h2 {
+    text-wrap: balance;
+  }
+
+  a,
+  button,
+  label,
+  summary {
+    touch-action: manipulation;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

@@ -4,6 +4,7 @@ import { Dialog as RadixDialog } from 'radix-ui';
 import type { ReactElement, ReactNode } from 'react';
 import { Button } from './button';
 import { cn } from './cn';
+import { IconFechar } from './icon';
 
 export type ModalProps = {
   title: string;
@@ -27,7 +28,12 @@ export function Modal({
   footer,
   children,
   contentClassName,
-}: ModalProps & { contentClassName: string }) {
+  tema,
+}: ModalProps & {
+  contentClassName: string;
+  /** Força o tema do conteúdo, como na gaveta do menu, sempre escura. */
+  tema?: 'dark';
+}) {
   return (
     <RadixDialog.Root
       open={open}
@@ -38,27 +44,27 @@ export function Modal({
         <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger>
       ) : null}
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-preto/60" />
+        <RadixDialog.Overlay className="fixed inset-0 z-40 animate-surgir bg-preto/60" />
         <RadixDialog.Content
           {...(description ? {} : { 'aria-describedby': undefined })}
+          data-theme={tema}
           className={cn(
-            'fixed z-50 flex flex-col gap-4 overflow-y-auto border border-ink bg-surface p-6 text-ink',
+            'fixed z-50 flex flex-col gap-4 overflow-y-auto border border-border bg-surface-panel p-6 text-ink',
             contentClassName,
           )}
         >
           <div className="flex items-start justify-between gap-4">
-            <RadixDialog.Title className="text-heading">
+            <RadixDialog.Title className="pt-1.5 text-title">
               {title}
             </RadixDialog.Title>
             <RadixDialog.Close asChild>
-              <Button variant="fantasma" aria-label="Fechar" className="px-3">
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 12 12"
-                  className="size-3 fill-none stroke-current stroke-2"
-                >
-                  <path d="M1 1l10 10M11 1 1 11" />
-                </svg>
+              <Button
+                variant="fantasma"
+                size="icone"
+                aria-label="Fechar"
+                className="-mt-1 -mr-2"
+              >
+                <IconFechar className="size-4" />
               </Button>
             </RadixDialog.Close>
           </div>
@@ -69,7 +75,9 @@ export function Modal({
           ) : null}
           {children}
           {footer ? (
-            <div className="flex flex-wrap justify-end gap-2">{footer}</div>
+            <div className="mt-2 flex flex-wrap justify-end gap-2 *:grow sm:*:grow-0">
+              {footer}
+            </div>
           ) : null}
         </RadixDialog.Content>
       </RadixDialog.Portal>
@@ -81,7 +89,7 @@ export function Dialog(props: ModalProps) {
   return (
     <Modal
       {...props}
-      contentClassName="top-1/2 left-1/2 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2"
+      contentClassName="top-1/2 left-1/2 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 animate-subir"
     />
   );
 }

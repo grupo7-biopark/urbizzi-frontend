@@ -5,6 +5,7 @@ import { Modal, type ModalProps } from './dialog';
 
 type DrawerProps = ModalProps & {
   side?: 'left' | 'right';
+  tema?: 'dark';
 };
 
 export function Drawer({ side = 'right', ...props }: DrawerProps) {
@@ -12,8 +13,10 @@ export function Drawer({ side = 'right', ...props }: DrawerProps) {
     <Modal
       {...props}
       contentClassName={cn(
-        'inset-y-0 w-full max-w-md',
-        side === 'right' ? 'right-0' : 'left-0',
+        'inset-y-0 w-[85%] max-w-sm',
+        side === 'right'
+          ? 'right-0 animate-gaveta-direita'
+          : 'left-0 animate-gaveta-esquerda',
       )}
     />
   );

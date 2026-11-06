@@ -22,7 +22,7 @@ export function Dropdown({
         <DropdownMenu.Content
           align={align}
           sideOffset={4}
-          className="z-50 min-w-40 border border-ink bg-surface py-1 text-ink"
+          className="z-50 min-w-40 border border-ink bg-surface-panel py-1 text-ink"
         >
           {children}
         </DropdownMenu.Content>
@@ -44,7 +44,7 @@ export function DropdownItem({
     <DropdownMenu.Item
       className={cn(
         'cursor-pointer px-3 py-2 text-small outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50',
-        // `danger` não atinge 4,5:1 sobre surface-alt, então o destaque inverte as cores.
+        // O destaque inverte as cores: `danger` não atinge 4,5:1 sobre todo fundo.
         variant === 'perigo'
           ? 'text-danger data-highlighted:bg-danger data-highlighted:text-on-danger'
           : 'data-highlighted:bg-ink data-highlighted:text-surface',

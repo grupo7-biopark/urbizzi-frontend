@@ -12,7 +12,10 @@ type AppShellProps = {
   children: ReactNode;
 };
 
-/** Barra lateral a partir de `lg`; abaixo disso, o menu abre em uma gaveta. */
+/**
+ * Barra lateral a partir de `lg`; abaixo disso, o menu abre em uma gaveta. A barra
+ * é sempre escura: `data-theme` reaplica os tokens do tema só dentro dela.
+ */
 export function AppShell({ userMenu, children }: AppShellProps) {
   return (
     <div className="flex min-h-dvh">
@@ -22,28 +25,29 @@ export function AppShell({ userMenu, children }: AppShellProps) {
       >
         Pular para o conteúdo
       </a>
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r border-border p-4 lg:flex">
-        <Link href="/" prefetch={false} className="self-start">
+      <aside
+        data-theme="dark"
+        className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r border-border bg-surface p-4 text-ink lg:flex"
+      >
+        <Link href="/" prefetch={false} className="self-start px-3 pt-1">
           <Logo alt={LOGO_ALT} className="h-8 w-auto" />
         </Link>
         <MenuNavegacao />
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border px-4 py-3 lg:justify-end">
-          <div className="flex items-center gap-4 lg:hidden">
+      <div className="flex min-w-0 flex-1 flex-col bg-surface-canvas">
+        <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-surface-panel px-2 py-2 sm:px-4 lg:static lg:justify-end lg:px-8">
+          <div className="flex min-w-0 items-center gap-1 lg:hidden">
             <MenuCelular />
-            <Link href="/" prefetch={false}>
-              <Logo alt={LOGO_ALT} className="h-8 w-auto" />
+            <Link href="/" prefetch={false} className="shrink-0">
+              <Logo alt={LOGO_ALT} className="h-7 w-auto" />
             </Link>
           </div>
           {userMenu}
         </header>
-        <main
-          id="conteudo"
-          tabIndex={-1}
-          className="flex flex-1 flex-col gap-6 p-4 lg:p-6"
-        >
-          {children}
+        <main id="conteudo" tabIndex={-1} className="flex flex-1 flex-col">
+          <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 lg:px-8 lg:py-8">
+            {children}
+          </div>
         </main>
       </div>
     </div>
