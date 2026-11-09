@@ -641,6 +641,99 @@ function comLoteamento(handler) {
 
 const dynamicRoutes = [
   {
+    method: 'POST',
+    pattern: /^\/v1\/links-publicos\/(?<id>[^/]+)\/desativar$/,
+    handler: protegida(
+      (request, response, path, params) => {
+        const link = linksPublicos.get(params.id),
+          usuario = getUsuario(request);
+        if (!link)
+          return sendError(
+            response,
+            path,
+            404,
+            'LINK_NAO_ENCONTRADO',
+            'Link não encontrado',
+          );
+        if (usuario.perfil === 'COMERCIAL' && link.criadoPorId !== usuario.id)
+          return sendError(
+            response,
+            path,
+            403,
+            'ACESSO_NEGADO',
+            'Acesso negado',
+          );
+        link.ativo = false;
+        link.updatedAt = new Date().toISOString();
+        send(response, 200, link);
+      },
+      ['ADMINISTRADOR', 'GESTOR', 'COMERCIAL'],
+    ),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/v1\/publico\/(?<token>[^/]+)$/,
+    handler: (request, response, path, params) => {
+      const link = [...linksPublicos.values()].find(
+        (l) => l.token === params.token && l.ativo,
+      );
+      if (!link)
+        return sendError(
+          response,
+          '/v1/publico/[token]',
+          404,
+          'LINK_NAO_ENCONTRADO',
+          'Link não encontrado',
+        );
+      link.acessos++;
+      const itens = [...lotes.values()]
+        .filter(
+          (l) => !link.loteamentoId || l.loteamentoId === link.loteamentoId,
+        )
+        .map((l) => ({
+          id: l.id,
+          loteId: l.id,
+          x: 0.5,
+          y: 0.5,
+          numero: l.numero,
+          status: l.status,
+          quadraId: l.quadraId,
+          quadra: quadras.get(l.quadraId).numero,
+          loteamentoId: l.loteamentoId,
+          loteamento: loteamentos.get(l.loteamentoId).nome,
+          areaM2: l.areaM2,
+          ...(l.exibirValorPublico ? { valor: l.valor } : {}),
+        }));
+      const page = Number(
+          new URL(request.url, 'http://localhost').searchParams.get('page') ??
+            1,
+        ),
+        pageSize = 100;
+      send(response, 200, {
+        planta: {
+          id: '5d2f8a1e-8a52-4a8e-9d3f-2c7f1e5a9b10',
+          nome: 'Planta fictícia',
+          versao: 1,
+          larguraPx: 256,
+          alturaPx: 256,
+          maxZoom: 0,
+          tamanhoTile: 256,
+          tilesUrl: '/tiles',
+        },
+        marcadores: {
+          data: itens.slice((page - 1) * pageSize, page * pageSize),
+          meta: {
+            page,
+            pageSize,
+            total: itens.length,
+            totalPages: Math.ceil(itens.length / pageSize),
+          },
+        },
+        contatoComercial: 'Fale com a equipe que compartilhou este mapa.',
+      });
+    },
+  },
+  {
     method: 'GET',
     pattern: /^\/v1\/clientes\/(?<id>[^/]+)$/,
     handler: protegida(
@@ -1048,7 +1141,51 @@ const dynamicRoutes = [
   },
 ];
 
+const linksPublicos = new Map();
 const routes = {
+  'GET /v1/links-publicos': protegida(
+    (request, response) => {
+      const usuario = getUsuario(request);
+      sendPagina(
+        request,
+        response,
+        [...linksPublicos.values()]
+          .filter(
+            (l) =>
+              usuario.perfil !== 'COMERCIAL' || l.criadoPorId === usuario.id,
+          )
+          .toReversed(),
+      );
+    },
+    ['ADMINISTRADOR', 'GESTOR', 'COMERCIAL'],
+  ),
+  'POST /v1/links-publicos': protegida(
+    async (request, response, path) => {
+      const dados = await readJson(request);
+      if (dados.loteamentoId && !loteamentos.has(dados.loteamentoId))
+        return sendError(
+          response,
+          path,
+          404,
+          'LOTEAMENTO_NAO_ENCONTRADO',
+          'Loteamento não encontrado',
+        );
+      const agora = new Date().toISOString();
+      const link = {
+        id: randomUUID(),
+        token: randomBytes(32).toString('base64url'),
+        criadoPorId: getUsuario(request).id,
+        loteamentoId: dados.loteamentoId ?? null,
+        ativo: true,
+        acessos: 0,
+        createdAt: agora,
+        updatedAt: agora,
+      };
+      linksPublicos.set(link.id, link);
+      send(response, 201, link);
+    },
+    ['ADMINISTRADOR', 'GESTOR', 'COMERCIAL'],
+  ),
   'GET /v1/historico': protegida(
     (request, response) => {
       const usuario = getUsuario(request);
