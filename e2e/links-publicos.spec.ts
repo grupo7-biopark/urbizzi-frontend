@@ -1,6 +1,5 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
 const fake = !process.env.E2E_API_URL;
 async function entrar(page: Page, email = 'pessoa@exemplo.com') {
   await page.goto('/login');
@@ -28,6 +27,7 @@ test('gera, copia e desativa link público, sem exigir sessão no destino', asyn
   context,
 }) => {
   test.skip(!fake, 'Dados da API falsa');
+  test.slow();
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await entrar(page, 'comercial@exemplo.com');
   await page.goto('/links-publicos');
@@ -39,6 +39,8 @@ test('gera, copia e desativa link público, sem exigir sessão no destino', asyn
   await expect(resultado.getByText('Link copiado.')).toBeVisible();
   const url = await page.evaluate(() => navigator.clipboard.readText());
   expect(url).toMatch(/\/p\/[A-Za-z0-9_-]{43}$/);
+  await resultado.getByRole('button', { name: 'Fechar', exact: true }).click();
+  await expect(resultado).toBeHidden();
   const anonimo = await context.browser()!.newContext();
   const publico = await anonimo.newPage();
   const response = await publico.goto(url);
@@ -46,7 +48,6 @@ test('gera, copia e desativa link público, sem exigir sessão no destino', asyn
   await expect(
     publico.getByRole('heading', { name: 'Mapa público', exact: true }),
   ).toBeVisible();
-  await resultado.getByRole('button', { name: 'Fechar', exact: true }).click();
   const linha = page
     .getByRole('row')
     .filter({ has: page.locator(`a[href="${url}"]`) });
@@ -63,7 +64,7 @@ test('gera, copia e desativa link público, sem exigir sessão no destino', asyn
 });
 test('novas telas respeitam os temas, celular e acessibilidade', async ({
   page,
-}) => {
+}, testInfo) => {
   test.skip(!fake, 'Dados da API falsa');
   test.slow();
   await entrar(page);
@@ -79,7 +80,6 @@ test('novas telas respeitam os temas, celular e acessibilidade', async ({
     observacoes: 'Lote de esquina com vista para a área verde.',
   });
   await api(page, '/v1/links-publicos', { loteamentoId: l.id });
-  await mkdir('.git/capturas', { recursive: true });
   for (const [nome, rota, pronto] of [
     ['fe17', `/lotes/${lote.id}`, 'Dados do lote'],
     ['fe25', `/historico?entidadeId=${lote.id}`, 'Histórico'],
@@ -108,7 +108,9 @@ test('novas telas respeitam os temas, celular e acessibilidade', async ({
         .toBe(true);
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       await page.screenshot({
-        path: `.git/capturas/${nome}-${mobile ? 'celular-escuro' : 'desktop-claro'}.png`,
+        path: testInfo.outputPath(
+          `${nome}-${mobile ? 'celular-escuro' : 'desktop-claro'}.png`,
+        ),
         fullPage: true,
       });
     }

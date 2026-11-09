@@ -255,8 +255,13 @@ test.describe('com os usuários da API falsa', () => {
         numero: '1',
         areaM2: '100.00',
       });
-      await page.getByRole('button', { name: 'Sair' }).click();
-      await expect(page).toHaveURL(/\/login/);
+      // No next dev, o HTML do menu pode aparecer antes de receber os eventos.
+      await expect(async () => {
+        const sair = page.getByRole('button', { name: 'Sair' });
+        if ((await sair.isVisible()) && (await sair.isEnabled()))
+          await sair.click();
+        await expect(page).toHaveURL(/\/login/, { timeout: 1000 });
+      }).toPass({ timeout: 15000 });
 
       await entrar(page, email);
       await abrirListagem(page, `?loteamentoId=${loteamentoId}`);
