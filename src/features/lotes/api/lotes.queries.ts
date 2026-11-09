@@ -1,6 +1,7 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
 import {
   getLote,
+  getLoteDetalhe,
   getLoteamentoDoLote,
   getQuadraDoLote,
   listLoteamentosOpcoes,
@@ -64,5 +65,12 @@ export function quadrasOpcoesOptions(loteamentoId: string | undefined) {
     queryKey: lotesKeys.opcoesQuadras(loteamentoId ?? ''),
     queryFn: () => listQuadrasOpcoes(loteamentoId ?? ''),
     enabled: Boolean(loteamentoId),
+  });
+}
+
+export function loteDetalheCompletoOptions(id: string) {
+  return queryOptions({
+    queryKey: [...lotesKeys.detail(id), 'completo'],
+    queryFn: () => getLoteDetalhe(id),
   });
 }

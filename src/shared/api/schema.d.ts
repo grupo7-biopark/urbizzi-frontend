@@ -91,6 +91,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/lotes/{id}/vender": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Marca como vendido o lote reservado com proposta aprovada */
+        post: operations["VendasLotesController_vender_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/loteamentos": {
         parameters: {
             query?: never;
@@ -234,6 +251,23 @@ export interface paths {
         head?: never;
         /** Atualiza parcialmente o cadastro de um lote (o status não muda por aqui) */
         patch: operations["LotesController_update_v1"];
+        trace?: never;
+    };
+    "/v1/lotes/{id}/detalhe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consulta o lote com reserva, propostas e histórico conforme o perfil */
+        get: operations["LotesController_detalhe_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/lotes/{id}/bloquear": {
@@ -1109,6 +1143,58 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+        };
+        QuadraNoLoteDto: {
+            id: string;
+            numero: string;
+        };
+        ReferenciaDto: {
+            id: string;
+            nome: string;
+        };
+        ClienteNoLoteDto: {
+            nome: string | null;
+            id: string;
+        };
+        ReservaNoLoteDto: {
+            /** @enum {string} */
+            status: "ATIVA" | "CONVERTIDA";
+            /** Format: date-time */
+            dataInicio: string;
+            /** Format: date-time */
+            dataVencimento: string;
+            id: string;
+            cliente: components["schemas"]["ClienteNoLoteDto"];
+            vendedor: components["schemas"]["ReferenciaDto"];
+        };
+        PropostaNoLoteDto: {
+            /** @enum {string} */
+            status: "EM_ANALISE" | "APROVADA" | "REJEITADA";
+            /** Format: date-time */
+            dataEnvio: string;
+            /** Format: date-time */
+            prazoLimite: string;
+            /** Format: date-time */
+            dataDecisao: string | null;
+            id: string;
+            valor: string;
+        };
+        EventoNoLoteDto: {
+            /** @enum {string} */
+            entidadeTipo: "Lote" | "Reserva" | "Proposta";
+            /** Format: date-time */
+            createdAt: string;
+            id: string;
+            entidadeId: string;
+            acao: string;
+        };
+        LoteDetalheDto: {
+            lote: components["schemas"]["LoteDto"];
+            quadra: components["schemas"]["QuadraNoLoteDto"];
+            loteamento: components["schemas"]["ReferenciaDto"];
+            reserva: components["schemas"]["ReservaNoLoteDto"] | null;
+            propostas: components["schemas"]["PropostaNoLoteDto"][];
+            historico: components["schemas"]["EventoNoLoteDto"][];
         };
         UpdateLoteDto: {
             /**
@@ -2199,6 +2285,71 @@ export interface operations {
             };
         };
     };
+    VendasLotesController_vender_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Venda registrada */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
     LoteamentosController_list_v1: {
         parameters: {
             query: {
@@ -3229,6 +3380,54 @@ export interface operations {
             };
             /** @description Conflito com o estado atual do recurso */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    LotesController_detalhe_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoteDetalheDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
