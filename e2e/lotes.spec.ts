@@ -1,5 +1,6 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { gerarCpf } from './support/documento';
 
 // O fluxo principal também roda contra o backend real, com E2E_API_URL, E2E_EMAIL e
 // E2E_SENHA. Os demais usam os usuários da API falsa (e2e/support/fake-api.mjs).
@@ -44,26 +45,6 @@ async function chamarApi(
 
 function sufixo() {
   return `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
-}
-
-/** CPF com dígitos verificadores válidos, para não repetir entre execuções. */
-function gerarCpf() {
-  const base = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10));
-  // Nove dígitos iguais formam um CPF que a validação recusa.
-  base[0] = (base[8] as number) === 9 ? 1 : 9;
-  const digitos = [...base];
-
-  for (const tamanho of [9, 10]) {
-    const soma = digitos
-      .slice(0, tamanho)
-      .reduce(
-        (total, digito, index) => total + digito * (tamanho + 1 - index),
-        0,
-      );
-    digitos.push(((soma * 10) % 11) % 10);
-  }
-
-  return digitos.join('');
 }
 
 async function criarCadastros(page: Page) {

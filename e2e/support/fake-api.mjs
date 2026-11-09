@@ -195,6 +195,8 @@ function ativarPlanta(request, response, path, id) {
 }
 
 const PERFIS_CADASTRO = ['ADMINISTRADOR', 'GESTOR'];
+// O Consulta não vê clientes (RNF08).
+const PERFIS_CLIENTES = ['ADMINISTRADOR', 'GESTOR', 'COMERCIAL'];
 const PERFIS_ADMINISTRACAO = ['ADMINISTRADOR'];
 // Começa com o padrão da API, que usa 7 dias quando a chave não foi gravada.
 const prazos = { prazo_reserva_dias: 7, prazo_analise_dias_uteis: 7 };
@@ -310,7 +312,91 @@ function comMarcador(handler) {
 const loteamentos = new Map();
 const quadras = new Map();
 const lotes = new Map();
-const clientes = new Set();
+const clientes = new Map();
+
+/** Como a API: sem distinguir caixa e acentos. */
+function semAcento(texto) {
+  return texto
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
+}
+
+/** Nome parcial ou documento com ou sem máscara. */
+function buscarClientes(q) {
+  const todos = [...clientes.values()];
+
+  if (!q) {
+    return todos;
+  }
+
+  const digitos = q.replace(/\D/g, '');
+
+  return todos.filter(
+    (cliente) =>
+      semAcento(cliente.nome).includes(semAcento(q)) ||
+      (digitos.length > 0 && cliente.documento.includes(digitos)),
+  );
+}
+
+function salvarCliente(id, dados, atual = {}) {
+  const agora = new Date().toISOString();
+  const cliente = {
+    id,
+    nome: atual.nome,
+    documento: atual.documento,
+    telefone: null,
+    email: null,
+    observacoes: null,
+    createdAt: agora,
+    ...atual,
+    ...dados,
+    // Normalizado como na API, que aceita o documento formatado.
+    ...(dados.documento
+      ? { documento: dados.documento.replace(/\D/g, '') }
+      : {}),
+    updatedAt: agora,
+  };
+
+  clientes.set(id, cliente);
+  return cliente;
+}
+
+function documentoEmUso(documento, idIgnorado) {
+  const digitos = (documento ?? '').replace(/\D/g, '');
+
+  return [...clientes.values()].some(
+    (cliente) => cliente.id !== idIgnorado && cliente.documento === digitos,
+  );
+}
+
+function sendDocumentoDuplicado(response, path) {
+  sendError(
+    response,
+    path,
+    409,
+    'CLIENTE_DOCUMENTO_DUPLICADO',
+    'Já existe um cliente com esse documento',
+  );
+}
+
+function comCliente(handler) {
+  return async (request, response, path, params) => {
+    const cliente = clientes.get(params.id);
+
+    if (cliente) {
+      await handler(request, response, path, cliente);
+    } else {
+      sendError(
+        response,
+        path,
+        404,
+        'CLIENTE_NAO_ENCONTRADO',
+        'Cliente não encontrado',
+      );
+    }
+  };
+}
 
 function salvarLoteamento(id, dados, atual = {}) {
   const agora = new Date().toISOString();
@@ -554,6 +640,32 @@ function comLoteamento(handler) {
 }
 
 const dynamicRoutes = [
+  {
+    method: 'GET',
+    pattern: /^\/v1\/clientes\/(?<id>[^/]+)$/,
+    handler: protegida(
+      comCliente((_request, response, _path, cliente) => {
+        send(response, 200, cliente);
+      }),
+      PERFIS_CLIENTES,
+    ),
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/v1\/clientes\/(?<id>[^/]+)$/,
+    handler: protegida(
+      comCliente(async (request, response, path, cliente) => {
+        const dados = await readJson(request);
+
+        if (dados.documento && documentoEmUso(dados.documento, cliente.id)) {
+          sendDocumentoDuplicado(response, path);
+        } else {
+          send(response, 200, salvarCliente(cliente.id, dados, cliente));
+        }
+      }),
+      PERFIS_CLIENTES,
+    ),
+  },
   {
     method: 'GET',
     pattern: /^\/v1\/usuarios\/(?<id>[^/]+)$/,
@@ -1021,13 +1133,29 @@ const routes = {
     }
   }, PERFIS_CADASTRO),
 
-  // Só o que o e2e precisa para ter um lote reservado.
-  'POST /v1/clientes': protegida(async (request, response) => {
+  // A lista traz só id e nome, como a API.
+  'GET /v1/clientes': protegida((request, response) => {
+    const { searchParams } = new URL(request.url, 'http://localhost');
+
+    sendPagina(
+      request,
+      response,
+      buscarClientes(searchParams.get('q')).map(({ id, nome }) => ({
+        id,
+        nome,
+      })),
+    );
+  }, PERFIS_CLIENTES),
+
+  'POST /v1/clientes': protegida(async (request, response, path) => {
     const dados = await readJson(request);
-    const id = randomUUID();
-    clientes.add(id);
-    send(response, 201, { ...dados, id });
-  }),
+
+    if (documentoEmUso(dados.documento)) {
+      sendDocumentoDuplicado(response, path);
+    } else {
+      send(response, 201, salvarCliente(randomUUID(), dados));
+    }
+  }, PERFIS_CLIENTES),
 
   'POST /v1/reservas': protegida(async (request, response, path) => {
     const { loteId, clienteId } = await readJson(request);
