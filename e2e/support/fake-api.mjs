@@ -313,6 +313,15 @@ const loteamentos = new Map();
 const quadras = new Map();
 const lotes = new Map();
 const clientes = new Map();
+const reservas = new Map();
+
+function previsaoReserva() {
+  const prazoDias = prazos.prazo_reserva_dias;
+  return {
+    prazoDias,
+    dataVencimento: new Date(Date.now() + prazoDias * 86400000).toISOString(),
+  };
+}
 
 /** Como a API: sem distinguir caixa e acentos. */
 function semAcento(texto) {
@@ -828,6 +837,12 @@ const dynamicRoutes = [
     handler: protegida((request, response, path, params) => {
       const lote = lotes.get(params.id);
       if (!lote) return sendLoteNaoEncontrado(response, path);
+      const usuario = getUsuario(request);
+      const registro = reservas.get(lote.id);
+      const visivel =
+        registro &&
+        usuario.perfil !== 'CONSULTA' &&
+        (usuario.perfil !== 'COMERCIAL' || usuario.id === registro.vendedorId);
       send(response, 200, {
         lote,
         loteamento: {
@@ -838,7 +853,23 @@ const dynamicRoutes = [
           id: lote.quadraId,
           numero: quadras.get(lote.quadraId).numero,
         },
-        reserva: null,
+        reserva: visivel
+          ? {
+              id: registro.id,
+              status: registro.status,
+              dataInicio: registro.dataInicio,
+              dataVencimento: registro.dataVencimento,
+              cliente: {
+                id: registro.clienteId,
+                nome: clientes.get(registro.clienteId).nome,
+              },
+              vendedor: {
+                id: registro.vendedorId,
+                nome: USUARIOS.find(({ id }) => id === registro.vendedorId)
+                  .nome,
+              },
+            }
+          : null,
         propostas: [],
         historico: [],
       });
@@ -1413,17 +1444,48 @@ const routes = {
     }
   }, PERFIS_CLIENTES),
 
+  'GET /v1/reservas/previsao': protegida((_request, response) => {
+    send(response, 200, previsaoReserva());
+  }, PERFIS_CLIENTES),
+
   'POST /v1/reservas': protegida(async (request, response, path) => {
     const { loteId, clienteId } = await readJson(request);
     const lote = lotes.get(loteId);
 
-    if (lote && clientes.has(clienteId)) {
-      lote.status = 'RESERVADO';
-      send(response, 201, { id: randomUUID(), loteId, clienteId });
-    } else {
-      sendLoteNaoEncontrado(response, path);
+    if (!lote) return sendLoteNaoEncontrado(response, path);
+    if (!clientes.has(clienteId)) {
+      return sendError(
+        response,
+        path,
+        404,
+        'CLIENTE_NAO_ENCONTRADO',
+        'Cliente não encontrado',
+      );
     }
-  }),
+    if (lote.status !== 'DISPONIVEL') {
+      return sendError(
+        response,
+        path,
+        409,
+        'LOTE_NAO_DISPONIVEL',
+        'O lote não está disponível',
+      );
+    }
+    const { prazoDias, dataVencimento } = previsaoReserva();
+    const reserva = {
+      id: randomUUID(),
+      loteId,
+      clienteId,
+      vendedorId: getUsuario(request).id,
+      dataInicio: new Date().toISOString(),
+      dataVencimento,
+      status: 'ATIVA',
+      tempoRestanteSegundos: prazoDias * 86400,
+    };
+    lote.status = 'RESERVADO';
+    reservas.set(loteId, reserva);
+    send(response, 201, reserva);
+  }, PERFIS_CLIENTES),
 
   'POST /v1/auth/login': async (request, response, path) => {
     const { email, senha } = await readJson(request);

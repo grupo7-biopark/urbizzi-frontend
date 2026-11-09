@@ -74,6 +74,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reservas/previsao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Prevê o vencimento de uma reserva iniciada agora, sem criar a reserva. */
+        get: operations["ReservasController_prever_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reservas/{id}": {
         parameters: {
             query?: never;
@@ -983,6 +1000,12 @@ export interface components {
             dataVencimento: string;
             /** @description Segundos até o vencimento, nunca negativo; zero para reserva encerrada. */
             tempoRestanteSegundos: number;
+        };
+        PrevisaoReservaDto: {
+            /** @example 7 */
+            prazoDias: number;
+            /** Format: date-time */
+            dataVencimento: string;
         };
         CreateLoteamentoDto: {
             /**
@@ -2219,6 +2242,52 @@ export interface operations {
             };
             /** @description Perfil sem permissão para a ação */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ReservasController_prever_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrevisaoReservaDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
