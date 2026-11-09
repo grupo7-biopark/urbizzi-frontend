@@ -1,11 +1,20 @@
 import type { Metadata } from 'next';
-import { TelaProvisoria } from '@/features/navegacao/components/tela-provisoria';
+import { ConfiguracoesForm } from '@/features/configuracoes/components/configuracoes-form';
 import { exigirPermissao } from '@/shared/auth/permissao.server';
+import { PageHeader } from '@/shared/ui/page-header';
 
 export const metadata: Metadata = { title: 'Configurações' };
 
 export default async function ConfiguracoesPage() {
   await exigirPermissao('gerenciarConfiguracoes');
 
-  return <TelaProvisoria titulo="Configurações" />;
+  return (
+    <>
+      <PageHeader
+        title="Configurações"
+        parents={[{ label: 'Início', href: '/' }]}
+      />
+      <ConfiguracoesForm />
+    </>
+  );
 }
