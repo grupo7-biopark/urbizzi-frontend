@@ -196,6 +196,8 @@ function ativarPlanta(request, response, path, id) {
 
 const PERFIS_CADASTRO = ['ADMINISTRADOR', 'GESTOR'];
 const PERFIS_ADMINISTRACAO = ['ADMINISTRADOR'];
+// Começa com o padrão da API, que usa 7 dias quando a chave não foi gravada.
+const prazos = { prazo_reserva_dias: 7, prazo_analise_dias_uteis: 7 };
 
 function eUltimoAdministrador(usuario) {
   return (
@@ -1168,6 +1170,29 @@ const routes = {
       send(response, 201, salvarLoteamento(randomUUID(), dados));
     }
   }, PERFIS_CADASTRO),
+
+  'GET /v1/configuracoes': protegida((request, response) => {
+    sendPagina(
+      request,
+      response,
+      Object.entries(prazos).map(([chave, valor]) => ({ chave, valor })),
+    );
+  }, PERFIS_ADMINISTRACAO),
+
+  'PATCH /v1/configuracoes': protegida(async (request, response) => {
+    const dados = await readJson(request);
+
+    if (dados.prazoReservaDias !== undefined) {
+      prazos.prazo_reserva_dias = dados.prazoReservaDias;
+    }
+    if (dados.prazoAnaliseDiasUteis !== undefined) {
+      prazos.prazo_analise_dias_uteis = dados.prazoAnaliseDiasUteis;
+    }
+    send(response, 200, {
+      prazoReservaDias: prazos.prazo_reserva_dias,
+      prazoAnaliseDiasUteis: prazos.prazo_analise_dias_uteis,
+    });
+  }, PERFIS_ADMINISTRACAO),
 
   // Só o Administrador: o e2e de permissões confere o 403 por aqui.
   'GET /v1/usuarios': protegida((request, response) => {
