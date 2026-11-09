@@ -10,6 +10,7 @@ export const TIPOS_ENTIDADE = [
   'Configuracao',
   'LinkPublico',
   'Planta',
+  'Marcador',
 ] as const;
 const uuid = z.union([
   z.literal(''),

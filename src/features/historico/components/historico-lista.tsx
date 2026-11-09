@@ -23,6 +23,61 @@ function autor(h: Historico) {
     ? h.usuario.nome
     : 'Sistema / usuário indisponível';
 }
+const COLUNAS: import('@/shared/ui/data-table').DataTableColumn<Historico>[] = [
+  {
+    id: 'data',
+    header: 'Data e hora',
+    cell: (h) => (
+      <time dateTime={h.createdAt}>{formatDataHora(h.createdAt)}</time>
+    ),
+  },
+  { id: 'usuario', header: 'Usuário', cell: autor },
+  {
+    id: 'entidade',
+    header: 'Entidade',
+    cell: (h) => (
+      <>
+        <span className="font-bold">{h.entidadeTipo}</span>
+        <span className="mt-1 block text-caption text-ink-muted">
+          {h.entidadeId}
+        </span>
+      </>
+    ),
+  },
+  {
+    id: 'acao',
+    header: 'Ação',
+    cell: (h) => h.acao.toLowerCase().replaceAll('_', ' '),
+  },
+  {
+    id: 'detalhe',
+    header: 'Detalhes',
+    acoes: true,
+    cell: (h) => (
+      <Drawer
+        title="Detalhes da alteração"
+        side="bottom"
+        trigger={
+          <Button variant="secundario" size="compacto">
+            Ver alteração
+          </Button>
+        }
+      >
+        <LinhaDoTempo
+          itens={[
+            {
+              id: h.id,
+              data: h.createdAt,
+              titulo: `${h.entidadeTipo} · ${h.acao.toLowerCase().replaceAll('_', ' ')}`,
+              autor: autor(h),
+              detalhe: <AlteracoesHistorico registro={h} />,
+            },
+          ]}
+        />
+      </Drawer>
+    ),
+  },
+];
 export function HistoricoLista({ search }: { search: HistoricoSearch }) {
   const { setParams } = useListParams();
   const intervaloInvalido = Boolean(
@@ -88,63 +143,7 @@ export function HistoricoLista({ search }: { search: HistoricoSearch }) {
           query={query}
           getRowKey={(h) => h.id}
           emptyTitle="Nenhuma alteração registrada"
-          columns={[
-            {
-              id: 'data',
-              header: 'Data e hora',
-              cell: (h) => (
-                <time dateTime={h.createdAt}>
-                  {formatDataHora(h.createdAt)}
-                </time>
-              ),
-            },
-            { id: 'usuario', header: 'Usuário', cell: autor },
-            {
-              id: 'entidade',
-              header: 'Entidade',
-              cell: (h) => (
-                <>
-                  <span className="font-bold">{h.entidadeTipo}</span>
-                  <span className="mt-1 block text-caption text-ink-muted">
-                    {h.entidadeId}
-                  </span>
-                </>
-              ),
-            },
-            {
-              id: 'acao',
-              header: 'Ação',
-              cell: (h) => h.acao.toLowerCase().replaceAll('_', ' '),
-            },
-            {
-              id: 'detalhe',
-              header: 'Detalhes',
-              acoes: true,
-              cell: (h) => (
-                <Drawer
-                  title="Detalhes da alteração"
-                  side="bottom"
-                  trigger={
-                    <Button variant="secundario" size="compacto">
-                      Ver alteração
-                    </Button>
-                  }
-                >
-                  <LinhaDoTempo
-                    itens={[
-                      {
-                        id: h.id,
-                        data: h.createdAt,
-                        titulo: `${h.entidadeTipo} · ${h.acao.toLowerCase().replaceAll('_', ' ')}`,
-                        autor: autor(h),
-                        detalhe: <AlteracoesHistorico registro={h} />,
-                      },
-                    ]}
-                  />
-                </Drawer>
-              ),
-            },
-          ]}
+          columns={COLUNAS}
         />
       )}
     </>

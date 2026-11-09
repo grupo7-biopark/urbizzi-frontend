@@ -1078,7 +1078,7 @@ const routes = {
             (!query.get('dataAte') ||
               h.createdAt.slice(0, 10) <= query.get('dataAte')),
         )
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
       sendPagina(request, response, registros);
     },
     ['ADMINISTRADOR', 'GESTOR', 'COMERCIAL'],

@@ -1,4 +1,41 @@
 import type { Historico } from '../api/historico.api';
+import { formatArea, formatMoeda } from '@/shared/ui/masks';
+import { formatDataHora } from '@/shared/ui/datas';
+
+function valorDoCampo(campo: string, valor: unknown) {
+  if (typeof valor === 'string') {
+    if (campo === 'valor' && /^\d+(\.\d{1,2})?$/.test(valor))
+      return formatMoeda(valor);
+    if (campo === 'areaM2' && /^\d+(\.\d{1,2})?$/.test(valor))
+      return formatArea(valor);
+    if (
+      (campo.startsWith('data') ||
+        campo === 'createdAt' ||
+        campo === 'updatedAt') &&
+      /^\d{4}-\d{2}-\d{2}T/.test(valor)
+    )
+      return formatDataHora(valor);
+    if (campo === 'status')
+      return (
+        (
+          {
+            DISPONIVEL: 'Disponível',
+            RESERVADO: 'Reservado',
+            VENDIDO: 'Vendido',
+            BLOQUEADO: 'Bloqueado',
+            ATIVA: 'Ativa',
+            EXPIRADA: 'Expirada',
+            CANCELADA: 'Cancelada',
+            CONVERTIDA: 'Convertida em venda',
+            EM_ANALISE: 'Em análise',
+            APROVADA: 'Aprovada',
+            REJEITADA: 'Rejeitada',
+          } as Record<string, string>
+        )[valor] ?? valor
+      );
+  }
+  return valorLegivel(valor);
+}
 
 function valorLegivel(valor: unknown): string {
   if (valor === null || valor === undefined) return 'Não informado';
@@ -30,6 +67,7 @@ function campoLegivel(campo: string) {
   );
 }
 function campos(valor: Historico['valorNovo']): Record<string, unknown> {
+  if (valor === null) return {};
   return typeof valor === 'object' && valor !== null && !Array.isArray(valor)
     ? valor
     : { Registro: valor };
@@ -50,13 +88,13 @@ export function AlteracoesHistorico({ registro }: { registro: Historico }) {
               <div>
                 <dt className="text-caption text-ink-muted">Anterior</dt>
                 <dd className="mt-1 whitespace-pre-wrap wrap-anywhere">
-                  {valorLegivel(antes[campo])}
+                  {valorDoCampo(campo, antes[campo])}
                 </dd>
               </div>
               <div>
                 <dt className="text-caption text-ink-muted">Novo</dt>
                 <dd className="mt-1 whitespace-pre-wrap wrap-anywhere">
-                  {valorLegivel(depois[campo])}
+                  {valorDoCampo(campo, depois[campo])}
                 </dd>
               </div>
             </dl>

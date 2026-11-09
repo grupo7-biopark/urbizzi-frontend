@@ -67,7 +67,7 @@ describe('Histórico de auditoria', () => {
       screen.getByRole('button', { name: 'Ver alteração' }),
     );
     const dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByText('360.00')).toBeVisible();
+    expect(within(dialog).getByText('360,00 m²')).toBeVisible();
     expect(
       screen.queryByRole('button', { name: /Excluir|Editar|Apagar/ }),
     ).not.toBeInTheDocument();
@@ -123,5 +123,36 @@ describe('Histórico de auditoria', () => {
         dataAte: '2026-11-01',
       }).success,
     ).toBe(false);
+  });
+  it('mostra erro com nova tentativa e vazio depois da recuperação', async () => {
+    server.use(
+      http.untyped.get(
+        '*/v1/historico',
+        () =>
+          new Response(
+            JSON.stringify({ code: 'ACESSO_NEGADO', message: 'Acesso negado' }),
+            { status: 403, headers: { 'Content-Type': 'application/json' } },
+          ),
+      ),
+    );
+    renderWithQuery(
+      <HistoricoLista search={historicoSearchSchema.parse({})} />,
+    );
+    expect(screen.getByLabelText('Carregando: Histórico')).toBeVisible();
+    expect(await screen.findByRole('alert')).toBeVisible();
+    server.use(
+      http.get('/v1/historico', ({ response }) =>
+        response(200).json({
+          data: [],
+          meta: { page: 1, pageSize: 20, total: 0, totalPages: 0 },
+        }),
+      ),
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Tentar novamente' }),
+    );
+    expect(
+      await screen.findByText('Nenhuma alteração registrada'),
+    ).toBeVisible();
   });
 });
