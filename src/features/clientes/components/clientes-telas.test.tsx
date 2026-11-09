@@ -89,7 +89,10 @@ describe('ClientesTable', () => {
     const { container } = renderTela(<ClientesTable search={SEARCH} />);
 
     const link = await screen.findByRole('link', { name: 'Maria Souza' });
-    expect(link).toHaveAttribute('href', `/clientes/${ID}/editar`);
+    expect(link).toHaveAttribute('href', `/clientes/${ID}`);
+    expect(
+      screen.getByRole('link', { name: 'Editar Maria Souza' }),
+    ).toHaveAttribute('href', `/clientes/${ID}/editar`);
     expect(
       screen.getByRole('columnheader', { name: 'Nome' }),
     ).toBeInTheDocument();
@@ -183,7 +186,7 @@ describe('NovoClienteForm', () => {
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     await waitFor(() =>
-      expect(window.location.pathname).toBe(`/clientes/${ID}/editar`),
+      expect(window.location.pathname).toBe(`/clientes/${ID}`),
     );
     expect(corpos).toEqual([
       {
@@ -225,7 +228,7 @@ describe('NovoClienteForm', () => {
       await screen.findByRole('link', {
         name: 'Abrir o cadastro de Maria Antiga',
       }),
-    ).toHaveAttribute('href', `/clientes/${OUTRO_ID}/editar`);
+    ).toHaveAttribute('href', `/clientes/${OUTRO_ID}`);
     expect(buscas).toEqual(['52998224725']);
   });
 
@@ -301,7 +304,7 @@ describe('EditarCliente', () => {
         observacoes: null,
       },
     ]);
-    expect(window.location.pathname).toBe('/clientes');
+    expect(window.location.pathname).toBe(`/clientes/${ID}`);
   });
 
   it('cliente que não existe mostra o erro e a volta para a lista', async () => {

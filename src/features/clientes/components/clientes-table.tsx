@@ -19,7 +19,7 @@ const COLUNAS: DataTableColumn<ClienteResumo>[] = [
     header: 'Nome',
     cell: (cliente) => (
       <Link
-        href={`/clientes/${cliente.id}/editar`}
+        href={`/clientes/${cliente.id}`}
         className="-my-1 inline-block py-1 font-bold text-ink underline-offset-2 hover:underline"
       >
         {cliente.nome}

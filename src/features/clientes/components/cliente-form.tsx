@@ -81,7 +81,7 @@ function Campos({ existente }: { existente: ClienteResumo | null }) {
         />
         {existente ? (
           <Link
-            href={`/clientes/${existente.id}/editar`}
+            href={`/clientes/${existente.id}`}
             className="self-start text-small font-bold text-ink underline underline-offset-2"
           >
             Abrir o cadastro de {existente.nome}
@@ -111,7 +111,7 @@ export function NovoClienteForm() {
   const create = useCreateCliente();
   const { existente, handleSubmit } = useSalvarCliente(async (values) => {
     const { id } = await create.mutateAsync(toClienteBody(values));
-    router.push(`/clientes/${id}/editar`);
+    router.push(`/clientes/${id}`);
   });
 
   return (
@@ -134,7 +134,7 @@ function EditarClienteForm({ cliente }: { cliente: Cliente }) {
   const update = useUpdateCliente(cliente.id);
   const { existente, handleSubmit } = useSalvarCliente(async (values) => {
     await update.mutateAsync(toClienteBody(values));
-    router.push('/clientes');
+    router.push(`/clientes/${cliente.id}`);
   });
   const defaultValues: ClienteFormInput = toClienteForm(cliente);
 
@@ -144,7 +144,7 @@ function EditarClienteForm({ cliente }: { cliente: Cliente }) {
         schema={clienteFormSchema}
         defaultValues={defaultValues}
         onSubmit={handleSubmit}
-        cancelHref="/clientes"
+        cancelHref={`/clientes/${cliente.id}`}
         fieldsByCode={FIELDS_BY_CODE}
       >
         <Campos existente={existente} />
@@ -160,7 +160,7 @@ export function EditarCliente({ id }: { id: string }) {
     <>
       <PageHeader
         title={query.data ? query.data.nome : 'Cliente'}
-        parents={PARENTS}
+        parents={[...PARENTS, { label: 'Detalhe', href: `/clientes/${id}` }]}
       />
       {query.isSuccess ? (
         // A chave recria o formulário com os dados novos depois de salvar.
