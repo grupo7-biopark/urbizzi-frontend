@@ -72,6 +72,24 @@ function linhaDoLote(page: Page, numero: string) {
     .filter({ has: page.getByRole('link', { name: numero, exact: true }) });
 }
 
+test('abre o detalhe completo a partir da listagem', async ({ page }) => {
+  await entrar(page);
+  const { loteamentoId, quadraId, nome } = await criarCadastros(page);
+  const lote = await chamarApi(page, 'POST', `/v1/quadras/${quadraId}/lotes`, {
+    numero: 'D17',
+    areaM2: '360.00',
+    valor: '250000.00',
+  });
+  await abrirListagem(page, `?loteamentoId=${loteamentoId}`);
+  await page.getByRole('link', { name: 'D17', exact: true }).click();
+  await expect(page).toHaveURL(`/lotes/${lote.id}`);
+  await expect(page.getByRole('heading', { name: 'Lote D17' })).toBeVisible();
+  await expect(page.getByText(`${nome} · Quadra Q1`)).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Histórico recente' }),
+  ).toBeVisible();
+});
+
 test('cria, recusa duplicado, filtra, edita o valor e não remove lote reservado', async ({
   page,
 }) => {

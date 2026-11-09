@@ -668,6 +668,28 @@ const dynamicRoutes = [
   },
   {
     method: 'GET',
+    pattern: /^\/v1\/lotes\/(?<id>[^/]+)\/detalhe$/,
+    handler: protegida((request, response, path, params) => {
+      const lote = lotes.get(params.id);
+      if (!lote) return sendLoteNaoEncontrado(response, path);
+      send(response, 200, {
+        lote,
+        loteamento: {
+          id: lote.loteamentoId,
+          nome: loteamentos.get(lote.loteamentoId).nome,
+        },
+        quadra: {
+          id: lote.quadraId,
+          numero: quadras.get(lote.quadraId).numero,
+        },
+        reserva: null,
+        propostas: [],
+        historico: [],
+      });
+    }),
+  },
+  {
+    method: 'GET',
     pattern: /^\/v1\/usuarios\/(?<id>[^/]+)$/,
     handler: comUsuario((_request, response, usuario) =>
       send(response, 200, usuario),

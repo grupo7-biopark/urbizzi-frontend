@@ -90,3 +90,10 @@ export function listQuadrasOpcoes(loteamentoId: string) {
     }),
   );
 }
+
+export type LoteDetalhe = components['schemas']['LoteDetalheDto'];
+export function getLoteDetalhe(id: string) {
+  return unwrap(
+    api.GET('/v1/lotes/{id}/detalhe', { params: { path: { id } } }),
+  );
+}
