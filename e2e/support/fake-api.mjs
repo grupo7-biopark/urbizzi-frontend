@@ -9,7 +9,7 @@ const PORT = Number(process.env.FAKE_API_PORT ?? 3999);
 const SENHA = 'senha-de-teste-123';
 
 function makeUsuario(id, nome, email, perfil) {
-  return { id, nome, email, perfil };
+  return { id, nome, email, perfil, ativo: true };
 }
 
 const USUARIOS = [
@@ -195,6 +195,54 @@ function ativarPlanta(request, response, path, id) {
 }
 
 const PERFIS_CADASTRO = ['ADMINISTRADOR', 'GESTOR'];
+const PERFIS_ADMINISTRACAO = ['ADMINISTRADOR'];
+
+function eUltimoAdministrador(usuario) {
+  return (
+    usuario.perfil === 'ADMINISTRADOR' &&
+    usuario.ativo &&
+    USUARIOS.filter(({ perfil, ativo }) => perfil === 'ADMINISTRADOR' && ativo)
+      .length === 1
+  );
+}
+
+function sendUltimoAdministrador(response, path) {
+  sendError(
+    response,
+    path,
+    409,
+    'ULTIMO_ADMINISTRADOR',
+    'Não é possível desativar ou rebaixar o último administrador ativo',
+  );
+}
+
+function sendUsuarioDuplicado(response, path) {
+  sendError(
+    response,
+    path,
+    409,
+    'USUARIO_EMAIL_DUPLICADO',
+    'Já existe um usuário com este e-mail',
+  );
+}
+
+function comUsuario(handler) {
+  return protegida((request, response, path, params) => {
+    const usuario = USUARIOS.find(({ id }) => id === params.id);
+
+    if (usuario) {
+      return handler(request, response, usuario, path, params);
+    }
+
+    return sendError(
+      response,
+      path,
+      404,
+      'USUARIO_NAO_ENCONTRADO',
+      'Usuário não encontrado',
+    );
+  }, PERFIS_ADMINISTRACAO);
+}
 const LOTEAMENTO_SEMENTE_ID = '4f0d7a5c-2e96-4ecf-9b7d-6a1d5c9e3f54';
 
 // Fixos: o e2e clica neles pela posição, e o backend real os recebe pela API.
@@ -504,6 +552,49 @@ function comLoteamento(handler) {
 }
 
 const dynamicRoutes = [
+  {
+    method: 'GET',
+    pattern: /^\/v1\/usuarios\/(?<id>[^/]+)$/,
+    handler: comUsuario((_request, response, usuario) =>
+      send(response, 200, usuario),
+    ),
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/v1\/usuarios\/(?<id>[^/]+)$/,
+    handler: comUsuario(async (request, response, usuario, path) => {
+      const dados = await readJson(request);
+      const email = dados.email?.trim().toLowerCase();
+
+      if (
+        email &&
+        USUARIOS.some((item) => item.id !== usuario.id && item.email === email)
+      ) {
+        sendUsuarioDuplicado(response, path);
+      } else if (
+        dados.perfil &&
+        dados.perfil !== 'ADMINISTRADOR' &&
+        eUltimoAdministrador(usuario)
+      ) {
+        sendUltimoAdministrador(response, path);
+      } else {
+        Object.assign(usuario, dados, email ? { email } : {});
+        send(response, 200, usuario);
+      }
+    }),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/v1\/usuarios\/(?<id>[^/]+)\/(?<acao>ativar|desativar)$/,
+    handler: comUsuario((_request, response, usuario, path, { acao }) => {
+      if (acao === 'desativar' && eUltimoAdministrador(usuario)) {
+        sendUltimoAdministrador(response, path);
+      } else {
+        usuario.ativo = acao === 'ativar';
+        send(response, 200, usuario);
+      }
+    }),
+  },
   {
     method: 'GET',
     pattern: /^\/v1\/plantas\/[^/]+\/marcadores$/,
@@ -953,7 +1044,7 @@ const routes = {
 
     const usuario = USUARIOS.find((item) => item.email === email);
 
-    if (usuario && senha === (senhasRedefinidas.get(email) ?? SENHA)) {
+    if (usuario?.ativo && senha === (senhasRedefinidas.get(email) ?? SENHA)) {
       send(response, 200, issueTokens(usuario));
     } else {
       sendError(
@@ -1078,20 +1169,37 @@ const routes = {
     }
   }, PERFIS_CADASTRO),
 
-  'GET /v1/usuarios': (request, response, path) => {
-    const usuario = getUsuario(request);
+  // Só o Administrador: o e2e de permissões confere o 403 por aqui.
+  'GET /v1/usuarios': protegida((request, response) => {
+    const { searchParams } = new URL(request.url, 'http://localhost');
+    const perfil = searchParams.get('perfil');
+    const ativo = searchParams.get('ativo');
 
-    if (!usuario) {
-      sendError(response, path, 401, 'NAO_AUTENTICADO', 'Não autenticado');
-    } else if (usuario.perfil !== 'ADMINISTRADOR') {
-      sendError(response, path, 403, 'ACESSO_NEGADO', 'Forbidden resource');
-    } else {
-      send(response, 200, {
-        data: [],
-        meta: { page: 1, pageSize: 20, total: 0, totalPages: 0 },
-      });
+    sendPagina(
+      request,
+      response,
+      USUARIOS.filter(
+        (usuario) =>
+          (!perfil || usuario.perfil === perfil) &&
+          (ativo === null || String(usuario.ativo) === ativo),
+      ),
+    );
+  }, PERFIS_ADMINISTRACAO),
+
+  'POST /v1/usuarios': protegida(async (request, response, path) => {
+    const { senha, ...dados } = await readJson(request);
+    const email = dados.email.trim().toLowerCase();
+
+    if (USUARIOS.some((usuario) => usuario.email === email)) {
+      sendUsuarioDuplicado(response, path);
+      return;
     }
-  },
+
+    const usuario = { ...dados, email, id: randomUUID(), ativo: true };
+    USUARIOS.push(usuario);
+    senhasRedefinidas.set(email, senha);
+    send(response, 201, usuario);
+  }, PERFIS_ADMINISTRACAO),
 
   'GET /v1/plantas': (request, response, path) => {
     if (!getUsuario(request)) {
