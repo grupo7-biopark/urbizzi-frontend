@@ -37,9 +37,11 @@ function Dado({
 export function LoteDetalhe({
   id,
   acaoReserva,
+  complementoReserva,
 }: {
   id: string;
   acaoReserva?: ReactNode;
+  complementoReserva?: ReactNode;
 }) {
   const query = useQuery(loteDetalheCompletoOptions(id));
   if (!query.isSuccess)
@@ -182,6 +184,7 @@ export function LoteDetalhe({
               Nenhuma reserva disponível para consulta.
             </p>
           )}
+          {reserva ? complementoReserva : null}
         </Panel>
       </div>
       <Panel title="Histórico recente">

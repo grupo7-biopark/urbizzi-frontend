@@ -22,3 +22,4 @@ test-results
 
 # TypeScript incremental
 *.tsbuildinfo
+e2e/.auth

@@ -15,7 +15,7 @@ type ConfirmDialogProps = {
   confirmLabel: string;
   cancelLabel?: string;
   /** Pede um motivo. Com `required`, confirmar fica inativo até ser preenchido. */
-  motivo?: { label?: string; required?: boolean };
+  motivo?: { label?: string; required?: boolean; maxLength?: number };
   /** Ao rejeitar, o diálogo continua aberto, com a mensagem de erro. */
   onConfirm: (motivo: string) => Promise<unknown> | void;
   trigger?: ReactElement;
@@ -73,7 +73,9 @@ export function ConfirmDialog({
       description={description}
       trigger={trigger}
       open={open}
-      onOpenChange={handleOpenChange}
+      onOpenChange={(next) => {
+        if (!isPending) handleOpenChange(next);
+      }}
       footer={
         <>
           <Button
@@ -98,6 +100,7 @@ export function ConfirmDialog({
         <Textarea
           label={motivo.label ?? 'Motivo'}
           required={motivo.required}
+          maxLength={motivo.maxLength}
           value={text}
           onChange={(event) => setText(event.target.value)}
         />

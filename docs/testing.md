@@ -1,5 +1,39 @@
 # Testes
 
+## Reservas com backend real
+
+Os cenários `e2e/reservas-acoes.spec.ts` usam o backend real. Nas branches de
+listagem, propostas e mapa, os respectivos cenários reutilizam
+`e2e/support/reservas.fixture.ts`. Sem `E2E_API_URL` e `E2E_BACKEND_DIR`, esses
+cenários são ignorados e a suíte existente continua usando a API falsa.
+
+Para executar os fluxos integrados, use um backend compilado, com suas
+dependências e migrações, ligado exclusivamente a um banco de teste e a um
+armazenamento S3 de teste. O worker de processamento de plantas precisa estar
+ativo. Configure um arquivo local ignorado `.env.e2e.local`:
+
+```dotenv
+E2E_API_URL=http://localhost:3010
+E2E_BASE_URL=http://localhost:3021
+E2E_BACKEND_DIR=/caminho/absoluto/backend-de-teste
+DATABASE_URL=postgresql://usuario:senha@localhost:5432/urbizzi_fe_e2e_local
+```
+
+O banco informado deve ser o mesmo da API. A preparação aceita somente nomes
+iniciados por `urbizzi_fe_e2e_` ou `urbizzi_frontend_goal_test_`, cria usuários e
+dados fictícios e não apaga registros. As sessões ficam em `e2e/.auth/`, ignorado
+pelo Git. Nunca use dados de clientes reais nesse ambiente.
+
+```bash
+npx playwright test e2e/reservas-acoes.spec.ts --workers=1
+```
+
+Para usar o build standalone, gere antes o build e defina `E2E_USAR_BUILD=true`.
+O processo recebe `API_URL` e `NEXT_PUBLIC_APP_URL` da configuração de teste;
+gere o build com o mesmo endereço público. Para reutilizar um servidor de teste
+já iniciado deliberadamente, defina `E2E_REUSE_SERVERS=true`. Por padrão, o
+Playwright inicia um servidor próprio e recusa uma porta já ocupada.
+
 Ferramentas: **Vitest** com **Testing Library** em testes unitários e de componente, **MSW** para simular a API e **Playwright** nos e2e.
 
 | Comando                    | O que roda                                           | Config                 |
