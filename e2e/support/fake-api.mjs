@@ -1049,6 +1049,40 @@ const dynamicRoutes = [
 ];
 
 const routes = {
+  'GET /v1/historico': protegida(
+    (request, response) => {
+      const usuario = getUsuario(request);
+      const query = new URL(request.url, 'http://localhost').searchParams;
+      const registros = [...lotes.values()]
+        .map((lote) => ({
+          id: lote.id,
+          entidadeTipo: 'Lote',
+          entidadeId: lote.id,
+          acao: 'CRIAR',
+          usuario: { id: USUARIOS[0].id, nome: USUARIOS[0].nome },
+          createdAt: lote.createdAt,
+          motivo: null,
+          valorAnterior: null,
+          valorNovo: { numero: lote.numero },
+        }))
+        .filter(
+          (h) =>
+            (usuario.perfil !== 'COMERCIAL' || h.usuario.id === usuario.id) &&
+            (!query.get('entidadeTipo') ||
+              h.entidadeTipo === query.get('entidadeTipo')) &&
+            (!query.get('entidadeId') ||
+              h.entidadeId === query.get('entidadeId')) &&
+            (!query.get('usuarioId') ||
+              h.usuario.id === query.get('usuarioId')) &&
+            (!query.get('dataDe') || h.createdAt >= query.get('dataDe')) &&
+            (!query.get('dataAte') ||
+              h.createdAt.slice(0, 10) <= query.get('dataAte')),
+        )
+        .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
+      sendPagina(request, response, registros);
+    },
+    ['ADMINISTRADOR', 'GESTOR', 'COMERCIAL'],
+  ),
   'GET /health': (_request, response) => send(response, 200, { status: 'ok' }),
 
   'GET /v1/mapa': protegida((request, response, path) => {
