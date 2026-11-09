@@ -429,7 +429,7 @@ function salvarQuadra(id, dados, atual = {}) {
   return quadra;
 }
 
-salvarQuadra(randomUUID(), {
+const quadraSemente = salvarQuadra(randomUUID(), {
   loteamentoId: LOTEAMENTO_SEMENTE_ID,
   numero: 'Quadra Semente',
 });
@@ -469,6 +469,56 @@ function criarLote(quadra, dados) {
   lotes.set(lote.id, lote);
   return lote;
 }
+
+const clienteHistorico = salvarCliente(randomUUID(), {
+  nome: 'Cliente Histórico FE-18',
+  documento: '52998224725',
+});
+const loteHistorico = criarLote(quadraSemente, {
+  numero: 'FE18',
+  areaM2: '360.00',
+});
+const reservaHistorico = {
+  id: randomUUID(),
+  status: 'EXPIRADA',
+  dataInicio: '2026-11-01T12:00:00.000Z',
+  dataVencimento: '2026-11-08T12:00:00.000Z',
+  lote: {
+    id: loteHistorico.id,
+    numero: loteHistorico.numero,
+    quadra: quadraSemente.numero,
+    loteamentoId: LOTEAMENTO_SEMENTE_ID,
+    loteamento: 'Loteamento Semente',
+  },
+};
+const propostaHistorico = {
+  id: randomUUID(),
+  valor: '250000.50',
+  status: 'REJEITADA',
+  dataEnvio: '2026-11-03T12:00:00.000Z',
+  prazoLimite: '2026-11-07T12:00:00.000Z',
+  decisao: {
+    decididoPorId: USUARIOS.find(({ perfil }) => perfil === 'GESTOR').id,
+    data: '2026-11-04T12:00:00.000Z',
+    motivo: 'Condições fora da política comercial.',
+  },
+};
+const historicoCliente = [
+  {
+    id: propostaHistorico.id,
+    tipo: 'PROPOSTA',
+    data: propostaHistorico.dataEnvio,
+    reserva: reservaHistorico,
+    proposta: propostaHistorico,
+  },
+  {
+    id: reservaHistorico.id,
+    tipo: 'RESERVA',
+    data: reservaHistorico.dataInicio,
+    reserva: reservaHistorico,
+    proposta: null,
+  },
+];
 
 function parseImportacao(body) {
   const texto = body.toString('utf8');
@@ -739,6 +789,19 @@ const dynamicRoutes = [
     handler: protegida(
       comCliente((_request, response, _path, cliente) => {
         send(response, 200, cliente);
+      }),
+      PERFIS_CLIENTES,
+    ),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/v1\/clientes\/(?<id>[^/]+)\/historico$/,
+    handler: protegida(
+      comCliente((request, response, _path, cliente) => {
+        const podeVerSemente =
+          cliente.id === clienteHistorico.id &&
+          getUsuario(request).perfil !== 'COMERCIAL';
+        sendPagina(request, response, podeVerSemente ? historicoCliente : []);
       }),
       PERFIS_CLIENTES,
     ),

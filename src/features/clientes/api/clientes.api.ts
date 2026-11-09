@@ -9,6 +9,10 @@ export type UpdateCliente = components['schemas']['UpdateClienteDto'];
 export type ListClientesQuery = NonNullable<
   paths['/v1/clientes']['get']['parameters']['query']
 >;
+export type HistoricoClienteItem = components['schemas']['HistoricoClienteDto'];
+export type ListHistoricoClienteQuery = NonNullable<
+  paths['/v1/clientes/{id}/historico']['get']['parameters']['query']
+>;
 
 /** A lista traz só id e nome: documento e contatos ficam no detalhe (LGPD). */
 export function listClientes(query: ListClientesQuery) {
@@ -17,6 +21,19 @@ export function listClientes(query: ListClientesQuery) {
 
 export function getCliente(id: string) {
   return unwrap(api.GET('/v1/clientes/{id}', { params: { path: { id } } }));
+}
+
+export function listHistoricoCliente(
+  id: string,
+  query: ListHistoricoClienteQuery,
+  signal?: AbortSignal,
+) {
+  return unwrap(
+    api.GET('/v1/clientes/{id}/historico', {
+      params: { path: { id }, query },
+      signal,
+    }),
+  );
 }
 
 export function createCliente(body: CreateCliente) {

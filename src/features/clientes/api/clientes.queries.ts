@@ -2,7 +2,9 @@ import { keepPreviousData, queryOptions } from '@tanstack/react-query';
 import {
   getCliente,
   listClientes,
+  listHistoricoCliente,
   type ListClientesQuery,
+  type ListHistoricoClienteQuery,
 } from './clientes.api';
 
 // A chave da lista leva o `q`, que pode ser um documento. Ela fica só na memória
@@ -13,6 +15,8 @@ export const clientesKeys = {
   list: (query: ListClientesQuery) => [...clientesKeys.lists(), query] as const,
   details: () => [...clientesKeys.all, 'detail'] as const,
   detail: (id: string) => [...clientesKeys.details(), id] as const,
+  historico: (id: string, query: ListHistoricoClienteQuery) =>
+    [...clientesKeys.all, 'historico', id, query] as const,
 };
 
 export function clientesListOptions(query: ListClientesQuery) {
@@ -27,5 +31,15 @@ export function clienteDetailOptions(id: string) {
   return queryOptions({
     queryKey: clientesKeys.detail(id),
     queryFn: () => getCliente(id),
+  });
+}
+
+export function clienteHistoricoOptions(
+  id: string,
+  query: ListHistoricoClienteQuery,
+) {
+  return queryOptions({
+    queryKey: clientesKeys.historico(id, query),
+    queryFn: ({ signal }) => listHistoricoCliente(id, query, signal),
   });
 }

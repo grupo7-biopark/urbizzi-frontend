@@ -67,6 +67,12 @@ E2E_API_URL=http://localhost:3000 E2E_EMAIL=... E2E_SENHA=... npx playwright tes
 
 Nesse modo, a API limita a 5 logins por minuto: espere um minuto antes de repetir. `e2e/recuperacao-senha.spec.ts` também precisa de `E2E_MAILPIT_URL` (`http://127.0.0.1:8025`), porque lê o link do e-mail, e cria uma conta só para o teste, que desativa no fim. Se já houver um servidor na porta 3001, o Playwright o reaproveita com a `API_URL` que ele tiver. Os demais fluxos contra o backend real entram na FE-35.
 
+Para validar o detalhe do cliente com a API real, use `e2e/clientes.spec.ts` com
+`E2E_API_URL`, `E2E_EMAIL` e `E2E_SENHA`. Defina também
+`E2E_CLIENTE_HISTORICO` com o nome único de um cliente fictício que tenha reservas
+e propostas no banco de testes. O cenário compara a ordem e os links com a
+resposta da API, pagina o histórico e abre o detalhe do lote.
+
 ## Uso do MSW
 
 O servidor do MSW é um só, em `src/test/server.ts`, e a preparação fica em `src/test/msw-setup.ts`, registrado em `setupFiles` no `vitest.config.ts`. Requisição sem handler **falha o teste** (`onUnhandledFrame: 'error'`, nome da opção no MSW 3), para não deixar uma chamada passar despercebida:
