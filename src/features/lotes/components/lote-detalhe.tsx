@@ -1,6 +1,7 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { ApiError, getErrorMessage } from '@/shared/api/errors';
 import { Permitido } from '@/shared/auth/permitido';
 import { Badge, StatusLoteBadge, StatusPropostaBadge } from '@/shared/ui/badge';
@@ -33,7 +34,13 @@ function Dado({
     </div>
   );
 }
-export function LoteDetalhe({ id }: { id: string }) {
+export function LoteDetalhe({
+  id,
+  acaoReserva,
+}: {
+  id: string;
+  acaoReserva?: ReactNode;
+}) {
   const query = useQuery(loteDetalheCompletoOptions(id));
   if (!query.isSuccess)
     return (
@@ -74,6 +81,7 @@ export function LoteDetalhe({ id }: { id: string }) {
         actions={
           <div className="flex flex-wrap items-center gap-3">
             <StatusLoteBadge status={lote.status} />
+            {lote.status === 'DISPONIVEL' ? acaoReserva : null}
             <Permitido acao="gerenciarCadastros">
               <Link
                 href={`/lotes/${id}/editar`}

@@ -67,7 +67,13 @@ function useSalvarCliente(
   return { existente, handleSubmit };
 }
 
-function Campos({ existente }: { existente: ClienteResumo | null }) {
+function Campos({
+  existente,
+  onSelecionarExistente,
+}: {
+  existente: ClienteResumo | null;
+  onSelecionarExistente?: (cliente: ClienteResumo) => void;
+}) {
   return (
     <>
       <FormInput name="nome" label="Nome" required maxLength={150} />
@@ -79,7 +85,16 @@ function Campos({ existente }: { existente: ClienteResumo | null }) {
           required
           autoComplete="off"
         />
-        {existente ? (
+        {existente && onSelecionarExistente ? (
+          <Button
+            type="button"
+            variant="secundario"
+            className="self-start"
+            onClick={() => onSelecionarExistente(existente)}
+          >
+            Selecionar {existente.nome}
+          </Button>
+        ) : existente ? (
           <Link
             href={`/clientes/${existente.id}`}
             className="self-start text-small font-bold text-ink underline underline-offset-2"
@@ -106,26 +121,68 @@ function Campos({ existente }: { existente: ClienteResumo | null }) {
   );
 }
 
-export function NovoClienteForm() {
-  const router = useRouter();
+function FormularioNovoCliente({
+  onSalvar,
+  onSelecionarExistente,
+  cancelHref,
+}: {
+  onSalvar: (cliente: ClienteResumo) => void;
+  onSelecionarExistente?: (cliente: ClienteResumo) => void;
+  cancelHref?: string;
+}) {
   const create = useCreateCliente();
   const { existente, handleSubmit } = useSalvarCliente(async (values) => {
-    const { id } = await create.mutateAsync(toClienteBody(values));
-    router.push(`/clientes/${id}`);
+    const { id, nome } = await create.mutateAsync(toClienteBody(values));
+    onSalvar({ id, nome });
   });
 
   return (
+    <Form
+      schema={clienteFormSchema}
+      defaultValues={CLIENTE_FORM_VAZIO}
+      onSubmit={handleSubmit}
+      submitLabel={onSelecionarExistente ? 'Salvar cliente' : undefined}
+      cancelHref={cancelHref}
+      fieldsByCode={FIELDS_BY_CODE}
+    >
+      <Campos
+        existente={existente}
+        onSelecionarExistente={onSelecionarExistente}
+      />
+    </Form>
+  );
+}
+
+export function NovoClienteForm() {
+  const router = useRouter();
+  return (
     <Panel className="max-w-2xl">
-      <Form
-        schema={clienteFormSchema}
-        defaultValues={CLIENTE_FORM_VAZIO}
-        onSubmit={handleSubmit}
+      <FormularioNovoCliente
+        onSalvar={({ id }) => router.push(`/clientes/${id}`)}
         cancelHref="/clientes"
-        fieldsByCode={FIELDS_BY_CODE}
-      >
-        <Campos existente={existente} />
-      </Form>
+      />
     </Panel>
+  );
+}
+
+export function CadastroRapidoCliente({
+  onSelecionar,
+  onVoltar,
+}: {
+  onSelecionar: (cliente: ClienteResumo) => void;
+  onVoltar: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <h3 className="font-bold">Cadastrar cliente</h3>
+      <FormularioNovoCliente
+        onSalvar={onSelecionar}
+        onSelecionarExistente={onSelecionar}
+      />
+      <Button variant="fantasma" className="self-start" onClick={onVoltar}>
+        Voltar à busca
+      </Button>
+    </div>
   );
 }
 

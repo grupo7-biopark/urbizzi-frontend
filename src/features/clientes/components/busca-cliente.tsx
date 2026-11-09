@@ -36,6 +36,8 @@ type BuscaClienteProps = {
   label?: string;
   error?: string;
   required?: boolean;
+  /** Em um modal com rolagem, mantém as opções dentro da área visível. */
+  listaNoFluxo?: boolean;
 };
 
 /**
@@ -51,6 +53,7 @@ export function BuscaCliente({
   label = 'Cliente',
   error,
   required,
+  listaNoFluxo = false,
 }: BuscaClienteProps) {
   const [texto, setTexto] = useState(value?.nome ?? '');
   const [busca, setBusca] = useState('');
@@ -186,7 +189,12 @@ export function BuscaCliente({
         />
         <div
           hidden={!aberto}
-          className="absolute inset-x-0 top-full z-40 border border-ink bg-surface-panel py-1 text-ink"
+          className={cn(
+            'border border-ink bg-surface-panel py-1 text-ink',
+            listaNoFluxo
+              ? 'mt-1 max-h-48 overflow-y-auto'
+              : 'absolute inset-x-0 top-full z-40',
+          )}
         >
           {situacao ? (
             <p role="status" className="px-3 py-2 text-small text-ink-muted">

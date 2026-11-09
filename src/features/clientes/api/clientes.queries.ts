@@ -15,8 +15,9 @@ export const clientesKeys = {
   list: (query: ListClientesQuery) => [...clientesKeys.lists(), query] as const,
   details: () => [...clientesKeys.all, 'detail'] as const,
   detail: (id: string) => [...clientesKeys.details(), id] as const,
+  historicos: () => [...clientesKeys.all, 'historico'] as const,
   historico: (id: string, query: ListHistoricoClienteQuery) =>
-    [...clientesKeys.all, 'historico', id, query] as const,
+    [...clientesKeys.historicos(), id, query] as const,
 };
 
 export function clientesListOptions(query: ListClientesQuery) {

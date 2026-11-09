@@ -73,6 +73,12 @@ Para validar o detalhe do cliente com a API real, use `e2e/clientes.spec.ts` com
 e propostas no banco de testes. O cenário compara a ordem e os links com a
 resposta da API, pagina o histórico e abre o detalhe do lote.
 
+Para validar a criação de reserva com a API real, rode `e2e/reservas.spec.ts` com
+`E2E_API_URL`, `E2E_EMAIL` e `E2E_SENHA` de um usuário de teste que possa
+cadastrar lotes. Use `E2E_RESERVA_CONCORRENTE_EMAIL` e
+`E2E_RESERVA_CONCORRENTE_SENHA` para a sessão do segundo vendedor. Os cenários
+criam cadastros fictícios e reproduzem o 409 com duas sessões independentes.
+
 ## Uso do MSW
 
 O servidor do MSW é um só, em `src/test/server.ts`, e a preparação fica em `src/test/msw-setup.ts`, registrado em `setupFiles` no `vitest.config.ts`. Requisição sem handler **falha o teste** (`onUnhandledFrame: 'error'`, nome da opção no MSW 3), para não deixar uma chamada passar despercebida:

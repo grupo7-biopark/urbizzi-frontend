@@ -1,10 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
+
+const HORA_MS = 60 * 60 * 1000;
+
 /** Apenas apresenta o prazo; a API continua decidindo se uma reserva pode mudar. */
 export function textoTempoRestante(vencimento: string, agora: number): string {
   const fim = new Date(vencimento).getTime();
   if (!Number.isFinite(fim)) return 'Prazo não informado';
-  const horas = Math.ceil((fim - agora) / 3600000);
+  const horas = Math.ceil((fim - agora) / HORA_MS);
   if (horas <= 0) return 'Prazo encerrado';
   if (horas < 24)
     return horas === 1 ? 'Vence em até 1 hora' : `Vence em até ${horas} horas`;
@@ -18,5 +21,11 @@ export function TempoRestante({ vencimento }: { vencimento: string }) {
     const id = setInterval(() => setAgora(Date.now()), 60000);
     return () => clearInterval(id);
   }, []);
-  return <span>{textoTempoRestante(vencimento, agora)}</span>;
+  const restante = Date.parse(vencimento) - agora;
+  const venceHoje = restante > 0 && restante <= 24 * HORA_MS;
+  return (
+    <span className={venceHoje ? 'text-danger' : undefined}>
+      {textoTempoRestante(vencimento, agora)}
+    </span>
+  );
 }
