@@ -28,6 +28,7 @@ const PERMISSOES = {
     GESTOR: 'todos',
     COMERCIAL: 'proprios',
   },
+  verTodasReservas: { ADMINISTRADOR: 'todos', GESTOR: 'todos' },
   listarReservas: {
     ADMINISTRADOR: 'todos',
     GESTOR: 'todos',

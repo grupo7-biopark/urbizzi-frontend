@@ -16,6 +16,7 @@ const MATRIZ: Record<Acao, [Regra, Regra, Regra, Regra]> = {
   verClientes: ['sim', 'sim', 'sim', 'nao'],
   gerenciarReservas: ['sim', 'sim', 'proprios', 'nao'],
   listarReservas: ['sim', 'sim', 'sim', 'nao'],
+  verTodasReservas: ['sim', 'sim', 'nao', 'nao'],
   criarProposta: ['sim', 'sim', 'proprios', 'nao'],
   acompanharPropostas: ['sim', 'sim', 'proprios', 'nao'],
   analisarPropostas: ['sim', 'sim', 'nao', 'nao'],
