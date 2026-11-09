@@ -75,7 +75,8 @@ function linhaDoLote(page: Page, numero: string) {
 test('abre o detalhe completo a partir da listagem', async ({ page }) => {
   await entrar(page);
   const { loteamentoId, quadraId, nome } = await criarCadastros(page);
-  const lote = await chamarApi(page, 'POST', `/v1/quadras/${quadraId}/lotes`, {
+  const lote = await chamarApi(page, 'POST', '/v1/lotes', {
+    quadraId,
     numero: 'D17',
     areaM2: '360.00',
     valor: '250000.00',

@@ -75,10 +75,11 @@ describe('Detalhe completo do lote', () => {
       expect(await screen.findByText('Cliente fictício')).toBeVisible();
       expect(screen.getByText('Aprovada')).toBeVisible();
       expect(screen.getByText('Decidida em')).toBeVisible();
-      if (status === 'CONVERTIDA')
-        expect(
-          screen.getByRole('heading', { name: 'Reserva da venda' }),
-        ).toBeVisible();
+      expect(
+        screen.getByRole('heading', {
+          name: status === 'CONVERTIDA' ? 'Reserva da venda' : 'Reserva',
+        }),
+      ).toBeVisible();
     },
   );
   it('trata falha e permite nova tentativa', async () => {

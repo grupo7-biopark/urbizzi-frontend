@@ -12,7 +12,7 @@ describe('Linha do tempo e prazos', () => {
             id: '1',
             data: '2026-11-09T12:00:00Z',
             titulo: 'Reserva criada',
-            autor: 'Pessoa fict�cia',
+            autor: 'Pessoa fictícia',
             detalhe: '<script>texto</script>',
           },
         ]}
