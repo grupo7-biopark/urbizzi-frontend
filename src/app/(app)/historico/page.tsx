@@ -1,11 +1,18 @@
 import type { Metadata } from 'next';
-import { TelaProvisoria } from '@/features/navegacao/components/tela-provisoria';
+import { HistoricoLista } from '@/features/historico/components/historico-lista';
+import { historicoSearchSchema } from '@/features/historico/schemas/historico-search.schema';
 import { exigirPermissao } from '@/shared/auth/permissao.server';
 
 export const metadata: Metadata = { title: 'Histórico' };
 
-export default async function HistoricoPage() {
+export default async function HistoricoPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await exigirPermissao('verHistorico');
 
-  return <TelaProvisoria titulo="Histórico" />;
+  return (
+    <HistoricoLista search={historicoSearchSchema.parse(await searchParams)} />
+  );
 }
