@@ -142,6 +142,33 @@ describe('useEventosMapa', () => {
     ).toBe('VENDIDO');
   });
 
+  it('avisa a composição para atualizar o detalhe do lote aberto', () => {
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(mapaKeys.consulta({}), makeMapa());
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      renderComQueryClient(queryClient, children);
+    const aoSincronizar = vi.fn<(loteId?: string) => void>();
+
+    renderHook(() => useEventosMapa({ aoSincronizar }), { wrapper });
+    const fonte = EventSourceFalso.instancias[0]!;
+
+    act(() => fonte.abrir());
+    act(() =>
+      fonte.emitir('status-lote', {
+        loteId: '5d2f8a1e-8a52-4a8e-9d3f-2c7f1e5a9b10',
+        status: 'VENDIDO',
+      }),
+    );
+
+    expect(aoSincronizar).toHaveBeenCalledWith(
+      '5d2f8a1e-8a52-4a8e-9d3f-2c7f1e5a9b10',
+    );
+
+    // A ressincronização pode ter perdido eventos de qualquer lote.
+    act(() => fonte.emitir('ressincronizar'));
+    expect(aoSincronizar).toHaveBeenLastCalledWith();
+  });
+
   it('ignora eventos que não são de status', () => {
     const queryClient = new QueryClient();
     const key = mapaKeys.consulta({});

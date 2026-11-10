@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import Link from 'next/link';
 import { clientesKeys } from '@/features/clientes/api/clientes.queries';
@@ -195,5 +195,18 @@ function renderPainelLote(marcador: MarcadorMapa) {
 }
 
 export function MapaComAcoes({ search }: { search: MapaSearch }) {
-  return <MapaInterno search={search} renderPainelLote={renderPainelLote} />;
+  const queryClient = useQueryClient();
+
+  return (
+    <MapaInterno
+      search={search}
+      renderPainelLote={renderPainelLote}
+      aoSincronizar={(loteId) => {
+        // A gaveta lê o detalhe completo, que não está no cache do mapa.
+        void queryClient.invalidateQueries({
+          queryKey: loteId ? lotesKeys.detail(loteId) : lotesKeys.details(),
+        });
+      }}
+    />
+  );
 }

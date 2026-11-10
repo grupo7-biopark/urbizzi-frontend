@@ -52,8 +52,16 @@ export function aplicarStatusNoMapa(
   void queryClient.invalidateQueries({ queryKey: mapaKeys.consultas() });
 }
 
+type OpcoesEventosMapa = {
+  /**
+   * Avisa a composição, que pode atualizar dados de outra funcionalidade, como
+   * o detalhe do lote aberto na gaveta. Sem o lote, a mudança pode ser em qualquer um.
+   */
+  aoSincronizar?: (loteId?: string) => void;
+};
+
 /** Mantém o mapa interno em dia com as mudanças confirmadas por outras sessões. */
-export function useEventosMapa() {
+export function useEventosMapa({ aoSincronizar }: OpcoesEventosMapa = {}) {
   const queryClient = useQueryClient();
 
   const estado = useEventSource({
@@ -61,12 +69,14 @@ export function useEventosMapa() {
     eventos: EVENTOS,
     aoRessincronizar: () => {
       void queryClient.invalidateQueries({ queryKey: mapaKeys.consultas() });
+      aoSincronizar?.();
     },
     aoEvento: (tipo, dados) => {
       if (tipo !== 'status-lote') return;
       const evento = lerStatusLote(dados);
       if (evento) {
         aplicarStatusNoMapa(queryClient, evento);
+        aoSincronizar?.(evento.loteId);
       }
     },
   });

@@ -236,12 +236,14 @@ export function SemPlantaAtiva() {
 export function MapaInterno({
   search,
   renderPainelLote,
+  aoSincronizar,
 }: {
   search: MapaSearch;
   renderPainelLote?: (marcador: MarcadorMapa) => ReactNode;
+  aoSincronizar?: (loteId?: string) => void;
 }) {
   const query = useQuery(mapaOptions(toConsultaMapa(search)));
-  const { estado } = useEventosMapa();
+  const { estado } = useEventosMapa({ aoSincronizar });
   const [painelId, setPainelId] = useState<string | null>(null);
   const [selecionado, setSelecionado] = useState<MarcadorMapa>();
   const [buscadoId, setBuscadoId] = useState<string | null>(null);
