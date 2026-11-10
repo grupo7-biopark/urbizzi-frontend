@@ -244,6 +244,133 @@ describe('repasse', () => {
   });
 });
 
+describe('eventos', () => {
+  const EVENTOS = ['v1', 'mapa', 'eventos'];
+  const CABECALHOS = { accept: 'text/event-stream' };
+
+  it('prepara o fluxo para não ser cacheado, transformado nem bufferizado', async () => {
+    server.use(
+      http.untyped.get(
+        '*/v1/mapa/eventos',
+        () =>
+          new HttpResponse('event: heartbeat\ndata: {}\n\n', {
+            headers: { 'Content-Type': 'text/event-stream' },
+          }),
+      ),
+    );
+
+    const response = await proxyToBackend(
+      makeRequest({ access: 'access-valido', headers: CABECALHOS }),
+      EVENTOS,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('text/event-stream');
+    expect(response.headers.get('cache-control')).toBe(
+      'no-store, no-transform',
+    );
+    expect(response.headers.get('x-accel-buffering')).toBe('no');
+  });
+
+  it.each([
+    [404, 'FLUXO_INDISPONIVEL'],
+    [403, 'SESSAO_ENCERRADA'],
+    [401, 'SESSAO_ENCERRADA'],
+  ])(
+    'encerra o fluxo no %i em vez de deixar o navegador reconectar',
+    async (status, motivo) => {
+      server.use(
+        http.untyped.get(
+          '*/v1/mapa/eventos',
+          () => new HttpResponse(null, { status }),
+        ),
+      );
+
+      const response = await proxyToBackend(
+        makeRequest({ access: 'access-valido', headers: CABECALHOS }),
+        EVENTOS,
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.text()).resolves.toBe(
+        `event: conexao-encerrada\ndata: {"motivo":"${motivo}"}\n\n`,
+      );
+    },
+  );
+
+  it('apaga os cookies quando a sessão do fluxo terminou', async () => {
+    server.use(
+      http.untyped.get('*/v1/mapa/eventos', () =>
+        HttpResponse.json(NAO_AUTENTICADO, { status: 401 }),
+      ),
+    );
+
+    const response = await proxyToBackend(
+      makeRequest({ access: 'vencido', headers: CABECALHOS }),
+      EVENTOS,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.cookies.get(ACCESS_COOKIE)).toMatchObject({ maxAge: 0 });
+    expect(response.cookies.get(REFRESH_COOKIE)).toMatchObject({ maxAge: 0 });
+  });
+
+  it('mantém o erro temporário como erro', async () => {
+    server.use(
+      http.untyped.get(
+        '*/v1/mapa/eventos',
+        () => new HttpResponse(null, { status: 500 }),
+      ),
+    );
+
+    const response = await proxyToBackend(
+      makeRequest({ access: 'access-valido', headers: CABECALHOS }),
+      EVENTOS,
+    );
+
+    expect(response.status).toBe(500);
+  });
+
+  it('encerra o fluxo quando a renovação da sessão falha', async () => {
+    mockExpiredAccess();
+    mockRefresh(() => HttpResponse.json(NAO_AUTENTICADO, { status: 401 }));
+
+    const response = await proxyToBackend(
+      makeRequest({
+        access: 'vencido',
+        refresh: uniqueRefreshToken(),
+        headers: CABECALHOS,
+      }),
+      SEGMENTS,
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.text()).resolves.toContain(
+      'event: conexao-encerrada',
+    );
+    expect(response.cookies.get(REFRESH_COOKIE)).toMatchObject({ maxAge: 0 });
+  });
+
+  it('deixa o navegador tentar de novo quando a renovação falha temporariamente', async () => {
+    mockExpiredAccess();
+    mockRefresh(() => new HttpResponse(null, { status: 503 }));
+
+    const response = await proxyToBackend(
+      makeRequest({
+        access: 'vencido',
+        refresh: uniqueRefreshToken(),
+        headers: CABECALHOS,
+      }),
+      SEGMENTS,
+    );
+
+    // Nada de evento terminal: o `EventSource` precisa reconectar.
+    expect(response.status).toBe(502);
+    expect(response.headers.get('content-type')).toContain('application/json');
+    expect(response.cookies.get(REFRESH_COOKIE)).toBeUndefined();
+  });
+});
+
 describe('destino', () => {
   it.each([
     ['fora de /v1', ['health']],

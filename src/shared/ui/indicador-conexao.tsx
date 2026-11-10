@@ -6,6 +6,7 @@ const ROTULOS: Record<EstadoConexao, string> = {
   conectando: 'Conectando…',
   'ao-vivo': 'Ao vivo',
   reconectando: 'Reconectando…',
+  encerrado: 'Conexão encerrada',
 };
 
 /** Estado discreto do fluxo SSE, anunciado por leitores de tela. */

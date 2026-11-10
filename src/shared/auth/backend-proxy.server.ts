@@ -1,5 +1,6 @@
 import 'server-only';
 import { NextResponse, type NextRequest } from 'next/server';
+import { respostaConexaoEncerrada } from '@/shared/api/eventos-sse.server';
 import { getServerEnv } from '@/shared/config/env.server';
 import {
   apiUnavailable,
@@ -117,7 +118,12 @@ function toResponse(upstream: Response) {
     }
   });
 
-  if (!headers.has('cache-control')) {
+  if (headers.get('content-type')?.includes('text/event-stream')) {
+    // Um intermediário não pode compactar nem transformar os eventos, e o fluxo
+    // não pode ficar retido em buffer.
+    headers.set('cache-control', 'no-store, no-transform');
+    headers.set('x-accel-buffering', 'no');
+  } else if (!headers.has('cache-control')) {
     headers.set('cache-control', 'no-store');
   }
 
@@ -148,7 +154,16 @@ async function isSessionRejected(upstream: Response) {
 function fromFailedRefresh(
   request: NextRequest,
   result: Exclude<RefreshResult, { outcome: 'renewed' }>,
+  eventos = false,
 ) {
+  // Só a recusa definitiva encerra o fluxo. Numa falha temporária, o
+  // `EventSource` precisa receber um erro para tentar de novo mais tarde.
+  if (eventos && result.outcome === 'rejected') {
+    const response = respostaConexaoEncerrada('SESSAO_ENCERRADA');
+    clearSessionCookies(response);
+    return response;
+  }
+
   const response = forwardApiError(request, result.status, result.body);
 
   if (result.outcome === 'rejected') {
@@ -177,6 +192,8 @@ export async function proxyToBackend(request: NextRequest, segments: string[]) {
 
   const { accessToken, refreshToken } = readSessionCookies(request);
   const canRetry = canBufferBody(request);
+  const aceitaEventos =
+    request.headers.get('accept')?.includes('text/event-stream') ?? false;
 
   try {
     const body = await getBody(request);
@@ -202,7 +219,7 @@ export async function proxyToBackend(request: NextRequest, segments: string[]) {
       const result = await refreshSession(refreshToken);
 
       if (result.outcome !== 'renewed') {
-        return fromFailedRefresh(request, result);
+        return fromFailedRefresh(request, result, aceitaEventos);
       }
 
       renewedTokens = result.tokens;
@@ -218,7 +235,7 @@ export async function proxyToBackend(request: NextRequest, segments: string[]) {
         const result = await refreshSession(refreshToken);
 
         if (result.outcome !== 'renewed') {
-          return fromFailedRefresh(request, result);
+          return fromFailedRefresh(request, result, aceitaEventos);
         }
 
         renewedTokens = result.tokens;
@@ -229,6 +246,27 @@ export async function proxyToBackend(request: NextRequest, segments: string[]) {
           upstream = await send(renewedTokens.accessToken);
           isSessionOver = await isSessionRejected(upstream);
         }
+      }
+    }
+
+    if (aceitaEventos && !upstream.ok) {
+      const definitivo =
+        upstream.status === 401 ||
+        upstream.status === 403 ||
+        upstream.status === 404;
+
+      if (definitivo) {
+        const response = respostaConexaoEncerrada(
+          upstream.status === 404 ? 'FLUXO_INDISPONIVEL' : 'SESSAO_ENCERRADA',
+        );
+
+        if (isSessionOver) {
+          clearSessionCookies(response);
+        } else if (renewedTokens) {
+          writeSessionCookies(response, renewedTokens);
+        }
+
+        return response;
       }
     }
 

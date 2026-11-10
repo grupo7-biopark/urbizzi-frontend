@@ -115,6 +115,64 @@ describe('MapaPublico em tempo real', () => {
     expect(screen.getByText('Vendido', { exact: true })).toBeInTheDocument();
   });
 
+  it('não perde um evento recebido durante a ressincronização', () => {
+    const { rerender } = render(<MapaPublico dados={DADOS} token={TOKEN} />);
+    const fonte = EventSourceFalso.instancias[0]!;
+    act(() => fonte.abrir());
+    act(() => fonte.emitir('ressincronizar'));
+    act(() =>
+      fonte.emitir('status-lote', {
+        loteId: '5d2f8a1e-8a52-4a8e-9d3f-2c7f1e5a9b10',
+        status: 'RESERVADO',
+      }),
+    );
+
+    // O servidor terminou de montar a página antes do evento chegar.
+    rerender(
+      <MapaPublico
+        token={TOKEN}
+        dados={{
+          ...DADOS,
+          marcadores: {
+            ...DADOS.marcadores,
+            data: [{ ...DADOS.marcadores.data[0]!, status: 'DISPONIVEL' }],
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Reservado', { exact: true })).toBeInTheDocument();
+  });
+
+  it('deixa o snapshot do servidor valer sobre eventos anteriores ao refresh', () => {
+    const { rerender } = render(<MapaPublico dados={DADOS} token={TOKEN} />);
+    const fonte = EventSourceFalso.instancias[0]!;
+    act(() => fonte.abrir());
+    act(() =>
+      fonte.emitir('status-lote', {
+        loteId: '5d2f8a1e-8a52-4a8e-9d3f-2c7f1e5a9b10',
+        status: 'BLOQUEADO',
+      }),
+    );
+    // O evento veio antes do refresh: o snapshot novo é mais recente.
+    act(() => fonte.emitir('ressincronizar'));
+
+    rerender(
+      <MapaPublico
+        token={TOKEN}
+        dados={{
+          ...DADOS,
+          marcadores: {
+            ...DADOS.marcadores,
+            data: [{ ...DADOS.marcadores.data[0]!, status: 'VENDIDO' }],
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Vendido', { exact: true })).toBeInTheDocument();
+  });
+
   it('ignora eventos desconhecidos ou fora do contrato', () => {
     render(<MapaPublico dados={DADOS} token={TOKEN} />);
     const fonte = EventSourceFalso.instancias[0]!;

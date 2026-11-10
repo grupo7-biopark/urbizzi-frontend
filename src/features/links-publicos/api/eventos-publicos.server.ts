@@ -1,4 +1,5 @@
 import 'server-only';
+import { respostaConexaoEncerrada } from '@/shared/api/eventos-sse.server';
 import { getServerEnv } from '@/shared/config/env.server';
 
 /**
@@ -24,9 +25,11 @@ export async function observarEventosPublicos(
     );
 
     if (!upstream.ok || !upstream.body) {
-      return new Response(null, {
-        status: upstream.status === 404 ? 404 : 502,
-      });
+      if (upstream.status === 404) {
+        return respostaConexaoEncerrada('FLUXO_INDISPONIVEL');
+      }
+
+      return new Response(null, { status: 502 });
     }
 
     return new Response(upstream.body, {

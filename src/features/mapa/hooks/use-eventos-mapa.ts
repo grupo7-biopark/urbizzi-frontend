@@ -1,6 +1,10 @@
 'use client';
 
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
+import {
+  lerStatusLote as lerStatusDoEvento,
+  type EventoStatusLote as EventoStatusLoteGenerico,
+} from '@/shared/api/eventos-sse';
 import { useEventSource } from '@/shared/api/use-event-source';
 import { getMapa, type StatusLoteMapa } from '../api/mapa.api';
 import { mapaKeys } from '../api/mapa.queries';
@@ -14,29 +18,12 @@ const STATUS: readonly StatusLoteMapa[] = [
   'BLOQUEADO',
 ];
 
-export type EventoStatusLote = {
-  loteId: string;
-  status: StatusLoteMapa;
-};
+export type EventoStatusLote = EventoStatusLoteGenerico<StatusLoteMapa>;
 
 type MapaCarregado = Awaited<ReturnType<typeof getMapa>>;
 
-/** O evento traz só ids e status; qualquer outra coisa é descartada. */
 export function lerStatusLote(dados: unknown): EventoStatusLote | null {
-  if (typeof dados !== 'object' || dados === null) {
-    return null;
-  }
-
-  const { loteId, status } = dados as { loteId?: unknown; status?: unknown };
-
-  if (
-    typeof loteId !== 'string' ||
-    !STATUS.includes(status as StatusLoteMapa)
-  ) {
-    return null;
-  }
-
-  return { loteId, status: status as StatusLoteMapa };
+  return lerStatusDoEvento(dados, STATUS);
 }
 
 /**

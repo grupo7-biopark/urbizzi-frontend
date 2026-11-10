@@ -9,10 +9,13 @@ beforeEach(() => {
   vi.useFakeTimers();
   EventSourceFalso.limpar();
   vi.stubGlobal('EventSource', EventSourceFalso);
+  // O jitter é aleatório; nos testes, usa o teto para os tempos serem exatos.
+  vi.spyOn(Math, 'random').mockReturnValue(1);
 });
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
@@ -117,6 +120,54 @@ describe('useEventSource', () => {
 
     act(() => vi.advanceTimersByTime(1000));
     expect(EventSourceFalso.instancias).toHaveLength(2);
+  });
+
+  it('reconecta quando a conexão não abre dentro do prazo', () => {
+    const { result } = renderHook(() =>
+      useEventSource({ url: '/api/eventos', eventos: EVENTOS }),
+    );
+    const fonte = EventSourceFalso.instancias[0]!;
+
+    act(() => vi.advanceTimersByTime(9_999));
+    expect(EventSourceFalso.instancias).toHaveLength(1);
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(fonte.fechado).toBe(true);
+    expect(result.current).toBe('reconectando');
+
+    act(() => vi.advanceTimersByTime(1000));
+    expect(EventSourceFalso.instancias).toHaveLength(2);
+  });
+
+  it('espalha as reconexões com jitter', () => {
+    vi.mocked(Math.random).mockReturnValue(0);
+    renderHook(() => useEventSource({ url: '/api/eventos', eventos: EVENTOS }));
+
+    act(() => EventSourceFalso.instancias[0]!.falhar());
+    act(() => vi.advanceTimersByTime(499));
+    expect(EventSourceFalso.instancias).toHaveLength(1);
+
+    // Com o sorteio no mínimo, a espera fica na metade do teto.
+    act(() => vi.advanceTimersByTime(1));
+    expect(EventSourceFalso.instancias).toHaveLength(2);
+  });
+
+  it('não reconecta depois do evento de encerramento', () => {
+    const { result } = renderHook(() =>
+      useEventSource({ url: '/api/eventos', eventos: EVENTOS }),
+    );
+    const fonte = EventSourceFalso.instancias[0]!;
+
+    act(() => fonte.abrir());
+    act(() =>
+      fonte.emitir('conexao-encerrada', { motivo: 'FLUXO_INDISPONIVEL' }),
+    );
+
+    expect(result.current).toBe('encerrado');
+    expect(fonte.fechado).toBe(true);
+
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(EventSourceFalso.instancias).toHaveLength(1);
   });
 
   it('um evento reinicia o vigia de silêncio', () => {
