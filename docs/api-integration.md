@@ -2,6 +2,12 @@
 
 > **Status:** cliente, erros, TanStack Query e MSW entregues na FE-05, e o proxy autenticado `/api/backend`, na FE-07. Os padrões da API vêm de [`docs/api-standards.md`](https://github.com/grupo7-biopark/urbizzi-backend/blob/main/docs/api-standards.md) no backend. Se houver divergência, o backend prevalece.
 
+Cancelamento de reserva encerra as propostas sem substituir a decisão histórica:
+`encerrada`, `dataEncerramento` e `motivoEncerramento` são independentes de
+`status` e `motivoDecisao`. Minhas propostas mostra o encerramento separadamente,
+não apresenta análise pendente ou contador para propostas encerradas, e mantém
+visíveis decisões anteriores. Cancelar também invalida as queries de propostas.
+
 ## Tipos gerados do OpenAPI
 
 O backend publica o contrato em `/docs-json`. Os tipos são gerados com `openapi-typescript` para `src/shared/api/schema.d.ts`, arquivo versionado e que nunca é editado à mão:

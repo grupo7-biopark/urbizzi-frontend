@@ -15,6 +15,53 @@ vi.mock('next/navigation', () => import('@/test/next-navigation'));
 const META = { page: 1, pageSize: 20, total: 2, totalPages: 1 };
 
 describe('MinhasPropostasTable', () => {
+  it.each(['EM_ANALISE', 'APROVADA'] as const)(
+    'mostra encerramento de proposta %s sem simular rejeição ou análise pendente',
+    async (status) => {
+      setTestUrl('/propostas');
+      server.use(
+        http.get('/v1/propostas/minhas', ({ response }) =>
+          response(200).json({
+            data: [
+              makeProposta({
+                status,
+                encerrada: true,
+                dataEncerramento: '2026-11-10T12:00:00Z',
+                motivoEncerramento: 'Cancelamento da reserva',
+                prazoLimite: '2000-01-01T12:00:00Z',
+                dataDecisao:
+                  status === 'APROVADA' ? '2026-11-09T12:00:00Z' : null,
+                motivoDecisao:
+                  status === 'APROVADA'
+                    ? 'Aprovação original preservada'
+                    : null,
+              }),
+            ],
+            meta: { ...META, total: 1 },
+          }),
+        ),
+      );
+      renderWithQuery(
+        <MinhasPropostasTable search={propostasSearchSchema.parse({})} />,
+      );
+      expect(await screen.findByText('Encerrada')).toBeVisible();
+      expect(screen.getByText('Cancelamento da reserva')).toBeVisible();
+      expect(screen.queryByText('Aguardando análise')).not.toBeInTheDocument();
+      expect(screen.queryByText('Em análise')).not.toBeInTheDocument();
+      expect(screen.queryByText('Rejeitada')).not.toBeInTheDocument();
+      expect(screen.queryByText('Prazo encerrado')).not.toBeInTheDocument();
+      expect(screen.queryByText('Em atraso')).not.toBeInTheDocument();
+      expect(screen.queryAllByText('Aprovada')).toHaveLength(
+        status === 'APROVADA' ? 1 : 0,
+      );
+      expect(
+        screen.queryAllByText('Aprovação original preservada'),
+      ).toHaveLength(status === 'APROVADA' ? 1 : 0);
+      expect(screen.queryAllByText('Sem decisão')).toHaveLength(
+        status === 'EM_ANALISE' ? 1 : 0,
+      );
+    },
+  );
   it('consulta apenas minhas e mostra prazo, atraso e motivo da rejeição', async () => {
     setTestUrl('/propostas');
     server.use(

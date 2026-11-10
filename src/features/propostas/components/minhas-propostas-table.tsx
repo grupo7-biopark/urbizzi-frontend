@@ -35,15 +35,22 @@ const COLUNAS: DataTableColumn<Proposta>[] = [
   {
     id: 'status',
     header: 'Status',
-    cell: ({ status }) => <StatusPropostaBadge status={status} />,
+    cell: ({ status, encerrada }) => (
+      <div className="flex flex-wrap gap-2">
+        {(!encerrada || status !== 'EM_ANALISE') && (
+          <StatusPropostaBadge status={status} />
+        )}
+        {encerrada && <Badge tone="neutro">Encerrada</Badge>}
+      </div>
+    ),
   },
   {
     id: 'prazo',
     header: 'Prazo de análise',
-    cell: ({ prazoLimite, status, atrasada }) => (
+    cell: ({ prazoLimite, status, atrasada, encerrada }) => (
       <div className="flex flex-col items-start gap-2">
         <time dateTime={prazoLimite}>{formatDataHora(prazoLimite)}</time>
-        {status === 'EM_ANALISE' ? (
+        {status === 'EM_ANALISE' && !encerrada ? (
           atrasada ? (
             <Badge tone="perigo">Em atraso</Badge>
           ) : (
@@ -56,9 +63,13 @@ const COLUNAS: DataTableColumn<Proposta>[] = [
   {
     id: 'decisao',
     header: 'Decisão e motivo',
-    cell: ({ status, dataDecisao, motivoDecisao }) =>
+    cell: ({ status, dataDecisao, motivoDecisao, encerrada }) =>
       status === 'EM_ANALISE' ? (
-        'Aguardando análise'
+        encerrada ? (
+          'Sem decisão'
+        ) : (
+          'Aguardando análise'
+        )
       ) : (
         <div className="flex flex-col gap-2">
           {dataDecisao ? (
@@ -68,6 +79,25 @@ const COLUNAS: DataTableColumn<Proposta>[] = [
             {motivoDecisao || 'Motivo não informado'}
           </p>
         </div>
+      ),
+  },
+  {
+    id: 'encerramento',
+    header: 'Encerramento',
+    cell: ({ encerrada, dataEncerramento, motivoEncerramento }) =>
+      encerrada ? (
+        <div className="flex flex-col gap-2">
+          {dataEncerramento ? (
+            <time dateTime={dataEncerramento}>
+              {formatDataHora(dataEncerramento)}
+            </time>
+          ) : null}
+          <p className="whitespace-pre-line wrap-anywhere">
+            {motivoEncerramento || 'Motivo não informado'}
+          </p>
+        </div>
+      ) : (
+        '—'
       ),
   },
 ];

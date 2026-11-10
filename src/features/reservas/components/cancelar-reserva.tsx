@@ -31,7 +31,7 @@ export function CancelarReserva({
         title={`Cancelar a reserva do lote ${numeroLote}?`}
         description={
           encerrarPropostas
-            ? 'Há proposta em análise ou aprovada. O cancelamento também encerra essas propostas como rejeitadas e devolve o lote para Disponível.'
+            ? 'Há proposta em análise ou aprovada. O cancelamento encerra essas propostas, preservando as decisões anteriores, e devolve o lote para Disponível.'
             : 'O lote voltará a ficar Disponível. Informe o motivo do cancelamento.'
         }
         confirmLabel={

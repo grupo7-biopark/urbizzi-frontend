@@ -4,7 +4,7 @@ import type { components } from '@/shared/api/schema';
 
 export type Reserva = components['schemas']['ReservaDto'];
 export type CancelarReserva = components['schemas']['CancelarReservaDto'];
-export type RenovacaoReserva = components['schemas']['RenovacaoReservaDto'];
+export type RenovacaoReserva = components['schemas']['RenovacaoDto'];
 
 export function renovarReserva(id: string) {
   return unwrap(

@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { expectNoA11yViolations } from '@/test/a11y';
+import { makeLoteamento } from '@/test/factories/loteamento.factory';
 import { makeUsuario } from '@/test/factories/usuario.factory';
 import { http } from '@/test/http';
 import { setTestUrl } from '@/test/next-navigation';
@@ -75,16 +76,27 @@ describe('ReservasTable', () => {
     ).not.toBeInTheDocument();
     await expectNoA11yViolations(container);
   });
-  it('lista todas para o gestor, com filtro por identificador de vendedor', async () => {
+  it('lista todas para o gestor, com filtros por loteamento e vendedor', async () => {
+    const loteamento = makeLoteamento();
     server.use(
       http.get('/v1/reservas', ({ response }) =>
         response(200).json({ data: [RESERVA], meta: META }),
       ),
+      http.get('/v1/loteamentos', ({ request, response }) => {
+        expect(Object.fromEntries(new URL(request.url).searchParams)).toEqual({
+          page: '1',
+          pageSize: '100',
+        });
+        return response(200).json({ data: [loteamento], meta: META });
+      }),
     );
     renderWithQuery(
       <ReservasTable search={reservasSearchSchema.parse({})} verTodas />,
     );
     expect(await screen.findByText('Cliente da reserva')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('option', { name: loteamento.nome }),
+    ).toHaveValue(loteamento.id);
     expect(
       screen.getByRole('link', { name: 'Todas as reservas' }),
     ).toHaveAttribute('aria-current', 'page');

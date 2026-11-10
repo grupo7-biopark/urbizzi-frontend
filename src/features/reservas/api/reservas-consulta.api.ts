@@ -17,7 +17,7 @@ export function listLoteamentosReservas() {
   return unwrap(
     api.GET('/v1/loteamentos', {
       params: {
-        query: { page: 1, pageSize: 100, orderBy: 'nome', order: 'asc' },
+        query: { page: 1, pageSize: 100 },
       },
     }),
   );

@@ -113,7 +113,7 @@ describe('ações da reserva', () => {
         return response(200).json({ ...RESERVA, status: 'CANCELADA' });
       }),
     );
-    montar(
+    const queryClient = montar(
       <CancelarReserva
         reserva={RESERVA}
         numeroLote="12"
@@ -121,6 +121,10 @@ describe('ações da reserva', () => {
         temProposta
       />,
     );
+    const propostasKey = ['propostas', 'minhas', {}];
+    queryClient.setQueryData(propostasKey, {
+      data: [{ status: 'EM_ANALISE' }],
+    });
     await userEvent.click(
       await screen.findByRole('button', { name: 'Cancelar reserva' }),
     );
@@ -128,6 +132,12 @@ describe('ações da reserva', () => {
     expect(
       within(dialog).getByText(/Há proposta em análise ou aprovada/),
     ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/preservando as decisões anteriores/),
+    ).toBeVisible();
+    expect(
+      within(dialog).queryByText(/como rejeitadas/),
+    ).not.toBeInTheDocument();
     const confirmar = within(dialog).getByRole('button', {
       name: 'Cancelar e encerrar propostas',
     });
@@ -143,6 +153,7 @@ describe('ações da reserva', () => {
     await userEvent.click(confirmar);
     expect(await screen.findByText('Reserva cancelada')).toBeInTheDocument();
     expect(body).toEqual({ motivo: 'Cliente desistiu', confirmar: true });
+    expect(queryClient.getQueryState(propostasKey)?.isInvalidated).toBe(true);
   });
   it('pede nova confirmação se uma proposta surgiu depois da leitura', async () => {
     let chamadas = 0;
