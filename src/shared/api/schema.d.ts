@@ -74,6 +74,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reservas/{id}/renovar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Estende o vencimento de uma reserva ativa. */
+        post: operations["ReservasController_renovar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reservas/{id}/cancelar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancela a reserva e libera o lote. */
+        post: operations["ReservasController_cancelar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reservas/{id}/renovacoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Histórico paginado das renovações. */
+        get: operations["ReservasController_listarRenovacoes_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reservas/previsao": {
         parameters: {
             query?: never;
@@ -81,7 +132,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Prevê o vencimento de uma reserva iniciada agora, sem criar a reserva. */
+        /** Consulta a reserva com tempo restante; Comercial só consulta as próprias */
         get: operations["ReservasController_prever_v1"];
         put?: never;
         post?: never;
@@ -1000,6 +1051,20 @@ export interface components {
             dataVencimento: string;
             /** @description Segundos até o vencimento, nunca negativo; zero para reserva encerrada. */
             tempoRestanteSegundos: number;
+        };
+        CancelarReservaDto: {
+            motivo: string;
+            confirmar?: boolean;
+        };
+        RenovacaoReservaDto: {
+            id: string;
+            usuarioId: string;
+            /** Format: date-time */
+            vencimentoAnterior: string;
+            /** Format: date-time */
+            vencimentoNovo: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         PrevisaoReservaDto: {
             /** @example 7 */
@@ -2242,6 +2307,216 @@ export interface operations {
             };
             /** @description Perfil sem permissão para a ação */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ReservasController_renovar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ReservasController_cancelar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelarReservaDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservaDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ReservasController_listarRenovacoes_v1: {
+        parameters: {
+            query: {
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RenovacaoReservaDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
