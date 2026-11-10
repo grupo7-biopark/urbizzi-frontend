@@ -90,7 +90,13 @@ const CanvasComFormas = (L.Canvas as unknown as typeof L.Class).extend({
 }) as unknown as new (options: L.RendererOptions) => L.Canvas;
 
 function lerToken(elemento: HTMLElement, token: string) {
-  return getComputedStyle(elemento).getPropertyValue(token).trim() || token;
+  // O canvas precisa da cor resolvida no tema, não de light-dark(...).
+  const amostra = document.createElement('span');
+  amostra.style.color = `var(${token})`;
+  elemento.append(amostra);
+  const cor = getComputedStyle(amostra).color;
+  amostra.remove();
+  return cor;
 }
 
 function Controle({
@@ -324,12 +330,18 @@ export default function VisualizadorPlantaLeaflet({
       return { token: marcador.cor, circulo };
     });
     const pintar = () => {
-      const contorno = lerToken(elemento, '--surface');
+      const cores = new Map<string, string>();
+      const corDoToken = (token: string) => {
+        const cor = cores.get(token) ?? lerToken(elemento, token);
+        cores.set(token, cor);
+        return cor;
+      };
+      const contorno = corDoToken('--surface');
 
       for (const { token, circulo } of desenhados) {
         circulo.setStyle({
           color: contorno,
-          fillColor: lerToken(elemento, token),
+          fillColor: corDoToken(token),
         });
       }
     };

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { EditarMarcadoresLink } from '@/features/mapa/components/editor-marcadores';
-import { MapaInterno } from '@/features/mapa/components/mapa-interno';
+import { MapaComAcoes } from './mapa-com-acoes';
 import { mapaSearchSchema } from '@/features/mapa/schemas/mapa-search.schema';
 import { exigirPermissao } from '@/shared/auth/permissao.server';
 import { Permitido } from '@/shared/auth/permitido';
@@ -27,7 +27,7 @@ export default async function MapaPage({
           </Permitido>
         }
       />
-      <MapaInterno search={search} />
+      <MapaComAcoes search={search} />
     </>
   );
 }

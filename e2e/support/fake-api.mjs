@@ -479,6 +479,24 @@ function criarLote(quadra, dados) {
   return lote;
 }
 
+// Os marcadores fixos também precisam existir no endpoint de detalhe do lote.
+const quadraDoMapa = salvarQuadra(MARCADORES_DO_MAPA[0].quadraId, {
+  loteamentoId: LOTEAMENTO_SEMENTE_ID,
+  numero: 'Q1',
+});
+for (const marcador of MARCADORES_DO_MAPA) {
+  marcador.quadraId = quadraDoMapa.id;
+  const lote = criarLote(quadraDoMapa, {
+    numero: marcador.numero,
+    areaM2: marcador.areaM2,
+    valor: marcador.valor,
+  });
+  lotes.delete(lote.id);
+  lote.id = marcador.loteId;
+  lote.status = marcador.status;
+  lotes.set(lote.id, lote);
+}
+
 const clienteHistorico = salvarCliente(randomUUID(), {
   nome: 'Cliente Histórico FE-18',
   documento: '52998224725',

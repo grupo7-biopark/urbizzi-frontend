@@ -166,9 +166,11 @@ function Dado({ termo, children }: { termo: string; children: ReactNode }) {
 function PainelDoLote({
   marcador,
   onFechar,
+  renderPainelLote,
 }: {
   marcador: MarcadorMapa | undefined;
   onFechar: () => void;
+  renderPainelLote?: (marcador: MarcadorMapa) => ReactNode;
 }) {
   return (
     <Drawer
@@ -181,7 +183,9 @@ function PainelDoLote({
         }
       }}
     >
-      {marcador ? (
+      {marcador && renderPainelLote ? (
+        renderPainelLote(marcador)
+      ) : marcador ? (
         <div className="flex flex-col gap-5">
           <dl className="grid grid-cols-2 gap-4">
             <Dado termo="Quadra">{marcador.quadra}</Dado>
@@ -227,12 +231,23 @@ export function SemPlantaAtiva() {
   );
 }
 
-export function MapaInterno({ search }: { search: MapaSearch }) {
+export function MapaInterno({
+  search,
+  renderPainelLote,
+}: {
+  search: MapaSearch;
+  renderPainelLote?: (marcador: MarcadorMapa) => ReactNode;
+}) {
   const query = useQuery(mapaOptions(toConsultaMapa(search)));
   const [painelId, setPainelId] = useState<string | null>(null);
+  const [selecionado, setSelecionado] = useState<MarcadorMapa>();
   const [buscadoId, setBuscadoId] = useState<string | null>(null);
   const marcadores = query.data?.marcadores;
   const buscado = marcadores?.find(({ id }) => id === buscadoId);
+  function selecionar(id: string) {
+    setPainelId(id);
+    setSelecionado(marcadores?.find((marcador) => marcador.id === id));
+  }
   const marcadoresDaPlanta = useMemo(
     () =>
       marcadores?.map(({ id, x, y, status }) => ({
@@ -307,7 +322,7 @@ export function MapaInterno({ search }: { search: MapaSearch }) {
           <Button
             variant="secundario"
             size="compacto"
-            onClick={() => setPainelId(buscado.id)}
+            onClick={() => selecionar(buscado.id)}
           >
             Ver dados do lote
           </Button>
@@ -316,12 +331,21 @@ export function MapaInterno({ search }: { search: MapaSearch }) {
       <VisualizadorPlanta
         planta={planta}
         marcadores={marcadoresDaPlanta}
-        onMarcadorClick={setPainelId}
+        onMarcadorClick={selecionar}
         foco={foco}
       />
       <PainelDoLote
-        marcador={query.data.marcadores.find(({ id }) => id === painelId)}
-        onFechar={() => setPainelId(null)}
+        marcador={
+          painelId
+            ? (query.data.marcadores.find(({ id }) => id === painelId) ??
+              selecionado)
+            : undefined
+        }
+        onFechar={() => {
+          setPainelId(null);
+          setSelecionado(undefined);
+        }}
+        renderPainelLote={renderPainelLote}
       />
     </>
   );
