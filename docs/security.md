@@ -99,6 +99,7 @@ Legenda: ✅ permitido · 👤 permitido só para os próprios registros · — 
 | Ver e buscar clientes †                                                     | ✅            | ✅     | ✅                          | —        |
 | Reservar, renovar e cancelar reserva                                        | ✅            | ✅     | 👤 (vendedor da reserva)    | —        |
 | Listar reservas †                                                           | ✅            | ✅     | ✅                          | —        |
+| Ver todas as reservas e filtrar por vendedor (FE-21)                        | ✅            | ✅     | —                           | —        |
 | Criar proposta                                                              | ✅            | ✅     | 👤 (sobre as suas reservas) | —        |
 | Acompanhar propostas †                                                      | ✅            | ✅     | 👤                          | —        |
 | Aprovar ou rejeitar proposta; ver pendências                                | ✅            | ✅     | —                           | —        |
