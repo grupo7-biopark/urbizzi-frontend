@@ -10,6 +10,8 @@ import { createApi } from './create-api';
 export function getServerApi(accessToken?: string) {
   return createApi({
     baseUrl: getServerEnv().API_URL,
+    // A autenticação da API usa o Bearer explícito, sem autenticação HTTP automática.
+    credentials: 'omit',
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
   });
 }

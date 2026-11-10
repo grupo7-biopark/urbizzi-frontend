@@ -187,6 +187,8 @@ export async function proxyToBackend(request: NextRequest, segments: string[]) {
         headers: getForwardedHeaders(request, token),
         body,
         cache: 'no-store',
+        // Preserva o 401 da API mesmo com corpo em fluxo; a sessão é tratada aqui.
+        credentials: 'omit',
         redirect: 'manual',
         signal: request.signal,
         // Exigido pelo `fetch` do Node para enviar o corpo em fluxo.

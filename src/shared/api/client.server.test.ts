@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { http } from '@/test/http';
+import { makeErrorResponse } from '@/test/factories/error-response.factory';
 import { server } from '@/test/server';
 import { getServerApi } from './client.server';
 import { unwrap } from './request';
@@ -20,6 +21,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.unstubAllEnvs();
 });
 
@@ -35,6 +37,7 @@ function captureRequests() {
 }
 
 it('chama a API_URL com o token informado', async () => {
+  const fetchSpy = vi.spyOn(globalThis, 'fetch');
   const requests = captureRequests();
 
   await unwrap(getServerApi('token-de-teste').GET('/v1/auth/me'));
@@ -43,6 +46,7 @@ it('chama a API_URL com o token informado', async () => {
   expect(requests[0]?.headers.get('Authorization')).toBe(
     'Bearer token-de-teste',
   );
+  expect(fetchSpy.mock.calls[0]?.[0]).toMatchObject({ credentials: 'omit' });
 });
 
 it('não envia Authorization sem token', async () => {
@@ -51,4 +55,23 @@ it('não envia Authorization sem token', async () => {
   await unwrap(getServerApi().GET('/v1/auth/me'));
 
   expect(requests[0]?.headers.has('Authorization')).toBe(false);
+});
+
+it('preserva a recusa de login da API sem transformá-la em erro de rede', async () => {
+  server.use(
+    http.post('/v1/auth/login', ({ response }) =>
+      response(401).json(
+        makeErrorResponse({
+          statusCode: 401,
+          code: 'CREDENCIAIS_INVALIDAS',
+          message: 'Credenciais inválidas',
+        }),
+      ),
+    ),
+  );
+  const result = await getServerApi().POST('/v1/auth/login', {
+    body: { email: 'pessoa@exemplo.com', senha: 'senha-incorreta' },
+  });
+  expect(result.response.status).toBe(401);
+  expect(result.error?.code).toBe('CREDENCIAIS_INVALIDAS');
 });

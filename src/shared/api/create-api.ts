@@ -5,6 +5,7 @@ import type { paths } from './schema';
 type CreateApiOptions = {
   baseUrl: string;
   headers?: Record<string, string>;
+  credentials?: RequestCredentials;
 };
 
 /** O `baseUrl` não leva `/v1`: as rotas do schema já incluem a versão. */
