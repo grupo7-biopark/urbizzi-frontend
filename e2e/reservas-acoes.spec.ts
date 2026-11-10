@@ -111,5 +111,13 @@ test('cancelamento exige aviso extra e encerra a proposta em análise', async ({
     'GET',
     `/reservas/${reserva.id}/propostas`,
   );
-  expect(propostas.data[0]?.status).toBe('REJEITADA');
+  expect(propostas.data[0]).toMatchObject({
+    status: 'EM_ANALISE',
+    encerrada: true,
+    motivoEncerramento: 'Desistência fictícia com proposta',
+    atrasada: false,
+    dataDecisao: null,
+    motivoDecisao: null,
+  });
+  expect(propostas.data[0]?.dataEncerramento).toBeTruthy();
 });

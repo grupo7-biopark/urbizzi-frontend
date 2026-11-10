@@ -15,6 +15,9 @@ export function makeProposta(overrides: Partial<Proposta> = {}): Proposta {
     dataDecisao: null,
     motivoDecisao: null,
     atrasada: false,
+    encerrada: false,
+    dataEncerramento: null,
+    motivoEncerramento: null,
     ...overrides,
   };
 }

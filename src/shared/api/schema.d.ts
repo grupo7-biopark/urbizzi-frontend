@@ -200,7 +200,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Consulta a reserva com tempo restante; Comercial só consulta as próprias */
+        /** Prevê o vencimento de uma reserva iniciada agora, sem criar a reserva. */
         get: operations["ReservasController_prever_v1"];
         put?: never;
         post?: never;
@@ -238,6 +238,23 @@ export interface paths {
         put?: never;
         /** Marca como vendido o lote reservado com proposta aprovada */
         post: operations["VendasLotesController_vender_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/historico": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consulta alterações respeitando propriedade e filtros */
+        get: operations["HistoricoController_list_v1"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -440,23 +457,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/historico": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Consulta alterações respeitando propriedade e filtros */
-        get: operations["HistoricoController_list_v1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/clientes": {
         parameters: {
             query?: never;
@@ -612,6 +612,23 @@ export interface paths {
         put?: never;
         /** Confirma a revisão da posição nesta versão */
         post: operations["MarcadoresController_revisar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mapa/eventos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Fluxo SSE com mudanças confirmadas de status dos lotes */
+        get: operations["MapaController_observar_v1"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -964,6 +981,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/publico/{token}/eventos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Fluxo SSE limitado ao loteamento do link público. */
+        get: operations["MapaPublicoController_observar_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/publico/{token}": {
         parameters: {
             query?: never;
@@ -973,6 +1007,57 @@ export interface paths {
         };
         /** Consulta somente leitura por token ativo, sem dados internos; até 60 acessos por IP por minuto */
         get: operations["MapaPublicoController_consultar_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/painel/resumo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Contagem de lotes por status, geral e por loteamento */
+        get: operations["PainelController_resumo_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/painel/vendas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vendas efetuadas por período e por vendedor */
+        get: operations["PainelController_vendas_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/painel/pendencias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reservas ativas, vencendo em breve e propostas pendentes ou atrasadas */
+        get: operations["PainelController_pendencias_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1025,6 +1110,11 @@ export interface components {
             motivoDecisao: string | null;
             /** @description Indica se a proposta em análise ultrapassou o prazo limite (RN09) */
             atrasada: boolean;
+            /** @description Encerramento independente da decisao original. */
+            encerrada: boolean;
+            /** Format: date-time */
+            dataEncerramento: string | null;
+            motivoEncerramento: string | null;
         };
         ErrorDetailDto: {
             /**
@@ -1137,7 +1227,7 @@ export interface components {
             motivo: string;
             confirmar?: boolean;
         };
-        RenovacaoReservaDto: {
+        RenovacaoDto: {
             id: string;
             usuarioId: string;
             /** Format: date-time */
@@ -1152,6 +1242,36 @@ export interface components {
             prazoDias: number;
             /** Format: date-time */
             dataVencimento: string;
+        };
+        HistoricoDto: {
+            /**
+             * @description Autor ou null para sistema.
+             * @example { id: "2872822b-14be-41ea-881f-a8c0c11c1ffd", nome: "Usuário Teste" }
+             */
+            usuario: {
+                [key: string]: unknown;
+            } | null;
+            valorAnterior: ({
+                [key: string]: unknown;
+            } | unknown[] | string | number | boolean) | null;
+            valorNovo: ({
+                [key: string]: unknown;
+            } | unknown[] | string | number | boolean) | null;
+            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
+            id: string;
+            /** @example Reserva */
+            entidadeTipo: string;
+            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
+            entidadeId: string;
+            /** @example CANCELAR */
+            acao: string;
+            /** @example Solicitação de cancelamento */
+            motivo: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-11-03T12:00:00Z
+             */
+            createdAt: string;
         };
         CreateLoteamentoDto: {
             /**
@@ -1395,36 +1515,6 @@ export interface components {
              * @example Lote indisponível para comercialização
              */
             motivo: string;
-        };
-        HistoricoDto: {
-            /**
-             * @description Autor ou null para sistema.
-             * @example { id: "2872822b-14be-41ea-881f-a8c0c11c1ffd", nome: "Usuário Teste" }
-             */
-            usuario: {
-                [key: string]: unknown;
-            } | null;
-            valorAnterior: ({
-                [key: string]: unknown;
-            } | unknown[] | string | number | boolean) | null;
-            valorNovo: ({
-                [key: string]: unknown;
-            } | unknown[] | string | number | boolean) | null;
-            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
-            id: string;
-            /** @example Reserva */
-            entidadeTipo: string;
-            /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
-            entidadeId: string;
-            /** @example CANCELAR */
-            acao: string;
-            /** @example Solicitação de cancelamento */
-            motivo: string | null;
-            /**
-             * Format: date-time
-             * @example 2026-11-03T12:00:00Z
-             */
-            createdAt: string;
         };
         ClienteResumoDto: {
             /** @example 2872822b-14be-41ea-881f-a8c0c11c1ffd */
@@ -1981,6 +2071,327 @@ export interface components {
              * @example https://exemplo.com/atendimento
              */
             contatoComercial: string;
+        };
+        ContagemStatusLoteDto: {
+            /**
+             * @description Quantidade de lotes disponíveis.
+             * @example 50
+             */
+            DISPONIVEL: number;
+            /**
+             * @description Quantidade de lotes reservados.
+             * @example 20
+             */
+            RESERVADO: number;
+            /**
+             * @description Quantidade de lotes vendidos.
+             * @example 25
+             */
+            VENDIDO: number;
+            /**
+             * @description Quantidade de lotes bloqueados.
+             * @example 5
+             */
+            BLOQUEADO: number;
+        };
+        PainelResumoItemDto: {
+            /**
+             * @description Total de lotes.
+             * @example 100
+             */
+            total: number;
+            /**
+             * @description Lotes disponíveis.
+             * @example 50
+             */
+            disponivel: number;
+            /**
+             * @description Lotes reservados.
+             * @example 20
+             */
+            reservado: number;
+            /**
+             * @description Lotes vendidos.
+             * @example 25
+             */
+            vendido: number;
+            /**
+             * @description Lotes bloqueados.
+             * @example 5
+             */
+            bloqueado: number;
+            /** @description Contagem por status do lote. */
+            porStatus: components["schemas"]["ContagemStatusLoteDto"];
+        };
+        PainelResumoLoteamentoDto: {
+            /**
+             * @description Total de lotes.
+             * @example 100
+             */
+            total: number;
+            /**
+             * @description Lotes disponíveis.
+             * @example 50
+             */
+            disponivel: number;
+            /**
+             * @description Lotes reservados.
+             * @example 20
+             */
+            reservado: number;
+            /**
+             * @description Lotes vendidos.
+             * @example 25
+             */
+            vendido: number;
+            /**
+             * @description Lotes bloqueados.
+             * @example 5
+             */
+            bloqueado: number;
+            /** @description Contagem por status do lote. */
+            porStatus: components["schemas"]["ContagemStatusLoteDto"];
+            /**
+             * @description Identificador do loteamento.
+             * @example 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+             */
+            id: string;
+            /**
+             * @description Identificador do loteamento (alias).
+             * @example 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+             */
+            loteamentoId: string;
+            /**
+             * @description Nome do loteamento.
+             * @example Residencial Sul
+             */
+            nome: string;
+        };
+        PainelResumoDto: {
+            /** @description Resumo geral de todos os lotes. */
+            geral: components["schemas"]["PainelResumoItemDto"];
+            /** @description Resumo por loteamento. */
+            porLoteamento: components["schemas"]["PainelResumoLoteamentoDto"][];
+            /**
+             * @description Total geral de lotes.
+             * @example 100
+             */
+            total: number;
+            /**
+             * @description Total geral de lotes disponíveis.
+             * @example 50
+             */
+            disponivel: number;
+            /**
+             * @description Total geral de lotes reservados.
+             * @example 20
+             */
+            reservado: number;
+            /**
+             * @description Total geral de lotes vendidos.
+             * @example 25
+             */
+            vendido: number;
+            /**
+             * @description Total geral de lotes bloqueados.
+             * @example 5
+             */
+            bloqueado: number;
+            /** @description Contagem geral por status do lote. */
+            porStatus: components["schemas"]["ContagemStatusLoteDto"];
+        };
+        PainelVendasPeriodoTotaisDto: {
+            /**
+             * @description Total de vendas no dia de hoje (ou no dia).
+             * @example 2
+             */
+            dia: number;
+            /**
+             * @description Total de vendas na semana.
+             * @example 5
+             */
+            semana: number;
+            /**
+             * @description Total de vendas no mês.
+             * @example 12
+             */
+            mes: number;
+        };
+        PainelVendaPeriodoItemDto: {
+            /**
+             * @description Identificador do período (dia, semana ou mês).
+             * @example 2026-11-01
+             */
+            periodo: string;
+            /**
+             * @description Quantidade de vendas no período.
+             * @example 2
+             */
+            quantidade: number;
+            /**
+             * @description Valor total vendido no período.
+             * @example 300000.00
+             */
+            valorTotal: string;
+        };
+        PainelVendaDiaItemDto: {
+            /**
+             * @description Data da venda (YYYY-MM-DD).
+             * @example 2026-11-05
+             */
+            data: string;
+            /**
+             * @description Quantidade de vendas na data.
+             * @example 1
+             */
+            quantidade: number;
+            /**
+             * @description Valor total vendido na data.
+             * @example 150000.00
+             */
+            valorTotal: string;
+        };
+        PainelVendaSemanaItemDto: {
+            /**
+             * @description Semana da venda (YYYY-Www).
+             * @example 2026-W45
+             */
+            semana: string;
+            /**
+             * @description Quantidade de vendas na semana.
+             * @example 4
+             */
+            quantidade: number;
+            /**
+             * @description Valor total vendido na semana.
+             * @example 600000.00
+             */
+            valorTotal: string;
+        };
+        PainelVendaMesItemDto: {
+            /**
+             * @description Mês da venda (YYYY-MM).
+             * @example 2026-11
+             */
+            mes: string;
+            /**
+             * @description Quantidade de vendas no mês.
+             * @example 10
+             */
+            quantidade: number;
+            /**
+             * @description Valor total vendido no mês.
+             * @example 1500000.00
+             */
+            valorTotal: string;
+        };
+        PainelVendaVendedorItemDto: {
+            /**
+             * @description Identificador do vendedor.
+             * @example 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+             */
+            vendedorId: string;
+            /**
+             * @description Nome do vendedor.
+             * @example Carlos Vendedor
+             */
+            nome: string;
+            /**
+             * @description Quantidade de vendas efetuadas pelo vendedor.
+             * @example 5
+             */
+            quantidade: number;
+            /**
+             * @description Valor total vendido pelo vendedor.
+             * @example 750000.00
+             */
+            valorTotal: string;
+        };
+        PainelVendasDto: {
+            /**
+             * @description Quantidade total de vendas no filtro.
+             * @example 12
+             */
+            total: number;
+            /**
+             * @description Valor total das vendas no filtro.
+             * @example 1800000.00
+             */
+            valorTotal: string;
+            /** @description Vendas agregadas por períodos de referência (dia, semana, mês). */
+            periodo: components["schemas"]["PainelVendasPeriodoTotaisDto"];
+            /** @description Resumo de vendas por período (alias para periodo). */
+            resumo: components["schemas"]["PainelVendasPeriodoTotaisDto"];
+            /** @description Série temporal de vendas pelo agrupamento selecionado. */
+            porPeriodo: components["schemas"]["PainelVendaPeriodoItemDto"][];
+            /** @description Vendas agrupadas por dia. */
+            porDia: components["schemas"]["PainelVendaDiaItemDto"][];
+            /** @description Vendas agrupadas por semana. */
+            porSemana: components["schemas"]["PainelVendaSemanaItemDto"][];
+            /** @description Vendas agrupadas por mês. */
+            porMes: components["schemas"]["PainelVendaMesItemDto"][];
+            /** @description Vendas agrupadas por vendedor. */
+            porVendedor: components["schemas"]["PainelVendaVendedorItemDto"][];
+        };
+        PendenciasReservasDto: {
+            /**
+             * @description Quantidade de reservas ativas.
+             * @example 8
+             */
+            ativas: number;
+            /**
+             * @description Quantidade de reservas ativas com vencimento em breve.
+             * @example 2
+             */
+            vencendoEmBreve: number;
+        };
+        PendenciasPropostasDto: {
+            /**
+             * @description Quantidade de propostas em análise (pendentes de decisão).
+             * @example 5
+             */
+            pendentes: number;
+            /**
+             * @description Quantidade de propostas em análise com prazo limite ultrapassado.
+             * @example 1
+             */
+            atrasadas: number;
+            /**
+             * @description Quantidade de propostas em análise dentro do prazo limite.
+             * @example 4
+             */
+            emDia: number;
+        };
+        PainelPendenciasDto: {
+            /**
+             * @description Quantidade de reservas ativas.
+             * @example 8
+             */
+            reservasAtivas: number;
+            /**
+             * @description Quantidade de reservas com vencimento em breve.
+             * @example 2
+             */
+            reservasVencendoEmBreve: number;
+            /**
+             * @description Quantidade de propostas pendentes em análise.
+             * @example 5
+             */
+            propostasPendentes: number;
+            /**
+             * @description Quantidade de propostas atrasadas.
+             * @example 1
+             */
+            propostasAtrasadas: number;
+            /**
+             * @description Total de itens pendentes (reservas ativas + propostas pendentes).
+             * @example 13
+             */
+            total: number;
+            /** @description Detalhe de pendências de reservas. */
+            reservas: components["schemas"]["PendenciasReservasDto"];
+            /** @description Detalhe de pendências de propostas. */
+            propostas: components["schemas"]["PendenciasPropostasDto"];
         };
     };
     responses: never;
@@ -2812,7 +3223,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["RenovacaoReservaDto"][];
+                        data: components["schemas"]["RenovacaoDto"][];
                         meta: components["schemas"]["PaginationMetaDto"];
                     };
                 };
@@ -3014,6 +3425,77 @@ export interface operations {
             };
             /** @description Conflito com o estado atual do recurso */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    HistoricoController_list_v1: {
+        parameters: {
+            query: {
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+                entidadeTipo?: string;
+                entidadeId?: string;
+                /** @description Autor da alteração. */
+                usuarioId?: string;
+                /** @description Data UTC ou instante ISO 8601 inclusivo. */
+                dataDe?: string;
+                /** @description Data UTC inteira incluída, ou instante ISO 8601 inclusivo. */
+                dataAte?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["HistoricoDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4255,77 +4737,6 @@ export interface operations {
             };
         };
     };
-    HistoricoController_list_v1: {
-        parameters: {
-            query: {
-                /** @description Página desejada, começando em 1 */
-                page: number;
-                /** @description Itens por página (máximo 100) */
-                pageSize: number;
-                entidadeTipo?: string;
-                entidadeId?: string;
-                /** @description Autor da alteração. */
-                usuarioId?: string;
-                /** @description Data UTC ou instante ISO 8601 inclusivo. */
-                dataDe?: string;
-                /** @description Data UTC inteira incluída, ou instante ISO 8601 inclusivo. */
-                dataAte?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["HistoricoDto"][];
-                        meta: components["schemas"]["PaginationMetaDto"];
-                    };
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Regra de negócio violada */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
     ClientesController_list_v1: {
         parameters: {
             query: {
@@ -5185,6 +5596,34 @@ export interface operations {
             };
             /** @description Recurso não encontrado */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MapaController_observar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6592,6 +7031,45 @@ export interface operations {
             };
         };
     };
+    MapaPublicoController_observar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Muitas requisições; tente novamente mais tarde */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
     MapaPublicoController_consultar_v1: {
         parameters: {
             query: {
@@ -6636,6 +7114,227 @@ export interface operations {
             };
             /** @description Muitas requisições; tente novamente mais tarde */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PainelController_resumo_v1: {
+        parameters: {
+            query?: {
+                /** @description Identificador do loteamento para filtro. */
+                loteamentoId?: string;
+                /** @description Data inicial do período em UTC (YYYY-MM-DD ou ISO 8601). */
+                dataDe?: string;
+                /** @description Data final do período em UTC (YYYY-MM-DD ou ISO 8601). */
+                dataAte?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PainelResumoDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PainelController_vendas_v1: {
+        parameters: {
+            query?: {
+                /** @description Identificador do loteamento para filtro. */
+                loteamentoId?: string;
+                /** @description Identificador do vendedor para filtro. */
+                vendedorId?: string;
+                /** @description Data inicial do período em UTC (YYYY-MM-DD ou ISO 8601). */
+                dataDe?: string;
+                /** @description Data final do período em UTC (YYYY-MM-DD ou ISO 8601). */
+                dataAte?: string;
+                /** @description Agrupamento desejado para a série de vendas ('dia', 'semana', 'mes'). */
+                agrupamento?: "dia" | "semana" | "mes";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PainelVendasDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PainelController_pendencias_v1: {
+        parameters: {
+            query?: {
+                /** @description Identificador do loteamento para filtro. */
+                loteamentoId?: string;
+                /** @description Identificador do vendedor para filtro (gestor/admin); comercial é limitado ao próprio usuário. */
+                vendedorId?: string;
+                /** @description Data inicial do período em UTC (YYYY-MM-DD ou ISO 8601). */
+                dataDe?: string;
+                /** @description Data final do período em UTC (YYYY-MM-DD ou ISO 8601). */
+                dataAte?: string;
+                /** @description Quantidade de dias para considerar vencimento em breve (padrão: 3). */
+                diasVencimentoEmBreve?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PainelPendenciasDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
