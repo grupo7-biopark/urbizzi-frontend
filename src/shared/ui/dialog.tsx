@@ -85,11 +85,17 @@ export function Modal({
   );
 }
 
-export function Dialog(props: ModalProps) {
+export function Dialog({
+  size = 'padrao',
+  ...props
+}: ModalProps & { size?: 'padrao' | 'amplo' }) {
   return (
     <Modal
       {...props}
-      contentClassName="top-1/2 left-1/2 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 animate-subir"
+      contentClassName={cn(
+        'top-1/2 left-1/2 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 animate-subir',
+        size === 'amplo' ? 'max-w-5xl' : 'max-w-lg',
+      )}
     />
   );
 }

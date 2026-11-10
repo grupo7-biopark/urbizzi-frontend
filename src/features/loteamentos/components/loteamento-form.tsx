@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { DemarcacaoLoteamento } from './demarcacao-loteamento';
 import { Form, FormInput, FormTextarea } from '@/shared/ui/form';
 import { Panel } from '@/shared/ui/panel';
 import type { Loteamento } from '../api/loteamentos.api';
@@ -27,14 +29,18 @@ function Campos() {
 export function NovoLoteamentoForm() {
   const router = useRouter();
   const create = useCreateLoteamento();
+  const [vertices, setVertices] = useState<number[][] | null>();
 
   async function handleSubmit(values: LoteamentoFormValues) {
-    const { id } = await create.mutateAsync(toLoteamentoBody(values));
+    const { id } = await create.mutateAsync({
+      ...toLoteamentoBody(values),
+      vertices,
+    });
     router.push(`/loteamentos/${id}`);
   }
 
   return (
-    <Panel className="max-w-2xl">
+    <Panel className="max-w-5xl">
       <Form
         schema={loteamentoFormSchema}
         defaultValues={{ nome: '', descricao: '', localizacao: '' }}
@@ -43,6 +49,7 @@ export function NovoLoteamentoForm() {
         fieldsByCode={FIELDS_BY_CODE}
       >
         <Campos />
+        <DemarcacaoLoteamento vertices={vertices} onChange={setVertices} />
       </Form>
     </Panel>
   );
@@ -55,15 +62,16 @@ export function EditarLoteamentoForm({
 }) {
   const router = useRouter();
   const update = useUpdateLoteamento(loteamento.id);
+  const [vertices, setVertices] = useState<number[][] | null>();
   const detalheHref = `/loteamentos/${loteamento.id}`;
 
   async function handleSubmit(values: LoteamentoFormValues) {
-    await update.mutateAsync(toLoteamentoBody(values));
+    await update.mutateAsync({ ...toLoteamentoBody(values), vertices });
     router.push(detalheHref);
   }
 
   return (
-    <Panel className="max-w-2xl">
+    <Panel className="max-w-5xl">
       <Form
         schema={loteamentoFormSchema}
         defaultValues={{
@@ -76,6 +84,11 @@ export function EditarLoteamentoForm({
         fieldsByCode={FIELDS_BY_CODE}
       >
         <Campos />
+        <DemarcacaoLoteamento
+          id={loteamento.id}
+          vertices={vertices}
+          onChange={setVertices}
+        />
       </Form>
     </Panel>
   );

@@ -1405,6 +1405,12 @@ const routes = {
     assinarEventosDoMapa(request, response);
   }),
 
+  'GET /v1/geografia/areas': protegida((_request, response) =>
+    send(response, 200, {
+      data: [],
+      meta: { page: 1, pageSize: 100, total: 0, totalPages: 0 },
+    }),
+  ),
   'GET /v1/mapa': protegida((request, response, path) => {
     const planta = plantas.find(({ ativa }) => ativa);
 

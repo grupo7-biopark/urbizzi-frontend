@@ -31,7 +31,7 @@ describe('AtalhosInicio', () => {
     await screen.findByRole('link', { name: /Mapa/ });
     expect(
       screen.getAllByRole('link').map((link) => link.getAttribute('href')),
-    ).toEqual(['/mapa', '/loteamentos', '/lotes']);
+    ).toEqual(['/mapa/geografico', '/loteamentos', '/lotes']);
     expect(
       screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent),
     ).toEqual(['Geral', 'Cadastros']);

@@ -11,7 +11,7 @@ const SENHA = 'senha-de-teste-123';
 
 const ROTAS = {
   Início: '/',
-  Mapa: '/mapa',
+  Mapa: '/mapa/geografico',
   Loteamentos: '/loteamentos',
   Lotes: '/lotes',
   Plantas: '/plantas',
