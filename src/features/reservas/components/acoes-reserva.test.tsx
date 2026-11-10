@@ -128,6 +128,12 @@ describe('ações da reserva', () => {
     expect(
       within(dialog).getByText(/Há proposta em análise ou aprovada/),
     ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/preservando as decisões anteriores/),
+    ).toBeVisible();
+    expect(
+      within(dialog).queryByText(/como rejeitadas/),
+    ).not.toBeInTheDocument();
     const confirmar = within(dialog).getByRole('button', {
       name: 'Cancelar e encerrar propostas',
     });
