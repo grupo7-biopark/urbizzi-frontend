@@ -14,7 +14,7 @@ export function useRenovarReserva(invalidates: QueryKey[]) {
 export function useCancelarReserva(invalidates: QueryKey[]) {
   return useApiMutation({
     mutationFn: cancelarReserva,
-    invalidates: [['reservas'], ...invalidates],
+    invalidates: [['reservas'], ['propostas'], ...invalidates],
     successMessage: 'Reserva cancelada',
     errorToast: false,
   });

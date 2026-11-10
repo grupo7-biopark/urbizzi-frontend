@@ -164,7 +164,7 @@ test('navegar pelo menu leva à tela e marca o item atual', async ({ page }) => 
   const trilha = page.getByRole('navigation', { name: 'Trilha de navegação' });
   await trilha.getByRole('link', { name: 'Propostas' }).click();
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Propostas' }),
+    page.getByRole('heading', { level: 1, name: 'Minhas propostas' }),
   ).toBeVisible();
 });
 

@@ -5,6 +5,7 @@ import { loteIdSchema } from '@/features/lotes/schemas/lotes-search.schema';
 import { exigirPermissao } from '@/shared/auth/permissao.server';
 import { podeExecutar } from '@/shared/auth/permissoes';
 import { AcaoReserva } from './acao-reserva';
+import { AcaoProposta } from './acao-proposta';
 export const metadata: Metadata = { title: 'Detalhe do lote' };
 export default async function LotePage({
   params,
@@ -22,6 +23,8 @@ export default async function LotePage({
           <AcaoReserva id={result.data} />
         ) : null
       }
-    />
+    >
+      <AcaoProposta id={result.data} />
+    </LoteComAcoesReserva>
   );
 }
