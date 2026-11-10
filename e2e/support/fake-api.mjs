@@ -314,6 +314,7 @@ const quadras = new Map();
 const lotes = new Map();
 const clientes = new Map();
 const reservas = new Map();
+const propostas = new Map();
 
 function previsaoReserva() {
   const prazoDias = prazos.prazo_reserva_dias;
@@ -546,6 +547,102 @@ const historicoCliente = [
     proposta: null,
   },
 ];
+
+// Fixtures das listagens de reservas e propostas, que também servem à auditoria
+// de tablet. A proposta pertence ao Administrador para aparecer em "Minhas
+// propostas" na sessão padrão do e2e.
+const propostaDaLista = {
+  id: propostaHistorico.id,
+  reservaId: reservaHistorico.id,
+  vendedorId: USUARIOS[0].id,
+  status: propostaHistorico.status,
+  valor: propostaHistorico.valor,
+  condicoes: 'Pagamento à vista, conforme negociação fictícia.',
+  observacoes: null,
+  dataEnvio: propostaHistorico.dataEnvio,
+  prazoLimite: propostaHistorico.prazoLimite,
+  decididoPorId: propostaHistorico.decisao.decididoPorId,
+  dataDecisao: propostaHistorico.decisao.data,
+  motivoDecisao: propostaHistorico.decisao.motivo,
+  atrasada: false,
+  encerrada: false,
+  dataEncerramento: null,
+  motivoEncerramento: null,
+};
+propostas.set(propostaDaLista.id, propostaDaLista);
+
+const reservasDaLista = [
+  {
+    ...reservaHistorico,
+    vendedorId: USUARIOS[0].id,
+    cliente: { id: clienteHistorico.id, nome: clienteHistorico.nome },
+    propostaAtual: {
+      id: propostaDaLista.id,
+      status: propostaDaLista.status,
+      valor: propostaDaLista.valor,
+    },
+  },
+];
+
+/** Converte a reserva ativa usada no detalhe do lote no resumo da listagem. */
+function resumosDeReservas() {
+  const criadas = [...reservas.values()].flatMap((registro) => {
+    const lote = lotes.get(registro.loteId);
+    const quadra = lote && quadras.get(lote.quadraId);
+    const loteamento = lote && loteamentos.get(lote.loteamentoId);
+    const cliente = clientes.get(registro.clienteId);
+
+    if (!lote || !quadra || !loteamento || !cliente) {
+      return [];
+    }
+
+    return [
+      {
+        id: registro.id,
+        status: registro.status,
+        vendedorId: registro.vendedorId,
+        dataInicio: registro.dataInicio,
+        dataVencimento: registro.dataVencimento,
+        lote: {
+          id: lote.id,
+          numero: lote.numero,
+          quadra: quadra.numero,
+          loteamentoId: loteamento.id,
+          loteamento: loteamento.nome,
+        },
+        cliente: { id: cliente.id, nome: cliente.nome },
+        propostaAtual: null,
+      },
+    ];
+  });
+
+  return [...reservasDaLista, ...criadas];
+}
+
+function listarReservas(request, apenasMinhas) {
+  const { searchParams } = new URL(request.url, 'http://localhost');
+  const usuario = getUsuario(request);
+  const status = searchParams.getAll('status');
+  const vendedorId = searchParams.get('vendedorId');
+  const loteamentoId = searchParams.get('loteamentoId');
+  const vencimentoDe = searchParams.get('vencimentoDe');
+  const vencimentoAte = searchParams.get('vencimentoAte');
+
+  return resumosDeReservas()
+    .filter((reserva) => !apenasMinhas || reserva.vendedorId === usuario.id)
+    .filter((reserva) => status.length === 0 || status.includes(reserva.status))
+    .filter((reserva) => !vendedorId || reserva.vendedorId === vendedorId)
+    .filter(
+      (reserva) => !loteamentoId || reserva.lote.loteamentoId === loteamentoId,
+    )
+    .filter(
+      (reserva) => !vencimentoDe || reserva.dataVencimento >= vencimentoDe,
+    )
+    .filter(
+      (reserva) => !vencimentoAte || reserva.dataVencimento <= vencimentoAte,
+    )
+    .toSorted((a, b) => a.dataVencimento.localeCompare(b.dataVencimento));
+}
 
 function parseImportacao(body) {
   const texto = body.toString('utf8');
@@ -1460,6 +1557,26 @@ const routes = {
     } else {
       send(response, 201, salvarCliente(randomUUID(), dados));
     }
+  }, PERFIS_CLIENTES),
+
+  'GET /v1/reservas': protegida(
+    (request, response) =>
+      sendPagina(request, response, listarReservas(request, false)),
+    ['ADMINISTRADOR', 'GESTOR'],
+  ),
+
+  'GET /v1/reservas/minhas': protegida(
+    (request, response) =>
+      sendPagina(request, response, listarReservas(request, true)),
+    PERFIS_CLIENTES,
+  ),
+
+  'GET /v1/propostas/minhas': protegida((request, response) => {
+    const usuario = getUsuario(request);
+    const lista = [...propostas.values()]
+      .filter((proposta) => proposta.vendedorId === usuario.id)
+      .toSorted((a, b) => b.dataEnvio.localeCompare(a.dataEnvio));
+    sendPagina(request, response, lista);
   }, PERFIS_CLIENTES),
 
   'GET /v1/reservas/previsao': protegida((_request, response) => {

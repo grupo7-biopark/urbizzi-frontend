@@ -176,86 +176,97 @@ export function DataTable<Row>({
 
   return (
     <div className="flex flex-col gap-3" aria-busy={query.isFetching}>
-      <Table
-        role="table"
-        aria-label={label}
-        className={cn(
-          'block transition-opacity duration-150 md:table md:border md:border-border md:bg-surface-panel',
-          query.isPlaceholderData && 'opacity-60',
-        )}
+      {/* Em telas estreitas a tabela pode passar da largura disponível; a
+          rolagem fica contida aqui, sem estourar a página. */}
+      <div
+        role="region"
+        aria-label={`${label}: rolagem horizontal`}
+        // A região precisa receber foco para ser rolada pelo teclado (WCAG 2.1.1).
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        tabIndex={0}
+        className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
-        <TableHeader role="rowgroup" className="hidden md:table-header-group">
-          <TableRow role="row">
-            {columns.map(({ id, header, sortKey, align, acoes }) => {
-              const direction =
-                sortKey && params.orderBy === sortKey
-                  ? params.order === 'desc'
-                    ? 'desc'
-                    : 'asc'
-                  : undefined;
-
-              return (
-                <TableHead
-                  key={id}
-                  role="columnheader"
-                  className={cn((align === 'right' || acoes) && 'text-right')}
-                  aria-sort={
-                    direction === 'asc'
-                      ? 'ascending'
-                      : direction === 'desc'
-                        ? 'descending'
-                        : undefined
-                  }
-                >
-                  {sortKey ? (
-                    <SortableHeader
-                      header={header}
-                      sortKey={sortKey}
-                      direction={direction}
-                    />
-                  ) : (
-                    header
-                  )}
-                </TableHead>
-              );
-            })}
-          </TableRow>
-        </TableHeader>
-        <TableBody
-          role="rowgroup"
-          className="flex flex-col gap-3 md:table-row-group"
+        <Table
+          role="table"
+          aria-label={label}
+          className={cn(
+            'block transition-opacity duration-150 md:table md:min-w-max md:border md:border-border md:bg-surface-panel',
+            query.isPlaceholderData && 'opacity-60',
+          )}
         >
-          {rows.map((row) => (
-            <TableRow
-              key={getRowKey(row)}
-              role="row"
-              className="block border border-border bg-surface-panel p-4 transition-colors duration-150 md:table-row md:border-0 md:border-b md:bg-transparent md:p-0 md:last:border-b-0 md:hover:bg-surface-hover"
-            >
-              {columns.map(({ id, header, cell, align, acoes }) => (
-                <TableCell
-                  key={id}
-                  role="cell"
-                  className={cn(
-                    // `max-md:`: o `cn` só concatena, e o padding base do `TableCell` venceria.
-                    'flex flex-col gap-0.5 max-md:px-0 max-md:py-1.5 max-md:first:pt-0 max-md:last:pb-0 md:table-cell',
-                    acoes &&
-                      // Sem ação para esta linha, o cartão não ganha um rodapé vazio.
-                      'border-border max-md:mt-2 max-md:border-t max-md:pt-3 max-md:has-[>span:empty]:hidden',
-                    (align === 'right' || acoes) && 'md:text-right',
-                  )}
-                >
-                  {acoes ? null : (
-                    <span className="text-caption text-ink-muted md:hidden">
-                      {header}
-                    </span>
-                  )}
-                  <span className="min-w-0 wrap-anywhere">{cell(row)}</span>
-                </TableCell>
-              ))}
+          <TableHeader role="rowgroup" className="hidden md:table-header-group">
+            <TableRow role="row">
+              {columns.map(({ id, header, sortKey, align, acoes }) => {
+                const direction =
+                  sortKey && params.orderBy === sortKey
+                    ? params.order === 'desc'
+                      ? 'desc'
+                      : 'asc'
+                    : undefined;
+
+                return (
+                  <TableHead
+                    key={id}
+                    role="columnheader"
+                    className={cn((align === 'right' || acoes) && 'text-right')}
+                    aria-sort={
+                      direction === 'asc'
+                        ? 'ascending'
+                        : direction === 'desc'
+                          ? 'descending'
+                          : undefined
+                    }
+                  >
+                    {sortKey ? (
+                      <SortableHeader
+                        header={header}
+                        sortKey={sortKey}
+                        direction={direction}
+                      />
+                    ) : (
+                      header
+                    )}
+                  </TableHead>
+                );
+              })}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody
+            role="rowgroup"
+            className="flex flex-col gap-3 md:table-row-group"
+          >
+            {rows.map((row) => (
+              <TableRow
+                key={getRowKey(row)}
+                role="row"
+                className="block border border-border bg-surface-panel p-4 transition-colors duration-150 md:table-row md:border-0 md:border-b md:bg-transparent md:p-0 md:last:border-b-0 md:hover:bg-surface-hover"
+              >
+                {columns.map(({ id, header, cell, align, acoes }) => (
+                  <TableCell
+                    key={id}
+                    role="cell"
+                    className={cn(
+                      // `max-md:`: o `cn` só concatena, e o padding base do `TableCell` venceria.
+                      'flex flex-col gap-0.5 max-md:px-0 max-md:py-1.5 max-md:first:pt-0 max-md:last:pb-0 md:table-cell',
+                      acoes &&
+                        // Sem ação para esta linha, o cartão não ganha um rodapé vazio.
+                        'border-border max-md:mt-2 max-md:border-t max-md:pt-3 max-md:has-[>span:empty]:hidden',
+                      (align === 'right' || acoes) && 'md:text-right',
+                    )}
+                  >
+                    {acoes ? null : (
+                      <span className="text-caption text-ink-muted md:hidden">
+                        {header}
+                      </span>
+                    )}
+                    <span className="min-w-0 wrap-anywhere">{cell(row)}</span>
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-small text-ink-muted tabular-nums">
           {meta.total === 1
