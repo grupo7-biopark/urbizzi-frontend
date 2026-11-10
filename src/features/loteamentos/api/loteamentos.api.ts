@@ -24,13 +24,33 @@ export function getLoteamento(id: string) {
   return unwrap(api.GET('/v1/loteamentos/{id}', { params: { path: { id } } }));
 }
 
-export function createLoteamento(body: CreateLoteamento) {
-  return unwrap(api.POST('/v1/loteamentos', { body }));
+type Demarcacao = Partial<components['schemas']['SaveAreaGeograficaDto']>;
+export function createLoteamento(body: CreateLoteamento & Demarcacao) {
+  const { vertices, ...cadastro } = body;
+  if (vertices !== undefined)
+    return unwrap(
+      api.POST('/v1/geografia/loteamentos', { body: { cadastro, vertices } }),
+    );
+  return unwrap(api.POST('/v1/loteamentos', { body: cadastro }));
 }
 
-export function updateLoteamento(id: string, body: UpdateLoteamento) {
+export function updateLoteamento(
+  id: string,
+  body: UpdateLoteamento & Demarcacao,
+) {
+  const { vertices, ...cadastro } = body;
+  if (vertices !== undefined)
+    return unwrap(
+      api.PATCH('/v1/geografia/loteamentos/{id}', {
+        params: { path: { id } },
+        body: { cadastro, vertices },
+      }),
+    );
   return unwrap(
-    api.PATCH('/v1/loteamentos/{id}', { params: { path: { id } }, body }),
+    api.PATCH('/v1/loteamentos/{id}', {
+      params: { path: { id } },
+      body: cadastro,
+    }),
   );
 }
 
@@ -48,18 +68,37 @@ export function listQuadras(loteamentoId: string, query: ListQuadrasQuery) {
   );
 }
 
-export function createQuadra(loteamentoId: string, body: CreateQuadra) {
+export function createQuadra(
+  loteamentoId: string,
+  body: CreateQuadra & Demarcacao,
+) {
+  const { vertices, ...cadastro } = body;
+  if (vertices !== undefined)
+    return unwrap(
+      api.POST('/v1/geografia/loteamentos/{loteamentoId}/quadras', {
+        params: { path: { loteamentoId } },
+        body: { cadastro, vertices },
+      }),
+    );
   return unwrap(
     api.POST('/v1/loteamentos/{loteamentoId}/quadras', {
       params: { path: { loteamentoId } },
-      body,
+      body: cadastro,
     }),
   );
 }
 
-export function updateQuadra(id: string, body: UpdateQuadra) {
+export function updateQuadra(id: string, body: UpdateQuadra & Demarcacao) {
+  const { vertices, ...cadastro } = body;
+  if (vertices !== undefined)
+    return unwrap(
+      api.PATCH('/v1/geografia/quadras/{id}', {
+        params: { path: { id } },
+        body: { cadastro, vertices },
+      }),
+    );
   return unwrap(
-    api.PATCH('/v1/quadras/{id}', { params: { path: { id } }, body }),
+    api.PATCH('/v1/quadras/{id}', { params: { path: { id } }, body: cadastro }),
   );
 }
 

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { buttonClasses } from '@/shared/ui/button';
 import { EditarMarcadoresLink } from '@/features/mapa/components/editor-marcadores';
 import { MapaComAcoes } from './mapa-com-acoes';
 import { mapaSearchSchema } from '@/features/mapa/schemas/mapa-search.schema';
@@ -22,9 +24,17 @@ export default async function MapaPage({
         title="Mapa"
         parents={[{ label: 'Início', href: '/' }]}
         actions={
-          <Permitido acao="gerenciarPlanta">
-            <EditarMarcadoresLink />
-          </Permitido>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/mapa/geografico"
+              className={buttonClasses('secundario')}
+            >
+              Mapa geográfico
+            </Link>
+            <Permitido acao="gerenciarPlanta">
+              <EditarMarcadoresLink />
+            </Permitido>
+          </div>
         }
       />
       <MapaComAcoes search={search} />

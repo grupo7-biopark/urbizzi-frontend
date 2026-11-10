@@ -30,13 +30,27 @@ export function getLote(id: string) {
   return unwrap(api.GET('/v1/lotes/{id}', { params: { path: { id } } }));
 }
 
-export function createLote(body: CreateLote) {
-  return unwrap(api.POST('/v1/lotes', { body }));
+type Demarcacao = Partial<components['schemas']['SaveAreaGeograficaDto']>;
+export function createLote(body: CreateLote & Demarcacao) {
+  const { vertices, ...cadastro } = body;
+  if (vertices !== undefined)
+    return unwrap(
+      api.POST('/v1/geografia/lotes', { body: { cadastro, vertices } }),
+    );
+  return unwrap(api.POST('/v1/lotes', { body: cadastro }));
 }
 
-export function updateLote(id: string, body: UpdateLote) {
+export function updateLote(id: string, body: UpdateLote & Demarcacao) {
+  const { vertices, ...cadastro } = body;
+  if (vertices !== undefined)
+    return unwrap(
+      api.PATCH('/v1/geografia/lotes/{id}', {
+        params: { path: { id } },
+        body: { cadastro, vertices },
+      }),
+    );
   return unwrap(
-    api.PATCH('/v1/lotes/{id}', { params: { path: { id } }, body }),
+    api.PATCH('/v1/lotes/{id}', { params: { path: { id } }, body: cadastro }),
   );
 }
 

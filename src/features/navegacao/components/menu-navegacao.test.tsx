@@ -85,6 +85,9 @@ describe('getItemAtivo', () => {
   it.each([
     ['/', 'Início'],
     ['/loteamentos', 'Loteamentos'],
+    ['/mapa', 'Mapa'],
+    ['/mapa/geografico', 'Mapa'],
+    ['/mapa/editor', 'Mapa'],
     ['/loteamentos/abc/quadras', 'Loteamentos'],
     ['/propostas', 'Propostas'],
     ['/propostas/pendencias', 'Pendências'],

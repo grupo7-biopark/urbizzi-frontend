@@ -28,6 +28,8 @@ export const GRUPOS_MENU: GrupoMenu[] = [
 export type ItemMenu = {
   label: string;
   href: string;
+  /** Raiz da seção quando a entrada principal aponta para uma subtela. */
+  activePath?: string;
   acao: Acao;
   grupo: GrupoMenu;
   icone: IconComponent;
@@ -47,11 +49,12 @@ export const ITENS_MENU: ItemMenu[] = [
   },
   {
     label: 'Mapa',
-    href: '/mapa',
+    href: '/mapa/geografico',
+    activePath: '/mapa',
     acao: 'verMapaLotesPainel',
     grupo: 'Geral',
     icone: IconMapa,
-    descricao: 'Planta interativa com os lotes e seus status.',
+    descricao: 'Mapa geográfico com os lotes e seus status.',
   },
   {
     label: 'Loteamentos',
@@ -159,7 +162,9 @@ function contemRota(href: string, pathname: string) {
 
 /** O item mais específico: em `/propostas/pendencias`, é Pendências, e não Propostas. */
 export function getItemAtivo(pathname: string) {
-  return ITENS_MENU.filter((item) => contemRota(item.href, pathname)).toSorted(
-    (a, b) => b.href.length - a.href.length,
+  return ITENS_MENU.filter((item) =>
+    contemRota(item.activePath ?? item.href, pathname),
+  ).toSorted(
+    (a, b) => (b.activePath ?? b.href).length - (a.activePath ?? a.href).length,
   )[0];
 }
