@@ -50,7 +50,8 @@ jobs:
   e2e:
     name: Testes e2e
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Inclui instalar o navegador e percorrer a suíte completa, inclusive em runner frio.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
