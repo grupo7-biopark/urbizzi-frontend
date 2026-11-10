@@ -261,6 +261,210 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/geografia/busca": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Busca manual de local, com cache e limite global de 1 consulta/s ao provedor. */
+        get: operations["BuscasGeograficasController_search_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/geografia/loteamentos/{loteamentoId}/quadras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cria quadra e contorno dentro do loteamento atomicamente. */
+        post: operations["CadastrosGeograficosController_createQuadra_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/geografia/quadras/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Atualiza identificação e limite da quadra atomicamente. */
+        patch: operations["CadastrosGeograficosController_updateQuadra_v1"];
+        trace?: never;
+    };
+    "/v1/geografia/loteamentos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cria loteamento e demarcação atomicamente. */
+        post: operations["CadastrosGeograficosController_createLoteamento_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/geografia/loteamentos/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Atualiza loteamento e demarcação atomicamente. */
+        patch: operations["CadastrosGeograficosController_updateLoteamento_v1"];
+        trace?: never;
+    };
+    "/v1/geografia/lotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cria lote e demarcação atomicamente. */
+        post: operations["CadastrosGeograficosController_createLote_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/geografia/lotes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Atualiza lote e demarcação atomicamente. */
+        patch: operations["CadastrosGeograficosController_updateLote_v1"];
+        trace?: never;
+    };
+    "/v1/geografia/areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista contornos e status atuais dos cadastros ativos. */
+        get: operations["AreasGeograficasController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/geografia/areas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consulta a demarcação; area=null indica cadastro ainda não demarcado. */
+        get: operations["AreasGeograficasController_find_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/geografia/areas/loteamentos/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Substitui ou remove o limite de um loteamento. */
+        put: operations["AreasGeograficasController_saveLoteamento_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/geografia/areas/quadras/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Substitui ou remove o contorno de um lote, validando limite e sobreposição. */
+        put: operations["AreasGeograficasController_saveQuadra_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/geografia/areas/lotes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Substitui ou remove o contorno de um lote, validando limite e sobreposição. */
+        put: operations["AreasGeograficasController_saveLote_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/loteamentos": {
         parameters: {
             query?: never;
@@ -1273,6 +1477,47 @@ export interface components {
              */
             createdAt: string;
         };
+        LugarGeograficoDto: {
+            nome: string;
+            latitude: number;
+            longitude: number;
+        };
+        CreateQuadraDto: {
+            /**
+             * @description Identificação da quadra, única no loteamento
+             * @example A
+             */
+            numero: string;
+        };
+        CreateQuadraGeograficaDto: {
+            /** @description Pares [latitude, longitude], de 3 a 500 pontos. null remove a demarcação. */
+            vertices: number[][] | null;
+            cadastro: components["schemas"]["CreateQuadraDto"];
+        };
+        QuadraDto: {
+            /** @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10 */
+            id: string;
+            /** @example 0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
+            loteamentoId: string;
+            /** @example A */
+            numero: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        UpdateQuadraDto: {
+            /**
+             * @description Identificação da quadra, única no loteamento
+             * @example A
+             */
+            numero?: string;
+        };
+        UpdateQuadraGeograficaDto: {
+            /** @description Pares [latitude, longitude], de 3 a 500 pontos. null remove a demarcação. */
+            vertices: number[][] | null;
+            cadastro: components["schemas"]["UpdateQuadraDto"];
+        };
         CreateLoteamentoDto: {
             /**
              * @description Nome comercial, único entre os loteamentos
@@ -1283,6 +1528,11 @@ export interface components {
             descricao?: string | null;
             /** @example Av. Parigot de Souza, Toledo - PR */
             localizacao?: string | null;
+        };
+        CreateLoteamentoGeograficoDto: {
+            /** @description Pares [latitude, longitude], de 3 a 500 pontos. null remove a demarcação. */
+            vertices: number[][] | null;
+            cadastro: components["schemas"]["CreateLoteamentoDto"];
         };
         LoteamentoDto: {
             /** @example 0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
@@ -1309,31 +1559,123 @@ export interface components {
             /** @example Av. Parigot de Souza, Toledo - PR */
             localizacao?: string | null;
         };
-        CreateQuadraDto: {
+        UpdateLoteamentoGeograficoDto: {
+            /** @description Pares [latitude, longitude], de 3 a 500 pontos. null remove a demarcação. */
+            vertices: number[][] | null;
+            cadastro: components["schemas"]["UpdateLoteamentoDto"];
+        };
+        CreateLoteDto: {
             /**
-             * @description Identificação da quadra, única no loteamento
-             * @example A
+             * Format: uuid
+             * @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10
+             */
+            quadraId: string;
+            /**
+             * @description Número do lote, único na quadra
+             * @example 12
              */
             numero: string;
+            /**
+             * @description Área em m², positiva, com até 2 casas decimais
+             * @example 360.00
+             */
+            areaM2: string;
+            /**
+             * @description Valor de venda, positivo, com até 2 casas decimais; `null` se ainda não definido
+             * @example 250000.00
+             */
+            valor?: string | null;
+            /**
+             * @description Exibe o valor no link público (padrão `false`)
+             * @example false
+             */
+            exibirValorPublico?: boolean;
+            /** @example Lote de esquina */
+            observacoes?: string | null;
         };
-        QuadraDto: {
-            /** @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10 */
+        CreateLoteGeograficoDto: {
+            /** @description Pares [latitude, longitude], de 3 a 500 pontos. null remove a demarcação. */
+            vertices: number[][] | null;
+            cadastro: components["schemas"]["CreateLoteDto"];
+        };
+        /** @enum {string} */
+        StatusLote: "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "BLOQUEADO";
+        LoteDto: {
+            /** @example DISPONIVEL */
+            status: components["schemas"]["StatusLote"];
+            /** @example 5d2f8a1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
             id: string;
             /** @example 0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
             loteamentoId: string;
-            /** @example A */
+            /** @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10 */
+            quadraId: string;
+            /** @example 12 */
             numero: string;
+            /**
+             * @description Área em m², com 2 casas decimais
+             * @example 360.00
+             */
+            areaM2: string;
+            /**
+             * @description Valor de venda, com 2 casas decimais
+             * @example 250000.00
+             */
+            valor: string | null;
+            /** @example false */
+            exibirValorPublico: boolean;
+            /** @example Lote de esquina */
+            observacoes: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
         };
-        UpdateQuadraDto: {
+        UpdateLoteDto: {
             /**
-             * @description Identificação da quadra, única no loteamento
-             * @example A
+             * @description Número do lote, único na quadra
+             * @example 12
              */
             numero?: string;
+            /**
+             * @description Área em m², positiva, com até 2 casas decimais
+             * @example 360.00
+             */
+            areaM2?: string;
+            /**
+             * @description Valor de venda, positivo, com até 2 casas decimais; `null` se ainda não definido
+             * @example 250000.00
+             */
+            valor?: string | null;
+            /**
+             * @description Exibe o valor no link público (padrão `false`)
+             * @example false
+             */
+            exibirValorPublico?: boolean;
+            /** @example Lote de esquina */
+            observacoes?: string | null;
+        };
+        UpdateLoteGeograficoDto: {
+            /** @description Pares [latitude, longitude], de 3 a 500 pontos. null remove a demarcação. */
+            vertices: number[][] | null;
+            cadastro: components["schemas"]["UpdateLoteDto"];
+        };
+        AreaGeograficaDto: {
+            /** @enum {string} */
+            tipo: "LOTEAMENTO" | "QUADRA" | "LOTE";
+            /** Format: uuid */
+            quadraId: string | null;
+            status: string | null;
+            vertices: number[][];
+            id: string;
+            loteamentoId: string;
+            nome: string;
+        };
+        AreaGeograficaDetalheDto: {
+            area: components["schemas"]["AreaGeograficaDto"] | null;
+        };
+        SaveAreaGeograficaDto: {
+            /** @description Pares [latitude, longitude], de 3 a 500 pontos. null remove a demarcação. */
+            vertices: number[][] | null;
         };
         ErroImportacaoDto: {
             /**
@@ -1371,67 +1713,6 @@ export interface components {
             quadrasNovas: number;
             /** @description Linhas com problema; com qualquer erro, nada é gravado */
             erros: components["schemas"]["ErroImportacaoDto"][];
-        };
-        CreateLoteDto: {
-            /**
-             * Format: uuid
-             * @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10
-             */
-            quadraId: string;
-            /**
-             * @description Número do lote, único na quadra
-             * @example 12
-             */
-            numero: string;
-            /**
-             * @description Área em m², positiva, com até 2 casas decimais
-             * @example 360.00
-             */
-            areaM2: string;
-            /**
-             * @description Valor de venda, positivo, com até 2 casas decimais; `null` se ainda não definido
-             * @example 250000.00
-             */
-            valor?: string | null;
-            /**
-             * @description Exibe o valor no link público (padrão `false`)
-             * @example false
-             */
-            exibirValorPublico?: boolean;
-            /** @example Lote de esquina */
-            observacoes?: string | null;
-        };
-        /** @enum {string} */
-        StatusLote: "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "BLOQUEADO";
-        LoteDto: {
-            /** @example DISPONIVEL */
-            status: components["schemas"]["StatusLote"];
-            /** @example 5d2f8a1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
-            id: string;
-            /** @example 0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10 */
-            loteamentoId: string;
-            /** @example 1c1b8f8e-5a52-4a8e-9d3f-2c7f1e5a9b10 */
-            quadraId: string;
-            /** @example 12 */
-            numero: string;
-            /**
-             * @description Área em m², com 2 casas decimais
-             * @example 360.00
-             */
-            areaM2: string;
-            /**
-             * @description Valor de venda, com 2 casas decimais
-             * @example 250000.00
-             */
-            valor: string | null;
-            /** @example false */
-            exibirValorPublico: boolean;
-            /** @example Lote de esquina */
-            observacoes: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
         };
         QuadraNoLoteDto: {
             id: string;
@@ -1484,30 +1765,6 @@ export interface components {
             reserva: components["schemas"]["ReservaNoLoteDto"] | null;
             propostas: components["schemas"]["PropostaNoLoteDto"][];
             historico: components["schemas"]["EventoNoLoteDto"][];
-        };
-        UpdateLoteDto: {
-            /**
-             * @description Número do lote, único na quadra
-             * @example 12
-             */
-            numero?: string;
-            /**
-             * @description Área em m², positiva, com até 2 casas decimais
-             * @example 360.00
-             */
-            areaM2?: string;
-            /**
-             * @description Valor de venda, positivo, com até 2 casas decimais; `null` se ainda não definido
-             * @example 250000.00
-             */
-            valor?: string | null;
-            /**
-             * @description Exibe o valor no link público (padrão `false`)
-             * @example false
-             */
-            exibirValorPublico?: boolean;
-            /** @example Lote de esquina */
-            observacoes?: string | null;
         };
         BloquearLoteDto: {
             /**
@@ -3487,6 +3744,827 @@ export interface operations {
             };
             /** @description Perfil sem permissão para a ação */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    BuscasGeograficasController_search_v1: {
+        parameters: {
+            query: {
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+                /** @description Endereço ou local. A busca acontece somente ao pressionar Pesquisar. */
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LugarGeograficoDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CadastrosGeograficosController_createQuadra_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loteamentoId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateQuadraGeograficaDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuadraDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CadastrosGeograficosController_updateQuadra_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateQuadraGeograficaDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuadraDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CadastrosGeograficosController_createLoteamento_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLoteamentoGeograficoDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoteamentoDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CadastrosGeograficosController_updateLoteamento_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLoteamentoGeograficoDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoteamentoDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CadastrosGeograficosController_createLote_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLoteGeograficoDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoteDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CadastrosGeograficosController_updateLote_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLoteGeograficoDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoteDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AreasGeograficasController_list_v1: {
+        parameters: {
+            query: {
+                loteamentoId?: string;
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AreaGeograficaDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AreasGeograficasController_find_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreaGeograficaDetalheDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AreasGeograficasController_saveLoteamento_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveAreaGeograficaDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreaGeograficaDetalheDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AreasGeograficasController_saveQuadra_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveAreaGeograficaDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreaGeograficaDetalheDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Regra de negócio violada */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AreasGeograficasController_saveLote_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveAreaGeograficaDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreaGeograficaDetalheDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

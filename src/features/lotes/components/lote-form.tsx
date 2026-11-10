@@ -2,6 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { DemarcacaoLote, DemarcacaoNovoLote } from './demarcacao-lote';
 import { useController, useWatch } from 'react-hook-form';
 import { getErrorMessage } from '@/shared/api/errors';
 import { StatusLoteBadge } from '@/shared/ui/badge';
@@ -106,14 +108,22 @@ function CamposDeLocalizacao() {
 export function NovoLoteForm() {
   const router = useRouter();
   const create = useCreateLote();
+  const [vertices, setVertices] = useState<{
+    parent: string;
+    value: number[][] | null;
+  }>();
 
   async function handleSubmit(values: LoteFormValues) {
-    await create.mutateAsync(toCreateLote(values));
+    await create.mutateAsync({
+      ...toCreateLote(values),
+      vertices:
+        vertices?.parent === values.quadraId ? vertices.value : undefined,
+    });
     router.push('/lotes');
   }
 
   return (
-    <Panel className="max-w-2xl">
+    <Panel className="max-w-5xl">
       <Form
         schema={loteFormSchema}
         defaultValues={{
@@ -131,6 +141,10 @@ export function NovoLoteForm() {
       >
         <CamposDeLocalizacao />
         <CamposDoLote />
+        <DemarcacaoNovoLote
+          vertices={vertices}
+          onChange={(parent, value) => setVertices({ parent, value })}
+        />
       </Form>
     </Panel>
   );
@@ -155,14 +169,15 @@ function Dado({
 export function EditarLoteForm({ lote }: { lote: Lote }) {
   const router = useRouter();
   const update = useUpdateLote(lote.id);
+  const [vertices, setVertices] = useState<number[][] | null>();
 
   async function handleSubmit(values: LoteEdicaoFormValues) {
-    await update.mutateAsync(toUpdateLote(values));
+    await update.mutateAsync({ ...toUpdateLote(values), vertices });
     router.push('/lotes');
   }
 
   return (
-    <Panel className="max-w-2xl">
+    <Panel className="max-w-5xl">
       <div className="flex flex-col gap-5">
         <dl className="grid gap-5 sm:grid-cols-3">
           <Dado termo="Loteamento">
@@ -189,6 +204,13 @@ export function EditarLoteForm({ lote }: { lote: Lote }) {
           fieldsByCode={{ LOTE_JA_EXISTE: 'numero' }}
         >
           <CamposDoLote />
+          <DemarcacaoLote
+            id={lote.id}
+            loteamentoId={lote.loteamentoId}
+            quadraId={lote.quadraId}
+            vertices={vertices}
+            onChange={setVertices}
+          />
         </Form>
       </div>
     </Panel>

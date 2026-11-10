@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { DemarcacaoQuadra } from './demarcacao-quadra';
 import { usePermissao } from '@/shared/auth/use-permissao';
 import { Button } from '@/shared/ui/button';
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog';
@@ -30,18 +31,30 @@ function CampoNumero() {
 
 function NovaQuadraForm({ loteamentoId }: { loteamentoId: string }) {
   const create = useCreateQuadra(loteamentoId);
+  const [vertices, setVertices] = useState<number[][] | null>();
+  const [version, setVersion] = useState(0);
 
   return (
-    <div className="max-w-sm">
+    <div className="max-w-5xl">
       <Form
         schema={quadraFormSchema}
         defaultValues={{ numero: '' }}
-        onSubmit={(values: QuadraFormValues) => create.mutateAsync(values)}
+        onSubmit={async (values: QuadraFormValues) => {
+          await create.mutateAsync({ ...values, vertices });
+          setVertices(undefined);
+          setVersion((v) => v + 1);
+        }}
         submitLabel="Adicionar quadra"
         fieldsByCode={FIELDS_BY_CODE}
         resetAfterSubmit="numero"
       >
         <CampoNumero />
+        <DemarcacaoQuadra
+          key={version}
+          loteamentoId={loteamentoId}
+          vertices={vertices}
+          onChange={setVertices}
+        />
       </Form>
     </div>
   );
@@ -50,17 +63,23 @@ function NovaQuadraForm({ loteamentoId }: { loteamentoId: string }) {
 function EditarQuadra({ quadra }: { quadra: Quadra }) {
   const [open, setOpen] = useState(false);
   const update = useUpdateQuadra(quadra);
+  const [vertices, setVertices] = useState<number[][] | null>();
 
   async function handleSubmit(values: QuadraFormValues) {
-    await update.mutateAsync(values);
+    await update.mutateAsync({ ...values, vertices });
+    setVertices(undefined);
     setOpen(false);
   }
 
   return (
     <Dialog
+      size="amplo"
       title={`Editar a quadra ${quadra.numero}`}
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(value) => {
+        setOpen(value);
+        if (!value) setVertices(undefined);
+      }}
       trigger={
         <Button
           variant="fantasma"
@@ -79,6 +98,12 @@ function EditarQuadra({ quadra }: { quadra: Quadra }) {
         fieldsByCode={FIELDS_BY_CODE}
       >
         <CampoNumero />
+        <DemarcacaoQuadra
+          id={quadra.id}
+          loteamentoId={quadra.loteamentoId}
+          vertices={vertices}
+          onChange={setVertices}
+        />
       </Form>
     </Dialog>
   );
@@ -134,22 +159,26 @@ export function QuadrasPanel({ loteamentoId }: { loteamentoId: string }) {
   const podeGerenciar = pode('gerenciarCadastros');
 
   return (
-    <Panel title="Quadras">
-      <div className="flex flex-col gap-5">
-        {podeGerenciar ? <NovaQuadraForm loteamentoId={loteamentoId} /> : null}
-        <DataTable
-          label="Quadras"
-          query={query}
-          columns={
-            podeGerenciar ? [COLUNA_NUMERO, COLUNA_ACOES] : [COLUNA_NUMERO]
-          }
-          getRowKey={({ id }) => id}
-          emptyTitle="Nenhuma quadra cadastrada"
-          emptyDescription={
-            podeGerenciar ? 'Adicione a primeira quadra acima.' : undefined
-          }
-        />
-      </div>
-    </Panel>
+    <div id="quadras">
+      <Panel title="Quadras">
+        <div className="flex flex-col gap-5">
+          {podeGerenciar ? (
+            <NovaQuadraForm loteamentoId={loteamentoId} />
+          ) : null}
+          <DataTable
+            label="Quadras"
+            query={query}
+            columns={
+              podeGerenciar ? [COLUNA_NUMERO, COLUNA_ACOES] : [COLUNA_NUMERO]
+            }
+            getRowKey={({ id }) => id}
+            emptyTitle="Nenhuma quadra cadastrada"
+            emptyDescription={
+              podeGerenciar ? 'Adicione a primeira quadra acima.' : undefined
+            }
+          />
+        </div>
+      </Panel>
+    </div>
   );
 }
