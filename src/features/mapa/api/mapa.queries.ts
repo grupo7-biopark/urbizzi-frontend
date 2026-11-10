@@ -10,6 +10,7 @@ import {
 
 export const mapaKeys = {
   all: ['mapa'] as const,
+  consultas: () => [...mapaKeys.all, 'consulta'] as const,
   consulta: (query: ConsultaMapa) =>
     [...mapaKeys.all, 'consulta', query] as const,
   loteamentos: () => [...mapaKeys.all, 'loteamentos'] as const,

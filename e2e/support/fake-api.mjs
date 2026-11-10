@@ -101,6 +101,55 @@ async function readJson(request) {
   return body.length > 0 ? JSON.parse(body.toString()) : {};
 }
 
+// Assinantes do SSE do mapa. O link público guarda o loteamento para filtrar.
+const assinantesDoMapa = new Set();
+
+function assinarEventosDoMapa(request, response, loteamentoId = null) {
+  response.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-store',
+    'Referrer-Policy': 'no-referrer',
+    'X-Accel-Buffering': 'no',
+    Connection: 'keep-alive',
+  });
+  // O contrato manda o cliente reler o mapa ao abrir e ao reconectar.
+  response.write('event: ressincronizar\ndata: {}\n\n');
+
+  const assinante = { response, loteamentoId };
+  assinantesDoMapa.add(assinante);
+
+  const heartbeat = setInterval(() => {
+    response.write('event: heartbeat\ndata: {}\n\n');
+  }, 15_000);
+  heartbeat.unref();
+
+  request.on('close', () => {
+    clearInterval(heartbeat);
+    assinantesDoMapa.delete(assinante);
+  });
+}
+
+function publicarStatusDoLote(lote) {
+  // O mapa relê os marcadores depois do evento: a API falsa precisa persistir o
+  // mesmo status que acabou de anunciar.
+  for (const marcador of MARCADORES_DO_MAPA) {
+    if (marcador.loteId === lote.id) {
+      marcador.status = lote.status;
+    }
+  }
+
+  for (const { response, loteamentoId } of assinantesDoMapa) {
+    if (response.writableEnded || response.destroyed) continue;
+    if (loteamentoId && loteamentoId !== lote.loteamentoId) continue;
+    response.write(
+      `event: status-lote\ndata: ${JSON.stringify({
+        loteId: lote.id,
+        status: lote.status,
+      })}\n\n`,
+    );
+  }
+}
+
 // O processamento real leva minutos: aqui, o status avança com o tempo, para o e2e
 // acompanhar a tela mudando sozinha. O relógio começa na primeira listagem feita pela
 // sessão que enviou, porque o `next dev` pode levar segundos para compilar a tela. Um
@@ -749,6 +798,24 @@ const dynamicRoutes = [
   },
   {
     method: 'GET',
+    pattern: /^\/v1\/publico\/(?<token>[^/]+)\/eventos$/,
+    handler: (request, response, path, params) => {
+      const link = [...linksPublicos.values()].find(
+        (l) => l.token === params.token && l.ativo,
+      );
+      if (!link)
+        return sendError(
+          response,
+          '/v1/publico/[token]',
+          404,
+          'LINK_NAO_ENCONTRADO',
+          'Link não encontrado',
+        );
+      assinarEventosDoMapa(request, response, link.loteamentoId);
+    },
+  },
+  {
+    method: 'GET',
     pattern: /^\/v1\/publico\/(?<token>[^/]+)$/,
     handler: (request, response, path, params) => {
       const link = [...linksPublicos.values()].find(
@@ -1334,6 +1401,10 @@ const routes = {
   ),
   'GET /health': (_request, response) => send(response, 200, { status: 'ok' }),
 
+  'GET /v1/mapa/eventos': protegida((request, response) => {
+    assinarEventosDoMapa(request, response);
+  }),
+
   'GET /v1/mapa': protegida((request, response, path) => {
     const planta = plantas.find(({ ativa }) => ativa);
 
@@ -1502,6 +1573,7 @@ const routes = {
     };
     lote.status = 'RESERVADO';
     reservas.set(loteId, reserva);
+    publicarStatusDoLote(lote);
     send(response, 201, reserva);
   }, PERFIS_CLIENTES),
 

@@ -66,6 +66,8 @@ Sem navegador real e sem rede. Rápido e determinístico.
 
 Renderiza com Testing Library e interage como o usuário: busca por papel e nome acessível (`getByRole`), não por classe nem por detalhe de implementação. Simule a API com MSW; não faça mock dos hooks nem do cliente.
 
+O jsdom não implementa `EventSource`. Para fluxos SSE, use `EventSourceFalso` (`src/test/event-source.ts`) com `vi.stubGlobal('EventSource', EventSourceFalso)` e abra, falhe ou emita eventos manualmente.
+
 Para cada componente com dados, cubra o que se aplicar:
 
 1. Carregando, vazio, erro e sucesso.
@@ -93,7 +95,7 @@ Abre o navegador e percorre o sistema como o usuário. Fica para os fluxos que a
 4. Navegação que depende da URL (paginação e filtros mantidos ao recarregar).
 5. Página pública: respostas de rede sem campos sensíveis.
 
-Como o CI não tem o backend, o Playwright sobe uma API falsa (`e2e/support/fake-api.mjs`), que implementa o contrato de autenticação, um usuário de cada perfil, uma rota restrita, o cadastro de loteamentos, quadras e lotes e o envio e a ativação de plantas, com o processamento simulado. `e2e/permissoes.spec.ts`, `e2e/plantas.spec.ts` e parte de `e2e/loteamentos.spec.ts`, `e2e/quadras.spec.ts` e `e2e/lotes.spec.ts` dependem desses dados, por isso são pulados contra o backend real. O login do backend aceita 5 tentativas por minuto, então rode poucos arquivos por vez. Os mesmos testes rodam contra o backend real, informando um usuário de teste:
+Como o CI não tem o backend, o Playwright sobe uma API falsa (`e2e/support/fake-api.mjs`), que implementa o contrato de autenticação, um usuário de cada perfil, uma rota restrita, o cadastro de loteamentos, quadras e lotes, o envio e a ativação de plantas, com o processamento simulado, e os fluxos SSE do mapa, avisando os assinantes quando uma reserva muda o status de um lote. `e2e/permissoes.spec.ts`, `e2e/plantas.spec.ts` e parte de `e2e/loteamentos.spec.ts`, `e2e/quadras.spec.ts` e `e2e/lotes.spec.ts` dependem desses dados, por isso são pulados contra o backend real. O login do backend aceita 5 tentativas por minuto, então rode poucos arquivos por vez. Os mesmos testes rodam contra o backend real, informando um usuário de teste:
 
 ```bash
 E2E_API_URL=http://localhost:3000 E2E_EMAIL=... E2E_SENHA=... npx playwright test e2e/auth.spec.ts

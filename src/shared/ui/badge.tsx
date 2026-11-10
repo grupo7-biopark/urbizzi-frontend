@@ -16,17 +16,20 @@ type BadgeProps = ComponentProps<'span'> & {
   tone?: keyof typeof TONE_CLASSES;
 };
 
-export function Badge({ tone = 'neutro', className, ...props }: BadgeProps) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center px-2 py-0.5 text-caption whitespace-nowrap',
-        TONE_CLASSES[tone],
-        className,
-      )}
-      {...props}
-    />
+/** As classes do badge, para quem precisa de outro elemento semântico. */
+export function badgeClasses(
+  tone: keyof typeof TONE_CLASSES = 'neutro',
+  className?: string,
+) {
+  return cn(
+    'inline-flex items-center px-2 py-0.5 text-caption whitespace-nowrap',
+    TONE_CLASSES[tone],
+    className,
   );
+}
+
+export function Badge({ tone = 'neutro', className, ...props }: BadgeProps) {
+  return <span className={badgeClasses(tone, className)} {...props} />;
 }
 
 export type StatusLote = components['schemas']['StatusLote'];

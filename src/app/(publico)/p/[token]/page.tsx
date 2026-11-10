@@ -60,7 +60,7 @@ export default async function MapaPublicoPage({
         <Logo className="h-10 w-auto" />
         <h1 className="text-heading">Mapa público</h1>
       </header>
-      <MapaPublico dados={dados} />
+      <MapaPublico dados={dados} token={token} />
       <Pagination
         meta={dados.marcadores.meta}
         getPageHref={(p) => `/p/${encodeURIComponent(token)}?page=${p}`}

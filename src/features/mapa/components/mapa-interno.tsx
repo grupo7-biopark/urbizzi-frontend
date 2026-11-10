@@ -14,6 +14,7 @@ import {
   type FormaMarcador,
 } from '@/shared/ui/forma-marcador';
 import { IconMapa } from '@/shared/ui/icon';
+import { IndicadorConexao } from '@/shared/ui/indicador-conexao';
 import { Input } from '@/shared/ui/input';
 import { FilterBar, UrlSelectFilter } from '@/shared/ui/list-filters';
 import { formatArea, formatMoeda } from '@/shared/ui/masks';
@@ -28,6 +29,7 @@ import {
   type StatusLoteMapa,
 } from '../api/mapa.api';
 import { loteamentosDoMapaOptions, mapaOptions } from '../api/mapa.queries';
+import { useEventosMapa } from '../hooks/use-eventos-mapa';
 import { toConsultaMapa, type MapaSearch } from '../schemas/mapa-search.schema';
 
 const MAXIMO_RESULTADOS = 8;
@@ -239,6 +241,7 @@ export function MapaInterno({
   renderPainelLote?: (marcador: MarcadorMapa) => ReactNode;
 }) {
   const query = useQuery(mapaOptions(toConsultaMapa(search)));
+  const { estado } = useEventosMapa();
   const [painelId, setPainelId] = useState<string | null>(null);
   const [selecionado, setSelecionado] = useState<MarcadorMapa>();
   const [buscadoId, setBuscadoId] = useState<string | null>(null);
@@ -303,11 +306,14 @@ export function MapaInterno({
       <FiltrosDoMapa />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Legenda />
-        <p className="text-small text-ink-muted tabular-nums">
-          {total === 1
-            ? '1 lote no mapa'
-            : `${total.toLocaleString('pt-BR')} lotes no mapa`}
-        </p>
+        <div className="flex items-center gap-3">
+          <IndicadorConexao estado={estado} />
+          <p className="text-small text-ink-muted tabular-nums">
+            {total === 1
+              ? '1 lote no mapa'
+              : `${total.toLocaleString('pt-BR')} lotes no mapa`}
+          </p>
+        </div>
       </div>
       <BuscaDeLote
         marcadores={query.data.marcadores}
