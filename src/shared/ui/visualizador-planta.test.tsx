@@ -231,6 +231,26 @@ describe('VisualizadorPlantaLeaflet', () => {
     expect(setView).toHaveBeenCalledWith([-64, 64], 3);
   });
 
+  it('não reposiciona o mapa quando o foco é recriado no mesmo ponto', () => {
+    const mapas = espionarMapa();
+    const { rerender } = render(
+      <VisualizadorPlantaLeaflet planta={PLANTA} foco={{ x: 0.25, y: 0.5 }} />,
+    );
+    const setView = vi.spyOn(mapas[0] as L.Map, 'setView');
+
+    rerender(
+      <VisualizadorPlantaLeaflet planta={PLANTA} foco={{ x: 0.25, y: 0.5 }} />,
+    );
+
+    expect(setView).not.toHaveBeenCalled();
+
+    rerender(
+      <VisualizadorPlantaLeaflet planta={PLANTA} foco={{ x: 0.75, y: 0.5 }} />,
+    );
+
+    expect(setView).toHaveBeenCalledOnce();
+  });
+
   it('avisa o clique em um ponto da planta, e ignora fora da imagem', () => {
     const mapas = espionarMapa();
     const onPlantaClick = vi.fn<(ponto: PontoNormalizado) => void>();

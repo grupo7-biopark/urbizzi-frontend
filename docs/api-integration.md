@@ -200,6 +200,12 @@ Filtro desconhecido gera `400 DADOS_INVALIDOS`, então não repasse à API parâ
 
 > **Dado pessoal não vai para a URL da tela** ([security.md](security.md#lgpd-na-interface)). A busca de clientes aceita nome e documento, então o `q` dessa tela fica só em estado de componente, mesmo que o resto da listagem use a URL. Essa é uma exceção à FE-06 ("recarregar mantém a busca"), válida para buscas que aceitam dado pessoal.
 
+## Fluxos em tempo real (SSE)
+
+O mapa usa `GET /v1/mapa/eventos` (com sessão, pelo proxy `/api/backend`) e `GET /v1/publico/{token}/eventos` (link público, por uma rota própria em `/api/publico`). O hook `useEventSource` (`src/shared/api/use-event-source.ts`) concentra a conexão: eventos nomeados, reconexão com espera exponencial de 1 s a 30 s, vigia de 40 s sem nenhum evento (o backend manda heartbeat a cada 15 s) e fechamento ao desmontar.
+
+O backend envia `ressincronizar` ao abrir o fluxo e quando a escuta do PostgreSQL se recupera. Não há replay: ao receber o evento, o consumidor precisa consultar o mapa de novo. `status-lote` traz somente `{ loteId, status }`; o mapa interno atualiza o cache na hora e invalida a consulta para reconciliar ações e filtros, e a página pública atualiza os marcadores em memória e chama `router.refresh()` no `ressincronizar`.
+
 ## Tipos de dados
 
 | Tipo            | Na API                         | No front                                                         |

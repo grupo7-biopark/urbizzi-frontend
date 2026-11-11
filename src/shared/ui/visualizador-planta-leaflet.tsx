@@ -211,14 +211,22 @@ export default function VisualizadorPlantaLeaflet({
     };
   }, [larguraPx, alturaPx, maxZoom, tamanhoTile, tilesUrl]);
 
+  // Um novo snapshot recria o marcador no mesmo ponto: o que importa são as
+  // coordenadas, não a identidade do objeto.
+  const focoX = foco?.x;
+  const focoY = foco?.y;
+
   useEffect(() => {
-    if (instancia && foco) {
+    if (instancia && focoX !== undefined && focoY !== undefined) {
       instancia.mapa.setView(
-        normalizadoParaLatLng(foco, { larguraPx, alturaPx, maxZoom }),
+        normalizadoParaLatLng(
+          { x: focoX, y: focoY },
+          { larguraPx, alturaPx, maxZoom },
+        ),
         maxZoom,
       );
     }
-  }, [instancia, foco, larguraPx, alturaPx, maxZoom]);
+  }, [instancia, focoX, focoY, larguraPx, alturaPx, maxZoom]);
 
   useEffect(() => {
     if (!instancia) {

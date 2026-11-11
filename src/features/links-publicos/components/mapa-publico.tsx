@@ -3,12 +3,14 @@ import { useState } from 'react';
 import type { components } from '@/shared/api/schema';
 import { StatusLoteBadge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
+import { IndicadorConexao } from '@/shared/ui/indicador-conexao';
 import { formatArea, formatMoeda } from '@/shared/ui/masks';
 import { Panel } from '@/shared/ui/panel';
 import {
   VisualizadorPlanta,
   type MarcadorPlanta,
 } from '@/shared/ui/visualizador-planta';
+import { useEventosMapaPublico } from '../hooks/use-eventos-mapa-publico';
 const STATUS: Record<
   components['schemas']['LotePublicoDto']['status'],
   Pick<MarcadorPlanta, 'cor' | 'forma'>
@@ -21,14 +23,20 @@ const STATUS: Record<
 /** Destino básico da FE-32. Interações avançadas do mapa ficam para a FE-33. */
 export function MapaPublico({
   dados,
+  token,
 }: {
   dados: components['schemas']['MapaPublicoDto'];
+  token: string;
 }) {
+  const { dados: dadosAoVivo, estado } = useEventosMapaPublico(token, dados);
   const [selecionado, setSelecionado] = useState<string | null>(null);
-  const { planta, marcadores } = dados;
+  const { planta, marcadores } = dadosAoVivo;
   const foco = marcadores.data.find((m) => m.id === selecionado);
   return (
     <>
+      <div className="flex justify-end">
+        <IndicadorConexao estado={estado} />
+      </div>
       {planta.larguraPx !== null &&
       planta.alturaPx !== null &&
       planta.maxZoom !== null &&
