@@ -117,6 +117,19 @@ describe('DataTable', () => {
     expect(within(celula!).getByText('Nome')).toBeInTheDocument();
   });
 
+  it('contém a rolagem horizontal em uma região focável', async () => {
+    mockListagem(['Bela Vista']);
+
+    renderWithQuery(<Listagem />);
+
+    const tabela = await screen.findByRole('table', { name: 'Loteamentos' });
+    const regiao = screen.getByRole('region', {
+      name: 'Loteamentos: rolagem horizontal',
+    });
+    expect(regiao).toHaveAttribute('tabindex', '0');
+    expect(regiao).toContainElement(tabela);
+  });
+
   it('busca a página que está na URL', async () => {
     setTestUrl('/loteamentos?page=2');
     const buscas = mockListagem(['Bela Vista'], 3);

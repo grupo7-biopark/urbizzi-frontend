@@ -1,13 +1,7 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { entrar } from './support/sessao';
 const fake = !process.env.E2E_API_URL;
-async function entrar(page: Page, email = 'pessoa@exemplo.com') {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill(email);
-  await page.getByLabel('Senha').fill('senha-de-teste-123');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
-}
 async function api(page: Page, path: string, body?: unknown) {
   return page.evaluate(
     async ({ path: caminho, body: dados }) => {

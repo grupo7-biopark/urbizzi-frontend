@@ -101,6 +101,8 @@ E2E_API_URL=http://localhost:3000 E2E_EMAIL=... E2E_SENHA=... npx playwright tes
 
 Nesse modo, a API limita a 5 logins por minuto: espere um minuto antes de repetir. `e2e/recuperacao-senha.spec.ts` também precisa de `E2E_MAILPIT_URL` (`http://127.0.0.1:8025`), porque lê o link do e-mail, e cria uma conta só para o teste, que desativa no fim. Se já houver um servidor na porta 3001, o Playwright o reaproveita com a `API_URL` que ele tiver. Os demais fluxos contra o backend real entram na FE-35.
 
+`e2e/responsivo.spec.ts` audita o tablet (768×1024) contra a API falsa: as 19 telas de topo e formulários de criação listados no arquivo, a gaveta do menu, o login, o diálogo de geração de link e o mapa público sem sessão, exigindo `axe` sem violações e nenhuma rolagem horizontal. Também repete uma amostra no tema escuro e no tablet em paisagem (1024×768). Detalhes e edições (`/clientes/[id]`, `/loteamentos/[id]`, `/lotes/[id]`, `/usuarios/[id]/editar`), o tema escuro de todas as telas e os fluxos completos de reserva → proposta → aprovação → venda ainda não são cobertos; os fluxos completos, a página pública completa e o painel de indicadores entram nos próximos PRs da FE-35 depois de FE-23, FE-33 e FE-34.
+
 Para validar o detalhe do cliente com a API real, use `e2e/clientes.spec.ts` com
 `E2E_API_URL`, `E2E_EMAIL` e `E2E_SENHA`. Defina também
 `E2E_CLIENTE_HISTORICO` com o nome único de um cliente fictício que tenha reservas
