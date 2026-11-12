@@ -2,12 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
 import { usePermissao } from '@/shared/auth/use-permissao';
 import { cn } from '@/shared/ui/cn';
 import { agruparItens, getItemAtivo, ITENS_MENU } from '../menu';
 
-export function MenuNavegacao({ onNavigate }: { onNavigate?: () => void }) {
+export function MenuNavegacao({
+  onNavigate,
+  pendencias,
+}: {
+  onNavigate?: () => void;
+  pendencias?: ReactNode;
+}) {
   const pode = usePermissao();
   const itemAtivo = getItemAtivo(usePathname());
   // A barra lateral e a gaveta podem estar no DOM ao mesmo tempo.
@@ -37,6 +43,7 @@ export function MenuNavegacao({ onNavigate }: { onNavigate?: () => void }) {
                     {/* Sem pré-carregar: cada tela consulta a API, e o menu aparece em toda página. */}
                     <Link
                       href={item.href}
+                      aria-label={item.label}
                       prefetch={false}
                       onClick={onNavigate}
                       {...(ativo ? { 'aria-current': 'page' } : {})}
@@ -49,6 +56,9 @@ export function MenuNavegacao({ onNavigate }: { onNavigate?: () => void }) {
                     >
                       <Icone className="size-4" />
                       {item.label}
+                      {item.href === '/propostas/pendencias'
+                        ? pendencias
+                        : null}
                     </Link>
                   </li>
                 );

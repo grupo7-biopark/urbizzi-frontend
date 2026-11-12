@@ -1656,6 +1656,18 @@ const routes = {
     sendPagina(request, response, lista);
   }, PERFIS_CLIENTES),
 
+  'GET /v1/propostas/pendentes': protegida(
+    (request, response) => {
+      const lista = [...propostas.values()]
+        .filter(
+          (proposta) => proposta.status === 'EM_ANALISE' && !proposta.encerrada,
+        )
+        .toSorted((a, b) => a.prazoLimite.localeCompare(b.prazoLimite));
+      sendPagina(request, response, lista);
+    },
+    ['ADMINISTRADOR', 'GESTOR'],
+  ),
+
   'GET /v1/reservas/previsao': protegida((_request, response) => {
     send(response, 200, previsaoReserva());
   }, PERFIS_CLIENTES),

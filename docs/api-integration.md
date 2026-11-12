@@ -8,6 +8,12 @@ Cancelamento de reserva encerra as propostas sem substituir a decisão históric
 não apresenta análise pendente ou contador para propostas encerradas, e mantém
 visíveis decisões anteriores. Cancelar também invalida as queries de propostas.
 
+A fila de Pendências (FE-23) usa a ordem por prazo da API antes da paginação.
+O contador do menu consulta a mesma fila com uma página de um item e usa
+`meta.total`. A lista e o contador atualizam a cada 30 segundos. As decisões
+invalidam as queries de propostas, reservas, lotes, histórico de clientes e mapa.
+O layout compõe o contador de propostas e o passa para os menus de navegação.
+
 ## Tipos gerados do OpenAPI
 
 O backend publica o contrato em `/docs-json`. Os tipos são gerados com `openapi-typescript` para `src/shared/api/schema.d.ts`, arquivo versionado e que nunca é editado à mão:

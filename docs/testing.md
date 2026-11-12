@@ -47,6 +47,15 @@ O Vitest roda **sem** `globals`: importe `describe`, `it`, `expect` e `vi` de `v
 
 Antes do primeiro e2e, instale o navegador: `npx playwright install chromium`.
 
+## Pendências do gestor
+
+A FE-23 inclui `e2e/pendencias.spec.ts` para aprovação, rejeição, motivo obrigatório,
+atraso, contador e bloqueio do Comercial. `e2e/pendencias-real.spec.ts` usa
+`E2E_API_URL`, `E2E_BACKEND_DIR` e `DATABASE_URL` de teste com prefixo
+`urbizzi_fe_e2e_` para repetir as decisões na API real e conferir que o lote
+continua reservado. Defina `E2E_CAPTURAS_FE23=true` no primeiro arquivo para gerar
+as capturas com dados fictícios em `docs/capturas/`.
+
 ## O que testar em cada nível
 
 ### Unitário (`*.test.ts`, ao lado do arquivo testado)

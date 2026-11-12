@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Drawer } from '@/shared/ui/drawer';
 import { IconMenu } from '@/shared/ui/icon';
 import { MenuNavegacao } from './menu-navegacao';
 
-export function MenuCelular() {
+export function MenuCelular({ pendencias }: { pendencias?: ReactNode }) {
   const [aberto, setAberto] = useState(false);
 
   return (
@@ -22,7 +22,10 @@ export function MenuCelular() {
         </Button>
       }
     >
-      <MenuNavegacao onNavigate={() => setAberto(false)} />
+      <MenuNavegacao
+        pendencias={pendencias}
+        onNavigate={() => setAberto(false)}
+      />
     </Drawer>
   );
 }
