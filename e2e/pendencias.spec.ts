@@ -1,3 +1,4 @@
+import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { makeProposta } from '../src/test/factories/proposta.factory';
@@ -77,7 +78,7 @@ for (const decisao of ['aprovar', 'rejeitar'] as const) {
       page,
       decisao === 'aprovar' ? 'gestor@exemplo.com' : 'pessoa@exemplo.com',
     );
-    await page.getByRole('link', { name: 'Pendências', exact: true }).click();
+    await page.getByRole('link', { name: /^Pendências(?:\s|$)/ }).click();
     await expect(
       page.getByRole('heading', { name: 'Pendências', exact: true }),
     ).toBeVisible();
@@ -85,6 +86,7 @@ for (const decisao of ['aprovar', 'rejeitar'] as const) {
     await expect(tabela.getByRole('row').nth(1)).toContainText('Em atraso');
     await expect(tabela.getByRole('row').nth(2)).toContainText('No prazo');
     await expect(page.getByLabel('2 propostas pendentes')).toBeVisible();
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     if (process.env.E2E_CAPTURAS_FE23 && decisao === 'aprovar') {
       await mkdir('docs/capturas', { recursive: true });
       await page.screenshot({
@@ -117,6 +119,7 @@ for (const decisao of ['aprovar', 'rejeitar'] as const) {
         .locator('html')
         .evaluate((element) => element.setAttribute('data-theme', 'dark'));
       await dialog.evaluate((element) => element.scrollTo(0, 0));
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       await page.screenshot({
         path: 'docs/capturas/fe23-analise-mobile-escuro.png',
         fullPage: true,
@@ -139,7 +142,7 @@ for (const decisao of ['aprovar', 'rejeitar'] as const) {
 test('Comercial recebe 403 na fila de pendências', async ({ page }) => {
   await entrar(page, 'comercial@exemplo.com');
   await expect(
-    page.getByRole('link', { name: 'Pendências', exact: true }),
+    page.getByRole('link', { name: /^Pendências(?:\s|$)/ }),
   ).toHaveCount(0);
   const resposta = await page.goto('/propostas/pendencias');
   expect(resposta?.status()).toBe(403);

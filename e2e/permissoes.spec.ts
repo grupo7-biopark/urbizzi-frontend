@@ -111,7 +111,9 @@ for (const { nome, email, rotulo, telas } of PERFIS) {
       const links = menu(page).getByRole('link');
       await expect(links).toHaveCount(telas.length);
       for (const [indice, titulo] of telas.entries()) {
-        await expect(links.nth(indice)).toHaveAccessibleName(titulo);
+        await expect(links.nth(indice)).toHaveAccessibleName(
+          titulo === 'Pendências' ? /^Pendências(?:\s|$)/ : titulo,
+        );
       }
       await expect(
         page.getByRole('banner').getByText(rotulo, { exact: true }),

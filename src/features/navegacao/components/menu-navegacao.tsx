@@ -43,7 +43,6 @@ export function MenuNavegacao({
                     {/* Sem pré-carregar: cada tela consulta a API, e o menu aparece em toda página. */}
                     <Link
                       href={item.href}
-                      aria-label={item.label}
                       prefetch={false}
                       onClick={onNavigate}
                       {...(ativo ? { 'aria-current': 'page' } : {})}
