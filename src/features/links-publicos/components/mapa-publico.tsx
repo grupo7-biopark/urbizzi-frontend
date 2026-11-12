@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { components } from '@/shared/api/schema';
 import { StatusLoteBadge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
+import { Drawer } from '@/shared/ui/drawer';
 import { IndicadorConexao } from '@/shared/ui/indicador-conexao';
 import { formatArea, formatMoeda } from '@/shared/ui/masks';
 import { Panel } from '@/shared/ui/panel';
@@ -11,6 +12,7 @@ import {
   type MarcadorPlanta,
 } from '@/shared/ui/visualizador-planta';
 import { useEventosMapaPublico } from '../hooks/use-eventos-mapa-publico';
+import { ContatoMapaPublico } from './contato-mapa-publico';
 const STATUS: Record<
   components['schemas']['LotePublicoDto']['status'],
   Pick<MarcadorPlanta, 'cor' | 'forma'>
@@ -20,7 +22,20 @@ const STATUS: Record<
   VENDIDO: { cor: '--status-vendido', forma: 'quadrado' },
   BLOQUEADO: { cor: '--status-bloqueado', forma: 'losango' },
 };
-/** Destino básico da FE-32. Interações avançadas do mapa ficam para a FE-33. */
+const LEGENDA = [
+  {
+    texto: 'Lotes disponíveis',
+    cor: 'bg-status-disponivel',
+    forma: 'rounded-full',
+  },
+  {
+    texto: 'Lotes reservados',
+    cor: 'bg-status-reservado',
+    forma: '[clip-path:polygon(50%_0%,100%_100%,0%_100%)]',
+  },
+  { texto: 'Lotes vendidos', cor: 'bg-status-vendido', forma: '' },
+  { texto: 'Lotes bloqueados', cor: 'bg-status-bloqueado', forma: 'rotate-45' },
+] as const;
 export function MapaPublico({
   dados,
   token,
@@ -37,6 +52,20 @@ export function MapaPublico({
       <div className="flex justify-end">
         <IndicadorConexao estado={estado} />
       </div>
+      <ul
+        aria-label="Legenda do mapa público"
+        className="flex flex-wrap gap-x-5 gap-y-2 text-small"
+      >
+        {LEGENDA.map(({ texto, cor, forma }) => (
+          <li key={texto} className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className={`size-3 shrink-0 ${cor} ${forma}`}
+            />
+            {texto}
+          </li>
+        ))}
+      </ul>
       {planta.larguraPx !== null &&
       planta.alturaPx !== null &&
       planta.maxZoom !== null &&
@@ -97,11 +126,44 @@ export function MapaPublico({
           </p>
         )}
       </Panel>
-      <Panel title="Atendimento">
-        <p className="whitespace-pre-wrap wrap-anywhere">
-          {dados.contatoComercial}
-        </p>
-      </Panel>
+      <Drawer
+        side="bottom"
+        title={foco ? `Lote ${foco.numero}` : 'Lote'}
+        open={Boolean(foco)}
+        onOpenChange={(aberto) => {
+          if (!aberto) setSelecionado(null);
+        }}
+      >
+        {foco ? (
+          <dl className="grid grid-cols-2 gap-4">
+            <div>
+              <dt>Loteamento</dt>
+              <dd>{foco.loteamento}</dd>
+            </div>
+            <div>
+              <dt>Quadra</dt>
+              <dd>{foco.quadra}</dd>
+            </div>
+            <div>
+              <dt>Área</dt>
+              <dd>{formatArea(foco.areaM2)}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>
+                <StatusLoteBadge status={foco.status} />
+              </dd>
+            </div>
+            {foco.valor != null ? (
+              <div>
+                <dt>Valor</dt>
+                <dd>{formatMoeda(foco.valor)}</dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : null}
+      </Drawer>
+      <ContatoMapaPublico contato={dadosAoVivo.contatoComercial} />
     </>
   );
 }
