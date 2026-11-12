@@ -16,6 +16,7 @@ type ConfirmDialogProps = {
   cancelLabel?: string;
   /** Pede um motivo. Com `required`, confirmar fica inativo até ser preenchido. */
   motivo?: { label?: string; required?: boolean; maxLength?: number };
+  confirmacao?: string;
   /** Ao rejeitar, o diálogo continua aberto, com a mensagem de erro. */
   onConfirm: (motivo: string) => Promise<unknown> | void;
   trigger?: ReactElement;
@@ -29,6 +30,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel = 'Voltar',
   motivo,
+  confirmacao,
   onConfirm,
   trigger,
   open: controlledOpen,
@@ -36,11 +38,13 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [text, setText] = useState('');
+  const [confirmado, setConfirmado] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [isPending, setIsPending] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const value = text.trim();
   const isMissingMotivo = Boolean(motivo?.required) && value === '';
+  const bloqueado = isMissingMotivo || Boolean(confirmacao && !confirmado);
 
   function handleOpenChange(next: boolean) {
     setInternalOpen(next);
@@ -49,11 +53,13 @@ export function ConfirmDialog({
     // Um novo diálogo não herda o motivo nem o erro da tentativa anterior.
     if (!next) {
       setText('');
+      setConfirmado(false);
       setError(null);
     }
   }
 
   async function handleConfirm() {
+    if (bloqueado || isPending) return;
     setIsPending(true);
     setError(null);
 
@@ -88,7 +94,7 @@ export function ConfirmDialog({
           <Button
             variant="perigo"
             loading={isPending}
-            disabled={isMissingMotivo}
+            disabled={bloqueado}
             onClick={() => void handleConfirm()}
           >
             {confirmLabel}
@@ -104,6 +110,18 @@ export function ConfirmDialog({
           value={text}
           onChange={(event) => setText(event.target.value)}
         />
+      ) : null}
+      {confirmacao ? (
+        <label className="flex items-start gap-3 text-small">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-5 shrink-0 accent-accent"
+            checked={confirmado}
+            disabled={isPending}
+            onChange={(event) => setConfirmado(event.target.checked)}
+          />
+          {confirmacao}
+        </label>
       ) : null}
       {error ? <Alert>{getErrorMessage(error)}</Alert> : null}
     </Dialog>

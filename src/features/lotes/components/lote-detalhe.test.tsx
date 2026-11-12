@@ -5,6 +5,7 @@ import { server } from '@/test/server';
 import { renderWithQuery } from '@/test/render';
 import { makeLote } from '@/test/factories/lote.factory';
 import type { components } from '@/shared/api/schema';
+import { ToastProvider } from '@/shared/ui/toast';
 import { LoteDetalhe } from './lote-detalhe';
 const lote = makeLote();
 const detalhe: components['schemas']['LoteDetalheDto'] = {
@@ -30,12 +31,19 @@ function mock(dados = detalhe) {
     ),
   );
 }
+function renderDetalhe() {
+  return renderWithQuery(
+    <ToastProvider>
+      <LoteDetalhe id={lote.id} />
+    </ToastProvider>,
+  );
+}
 describe('Detalhe completo do lote', () => {
   it.each(['DISPONIVEL', 'BLOQUEADO'] as const)(
     'mostra %s sem reserva nem dados pessoais',
     async (status) => {
       mock({ ...detalhe, lote: { ...lote, status } });
-      renderWithQuery(<LoteDetalhe id={lote.id} />);
+      renderDetalhe();
       expect(
         await screen.findByRole('heading', { name: 'Lote 12' }),
       ).toBeVisible();
@@ -44,6 +52,9 @@ describe('Detalhe completo do lote', () => {
       ).toBeVisible();
       expect(
         screen.queryByRole('link', { name: 'Editar lote' }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /bloquear lote/i }),
       ).not.toBeInTheDocument();
     },
   );
@@ -71,7 +82,7 @@ describe('Detalhe completo do lote', () => {
           },
         ],
       });
-      renderWithQuery(<LoteDetalhe id={lote.id} />);
+      renderDetalhe();
       expect(await screen.findByText('Cliente fictício')).toBeVisible();
       expect(screen.getByText('Aprovada')).toBeVisible();
       expect(screen.getByText('Decidida em')).toBeVisible();
@@ -94,7 +105,7 @@ describe('Detalhe completo do lote', () => {
         }),
       ),
     );
-    renderWithQuery(<LoteDetalhe id={lote.id} />);
+    renderDetalhe();
     expect(
       await screen.findByRole('link', { name: 'Voltar aos lotes' }),
     ).toHaveAttribute('href', '/lotes');

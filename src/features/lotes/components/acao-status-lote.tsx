@@ -30,7 +30,7 @@ const ACOES: Record<
     label: 'Marcar como Vendido',
     permissao: 'marcarVendido',
     descricao:
-      'Confirme a venda do lote. A API confere a reserva ativa e a proposta aprovada.',
+      'Esta ação é irreversível. A venda encerra a reserva ativa e registra o lote como Vendido.',
     sucesso: 'Lote marcado como Vendido',
   },
 };
@@ -59,7 +59,14 @@ export function AcaoStatusLote({
         title={`${config.label}: lote ${numeroLote}?`}
         description={config.descricao}
         confirmLabel={config.label}
-        motivo={acao === 'bloquear' ? { required: true } : undefined}
+        motivo={
+          acao === 'bloquear' ? { required: true, maxLength: 500 } : undefined
+        }
+        confirmacao={
+          acao === 'vender'
+            ? 'Entendo que a venda não pode ser desfeita.'
+            : undefined
+        }
         trigger={<Button variant="secundario">{config.label}</Button>}
         onConfirm={(motivo) =>
           mutation.mutateAsync({ id: loteId, acao, motivo })

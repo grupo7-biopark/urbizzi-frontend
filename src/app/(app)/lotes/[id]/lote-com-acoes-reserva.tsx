@@ -38,6 +38,7 @@ export function LoteComAcoesReserva({
     <LoteDetalhe
       id={id}
       acaoReserva={acaoReserva}
+      invalidaStatus={[...INVALIDATES, ['reservas'], ['propostas'], ['painel']]}
       complementoReserva={
         reserva && dados && detalhe.data ? (
           <>

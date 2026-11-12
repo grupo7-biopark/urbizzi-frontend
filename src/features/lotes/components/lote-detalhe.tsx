@@ -16,6 +16,8 @@ import { Panel } from '@/shared/ui/panel';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { TempoRestante } from '@/shared/ui/tempo-restante';
 import { loteDetalheCompletoOptions } from '../api/lotes.queries';
+import { AcaoStatusLote } from './acao-status-lote';
+import type { QueryKey } from '@tanstack/react-query';
 const PARENTS = [
   { label: 'Início', href: '/' },
   { label: 'Lotes', href: '/lotes' },
@@ -38,10 +40,12 @@ export function LoteDetalhe({
   id,
   acaoReserva,
   complementoReserva,
+  invalidaStatus = [],
 }: {
   id: string;
   acaoReserva?: ReactNode;
   complementoReserva?: ReactNode;
+  invalidaStatus?: QueryKey[];
 }) {
   const query = useQuery(loteDetalheCompletoOptions(id));
   if (!query.isSuccess)
@@ -74,6 +78,16 @@ export function LoteDetalhe({
     );
   const { lote, quadra, loteamento, reserva, propostas, historico } =
     query.data;
+  const acaoStatus =
+    lote.status === 'DISPONIVEL'
+      ? 'bloquear'
+      : lote.status === 'BLOQUEADO'
+        ? 'desbloquear'
+        : lote.status === 'RESERVADO' &&
+            reserva?.status === 'ATIVA' &&
+            propostas.some((proposta) => proposta.status === 'APROVADA')
+          ? 'vender'
+          : null;
   return (
     <>
       <PageHeader
@@ -84,6 +98,14 @@ export function LoteDetalhe({
           <div className="flex flex-wrap items-center gap-3">
             <StatusLoteBadge status={lote.status} />
             {lote.status === 'DISPONIVEL' ? acaoReserva : null}
+            {acaoStatus ? (
+              <AcaoStatusLote
+                loteId={id}
+                numeroLote={lote.numero}
+                acao={acaoStatus}
+                invalidates={invalidaStatus}
+              />
+            ) : null}
             <Permitido acao="gerenciarCadastros">
               <Link
                 href={`/lotes/${id}/editar`}
