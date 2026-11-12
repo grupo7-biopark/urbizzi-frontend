@@ -11,6 +11,8 @@ test.skip(
   'Os fluxos com a API real estão em pendencias-real.spec.ts.',
 );
 
+test.use({ reducedMotion: 'reduce' });
+
 for (const decisao of ['aprovar', 'rejeitar'] as const) {
   test(`gestor consegue ${decisao}, com motivo, e atualiza a fila e o contador`, async ({
     page,
@@ -78,7 +80,10 @@ for (const decisao of ['aprovar', 'rejeitar'] as const) {
       page,
       decisao === 'aprovar' ? 'gestor@exemplo.com' : 'pessoa@exemplo.com',
     );
-    await page.getByRole('link', { name: /^Pendências(?:\s|$)/ }).click();
+    await page
+      .getByRole('navigation', { name: 'Menu principal' })
+      .getByRole('link', { name: /^Pendências(?:\s|$)/ })
+      .click();
     await expect(
       page.getByRole('heading', { name: 'Pendências', exact: true }),
     ).toBeVisible();
@@ -113,17 +118,19 @@ for (const decisao of ['aprovar', 'rejeitar'] as const) {
       dialog.getByText('Informe o motivo da decisão.'),
     ).toBeVisible();
     expect(pedidos).toHaveLength(0);
-    if (process.env.E2E_CAPTURAS_FE23 && decisao === 'aprovar') {
+    if (decisao === 'aprovar') {
       await page.setViewportSize({ width: 390, height: 844 });
       await page
         .locator('html')
         .evaluate((element) => element.setAttribute('data-theme', 'dark'));
       await dialog.evaluate((element) => element.scrollTo(0, 0));
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-      await page.screenshot({
-        path: 'docs/capturas/fe23-analise-mobile-escuro.png',
-        fullPage: true,
-      });
+      if (process.env.E2E_CAPTURAS_FE23) {
+        await page.screenshot({
+          path: 'docs/capturas/fe23-analise-mobile-escuro.png',
+          fullPage: true,
+        });
+      }
       expect(await excessoHorizontal(page)).toBeLessThanOrEqual(1);
       await page.setViewportSize({ width: 1280, height: 720 });
     }
@@ -142,7 +149,9 @@ for (const decisao of ['aprovar', 'rejeitar'] as const) {
 test('Comercial recebe 403 na fila de pendências', async ({ page }) => {
   await entrar(page, 'comercial@exemplo.com');
   await expect(
-    page.getByRole('link', { name: /^Pendências(?:\s|$)/ }),
+    page
+      .getByRole('navigation', { name: 'Menu principal' })
+      .getByRole('link', { name: /^Pendências(?:\s|$)/ }),
   ).toHaveCount(0);
   const resposta = await page.goto('/propostas/pendencias');
   expect(resposta?.status()).toBe(403);
