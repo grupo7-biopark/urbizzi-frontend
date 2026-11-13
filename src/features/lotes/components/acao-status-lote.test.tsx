@@ -59,9 +59,15 @@ describe('AcaoStatusLote', () => {
     );
     await userEvent.click(await screen.findByRole('button', { name: label }));
     expect(chamadas).toBe(0);
-    await userEvent.click(
-      within(screen.getByRole('dialog')).getByRole('button', { name: label }),
-    );
+    const dialogo = within(screen.getByRole('dialog'));
+    const confirmar = dialogo.getByRole('button', { name: label });
+    expect(confirmar.hasAttribute('disabled')).toBe(acao === 'vender');
+    if (acao === 'vender') {
+      await userEvent.click(
+        dialogo.getByRole('checkbox', { name: /não pode ser desfeita/ }),
+      );
+    }
+    await userEvent.click(confirmar);
     expect(await screen.findByText(sucesso)).toBeInTheDocument();
     expect(chamadas).toBe(1);
   });
