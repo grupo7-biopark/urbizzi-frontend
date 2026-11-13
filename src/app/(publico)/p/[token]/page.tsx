@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getMapaPublico } from '@/features/links-publicos/api/mapa-publico.server';
 import { MapaPublico } from '@/features/links-publicos/components/mapa-publico';
 import { ApiError } from '@/shared/api/errors';
+import { publicEnv } from '@/shared/config/env.public';
 import { Logo } from '@/shared/ui/logo';
 import { Pagination } from '@/shared/ui/pagination';
 import { StatusPage } from '@/shared/ui/status-page';
@@ -10,6 +11,19 @@ export const metadata: Metadata = {
   title: 'Mapa público',
   robots: { index: false, follow: false },
   referrer: 'no-referrer',
+  metadataBase: new URL(publicEnv.NEXT_PUBLIC_APP_URL),
+  openGraph: {
+    title: 'Mapa público | Urbizzi',
+    description: 'Consulte a disponibilidade dos lotes.',
+    images: [
+      {
+        url: '/brand/urbizzi-mapa-publico.png',
+        width: 1200,
+        height: 630,
+        alt: 'Urbizzi',
+      },
+    ],
+  },
 };
 export const dynamic = 'force-dynamic';
 export default async function MapaPublicoPage({
