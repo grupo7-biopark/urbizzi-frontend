@@ -9,6 +9,7 @@ const LOGO_ALT = 'Urbizzi, página inicial';
 type AppShellProps = {
   /** Usuário, perfil e sair: vêm de `features/auth`, composto pelo layout. */
   userMenu: ReactNode;
+  pendencias?: ReactNode;
   children: ReactNode;
 };
 
@@ -16,7 +17,7 @@ type AppShellProps = {
  * Barra lateral a partir de `lg`; abaixo disso, o menu abre em uma gaveta. A barra
  * é sempre escura: `data-theme` reaplica os tokens do tema só dentro dela.
  */
-export function AppShell({ userMenu, children }: AppShellProps) {
+export function AppShell({ userMenu, pendencias, children }: AppShellProps) {
   return (
     <div className="flex min-h-dvh">
       <a
@@ -32,12 +33,12 @@ export function AppShell({ userMenu, children }: AppShellProps) {
         <Link href="/" prefetch={false} className="self-start px-3 pt-1">
           <Logo alt={LOGO_ALT} className="h-8 w-auto" />
         </Link>
-        <MenuNavegacao />
+        <MenuNavegacao pendencias={pendencias} />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col bg-surface-canvas">
         <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-surface-panel px-2 py-2 sm:px-4 lg:static lg:justify-end lg:px-8">
           <div className="flex min-w-0 items-center gap-1 lg:hidden">
-            <MenuCelular />
+            <MenuCelular pendencias={pendencias} />
             <Link href="/" prefetch={false} className="shrink-0">
               <Logo alt={LOGO_ALT} className="h-7 w-auto" />
             </Link>

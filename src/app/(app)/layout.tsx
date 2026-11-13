@@ -6,6 +6,7 @@ import {
 import type { ReactNode } from 'react';
 import { UserMenu } from '@/features/auth/components/user-menu';
 import { AppShell } from '@/features/navegacao/components/app-shell';
+import { ContadorPendencias } from '@/features/propostas/components/contador-pendencias';
 import { USUARIO_ATUAL_KEY } from '@/shared/auth/usuario-atual.queries';
 import { getUsuarioAtual } from '@/shared/auth/usuario-atual.server';
 import { ToastProvider } from '@/shared/ui/toast';
@@ -22,7 +23,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ToastProvider>
-        <AppShell userMenu={<UserMenu />}>{children}</AppShell>
+        <AppShell userMenu={<UserMenu />} pendencias={<ContadorPendencias />}>
+          {children}
+        </AppShell>
       </ToastProvider>
     </HydrationBoundary>
   );
