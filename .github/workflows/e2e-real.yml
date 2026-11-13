@@ -1,0 +1,90 @@
+name: E2E com backend real
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-real-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fluxos:
+    if: >-
+      vars.URBIZZI_E2E_REAL == 'true' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      COMPOSE_PROJECT_NAME: urbizzi-e2e-ci
+      POSTGRES_DB: urbizzi_fe_e2e_ci
+      POSTGRES_PORT: '15439'
+      GARAGE_S3_PORT: '13920'
+      S3_PUBLIC_ENDPOINT: http://localhost:13920
+      PORT: '13040'
+      DATABASE_URL: postgresql://urbizzi:urbizzi@localhost:15439/urbizzi_fe_e2e_ci
+      E2E_API_URL: http://localhost:13040
+      E2E_BASE_URL: http://localhost:13041
+      E2E_BACKEND_DIR: ${{ github.workspace }}/backend-e2e
+      E2E_USAR_BUILD: 'true'
+      API_URL: http://localhost:13040
+      NEXT_PUBLIC_APP_URL: http://localhost:13041
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: grupo7-biopark/urbizzi-backend
+          ref: main
+          path: backend-e2e
+          token: ${{ secrets.URBIZZI_BACKEND_READ_TOKEN }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend-e2e/package-lock.json
+
+      - name: Preparar dependências e navegador
+        run: |
+          npm ci
+          npm ci --prefix backend-e2e
+          npx playwright install --with-deps chromium
+
+      - name: Subir o backend isolado e preparar os dados de teste
+        working-directory: backend-e2e
+        run: |
+          export JWT_SECRET="$(openssl rand -hex 32)"
+          seed_senha="$(openssl rand -hex 24)"
+          echo "::add-mask::$JWT_SECRET"
+          echo "::add-mask::$seed_senha"
+          docker compose up -d --build --wait --wait-timeout 120
+          curl --fail --silent --show-error --retry 30 --retry-all-errors \
+            --retry-delay 3 --max-time 5 "$E2E_API_URL/health" > /dev/null
+          docker compose exec -T \
+            -e SEED_ADMIN_EMAIL=admin@e2e.urbizzi.test \
+            -e SEED_ADMIN_SENHA="$seed_senha" \
+            api node dist/seed/main.js
+          docker compose cp api:/usr/src/app/dist ./dist
+
+      - name: Compilar o frontend
+        run: npm run build
+
+      - name: Testar os fluxos reais nos três tamanhos de tela
+        run: npx playwright test e2e/fluxos-reais.spec.ts --workers=2 --reporter=line
+
+      - name: Encerrar os serviços de teste
+        if: ${{ always() && hashFiles('backend-e2e/docker-compose.yml') != '' }}
+        working-directory: backend-e2e
+        run: docker compose down --volumes
