@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { Logo } from '@/shared/ui/logo';
+import { AlternarTema } from '@/shared/ui/alternar-tema';
 import { MenuCelular } from './menu-celular';
 import { MenuNavegacao } from './menu-navegacao';
 
@@ -20,12 +21,14 @@ type AppShellProps = {
 export function AppShell({ userMenu, pendencias, children }: AppShellProps) {
   return (
     <div className="flex min-h-dvh">
-      <a
-        href="#conteudo"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-surface focus:p-2"
-      >
-        Pular para o conteúdo
-      </a>
+      <nav aria-label="Acesso rápido">
+        <a
+          href="#conteudo"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-surface focus:p-2"
+        >
+          Pular para o conteúdo
+        </a>
+      </nav>
       <aside
         data-theme="dark"
         className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r border-border bg-surface p-4 text-ink lg:flex"
@@ -43,7 +46,10 @@ export function AppShell({ userMenu, pendencias, children }: AppShellProps) {
               <Logo alt={LOGO_ALT} className="h-7 w-auto" />
             </Link>
           </div>
-          {userMenu}
+          <div className="flex min-w-0 items-center gap-1 sm:gap-3">
+            <AlternarTema />
+            {userMenu}
+          </div>
         </header>
         <main id="conteudo" tabIndex={-1} className="flex flex-1 flex-col">
           <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 lg:px-8 lg:py-8">

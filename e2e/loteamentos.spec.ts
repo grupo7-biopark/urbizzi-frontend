@@ -32,6 +32,150 @@ function campoNome(page: Page) {
   return page.getByRole('textbox', { name: 'Nome', exact: true });
 }
 
+test('demarcar o lote preenche a área estimada e permite corrigir antes de salvar', async ({
+  page,
+}) => {
+  test.skip(SEM_API_FALSA, 'Usa a quadra fictícia da API simulada.');
+  await entrar(page);
+  await page.goto('/lotes/novo');
+  await page.getByLabel(/^Loteamento/).selectOption(SEMENTE_ID);
+  await page.getByLabel(/^Quadra/).selectOption({ label: 'Quadra Semente' });
+  const quadraId = await page.getByLabel(/^Quadra/).inputValue();
+  await page.route('**/api/backend/v1/geografia/areas?**', (route) =>
+    route.fulfill({
+      json: {
+        data: [
+          {
+            id: quadraId,
+            quadraId,
+            loteamentoId: SEMENTE_ID,
+            tipo: 'QUADRA',
+            nome: 'Quadra Semente',
+            vertices: [
+              [0, 0],
+              [0, 0.002],
+              [0.002, 0.002],
+              [0.002, 0],
+            ],
+          },
+        ],
+        meta: { page: 1, pageSize: 100, total: 1, totalPages: 1 },
+      },
+    }),
+  );
+  await page.route('https://tile.openstreetmap.org/**', (route) =>
+    route.abort(),
+  );
+  await page.getByLabel(/^Número/).fill('Área de teste');
+  const campo = page.getByLabel(/^Área \(m²\)/);
+  await campo.fill('10000');
+  await page.getByRole('button', { name: 'Demarcar no mapa' }).click();
+  await page.getByText('Informar ou editar coordenadas dos vértices').click();
+  await expect(campo).toHaveValue('100,00');
+  await page
+    .getByLabel('Vértices (latitude, longitude)')
+    .fill('0,0\n0,0.001\n0.001,0.001\n0.001,0');
+  await page.getByRole('button', { name: 'Aplicar coordenadas' }).click();
+  await expect(campo).toHaveValue('12.364,35');
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Área estimada no mapa' }),
+  ).toBeVisible();
+  await campo.fill('25000');
+  let cadastro: { areaM2: string } | undefined;
+  await page.route('**/api/backend/v1/geografia/lotes', async (route) => {
+    cadastro = route.request().postDataJSON().cadastro;
+    await route.fulfill({
+      status: 201,
+      json: { id: 'ef66d208-092a-4d28-801d-bdfebd6103ca' },
+    });
+  });
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page).toHaveURL('/lotes');
+  expect(cadastro?.areaM2).toBe('250.00');
+});
+
+test('demarcação usa cruz de precisão e restaura o cursor ao concluir', async ({
+  page,
+}) => {
+  await page.route('https://tile.openstreetmap.org/**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'image/png',
+      body: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=',
+        'base64',
+      ),
+    }),
+  );
+  await entrar(page);
+  await page.goto('/loteamentos/novo');
+  await page.getByRole('button', { name: 'Demarcar no mapa' }).click();
+  const mapa = page.getByRole('region', { name: 'Mapa geográfico interativo' });
+  await expect(mapa).toHaveClass(/leaflet-container/);
+  await page
+    .getByRole('button', { name: 'Desenhar área', exact: true })
+    .click();
+  await expect(mapa).toHaveCSS('cursor', 'crosshair');
+  await mapa.click({ position: { x: 160, y: 130 } });
+  await mapa.click({ position: { x: 260, y: 130 } });
+  await mapa.click({ position: { x: 260, y: 230 } });
+  await expect(page.getByTitle('Vértice 1')).toHaveCSS('cursor', 'crosshair');
+  await page.getByRole('button', { name: 'Concluir desenho' }).click();
+  await expect(mapa).not.toHaveCSS('cursor', 'crosshair');
+});
+
+test('alterna o tema e mantém a escolha ao recarregar no celular', async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await entrar(page);
+  const botao = page.getByRole('button', {
+    name: 'Alternar tema claro ou escuro',
+  });
+  await botao.click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await botao.click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
+});
+
+test('Quadras abre diretamente pela lista e pela edição sem salvar', async ({
+  page,
+}) => {
+  test.skip(SEM_API_FALSA, 'Usa o loteamento fictício da API simulada.');
+  await entrar(page);
+  await abrirListagem(page);
+  await page.getByRole('link', { name: `Quadras de ${SEMENTE}` }).click();
+  await expect(page).toHaveURL(`/loteamentos/${SEMENTE_ID}#quadras`);
+  await expect(
+    page.getByRole('heading', { name: 'Quadras', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('#quadras').locator('..')).toBeFocused();
+
+  await page.goto(`/loteamentos/${SEMENTE_ID}/editar`);
+  await expect(campoNome(page)).toHaveValue(SEMENTE);
+  const gravacoes: string[] = [];
+  page.on('request', (request) => {
+    if (
+      ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method()) &&
+      request.url().includes('/loteamentos/')
+    ) {
+      gravacoes.push(request.url());
+    }
+  });
+  await page.getByRole('link', { name: 'Quadras', exact: true }).click();
+  await expect(page).toHaveURL(`/loteamentos/${SEMENTE_ID}#quadras`);
+  await expect(
+    page.getByRole('heading', { name: 'Quadras', exact: true }),
+  ).toBeVisible();
+  expect(gravacoes).toEqual([]);
+});
+
 /** Mesma origem do navegador: passa pelo proxy, como uma tela da FE-13 faria. */
 function chamarApi(page: Page, method: string, path: string, body?: unknown) {
   return page.evaluate(

@@ -12,7 +12,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${bebasNeue.variable}`}>
+    <html
+      lang="pt-BR"
+      className={`${inter.variable} ${bebasNeue.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('urbizzi-tema');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch{}",
+          }}
+        />
+      </head>
       <body className="bg-surface font-sans text-body text-ink">
         <QueryProvider>{children}</QueryProvider>
       </body>

@@ -59,7 +59,7 @@ Nas telas, use os tokens **semânticos**, que se adaptam ao tema. As utilidades 
 | `on-accent`   | preto   | preto   | texto e ícone sobre `accent`                                   |
 | `border`      | prata   | carvão  | divisores decorativos, **não** borda de campo (não atinge 3:1) |
 
-O tema segue o sistema operacional; `data-theme="light"` ou `"dark"` no `<html>` força um deles. O atributo também vale em um trecho da página: a barra lateral e a gaveta do menu usam `data-theme="dark"` para ficarem pretas nos dois temas, com os mesmos tokens de sempre (`bg-surface`, `text-ink`, `hover:bg-surface-hover`). Um token novo em `:root` já vale para esses trechos, porque o bloco é compartilhado com `[data-theme]`.
+O botão de tema no cabeçalho alterna entre claro e escuro e guarda apenas a preferência `urbizzi-tema` no armazenamento local. Um script inicial aplica a escolha antes da hidratação; se não houver escolha salva, o tema segue o sistema operacional; `data-theme="light"` ou `"dark"` no `<html>` força um deles. O atributo também vale em um trecho da página: a barra lateral e a gaveta do menu usam `data-theme="dark"` para ficarem pretas nos dois temas, com os mesmos tokens de sempre (`bg-surface`, `text-ink`, `hover:bg-surface-hover`). Um token novo em `:root` já vale para esses trechos, porque o bloco é compartilhado com `[data-theme]`.
 
 #### Combinações de texto aprovadas
 

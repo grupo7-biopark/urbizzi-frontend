@@ -217,6 +217,7 @@ export default function MapaGeograficoLeaflet(props: MapaGeograficoProps) {
       <section
         ref={container}
         aria-label="Mapa geográfico interativo"
+        data-demarcando={props.desenhando || undefined}
         className="relative isolate z-0 h-[480px] min-w-0 border border-border"
       />
       {tileError && (

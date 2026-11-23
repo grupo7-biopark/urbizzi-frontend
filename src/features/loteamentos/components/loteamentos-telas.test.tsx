@@ -129,6 +129,9 @@ describe('LoteamentosTable', () => {
       expect(
         screen.getByRole('button', { name: 'Remover Bela Vista' }),
       ).toBeInTheDocument();
+      expect(
+        screen.getByRole('link', { name: 'Quadras de Bela Vista' }),
+      ).toHaveAttribute('href', `/loteamentos/${ID}#quadras`);
       expect(screen.getByRole('link', { name: 'Bela Vista' })).toHaveAttribute(
         'href',
         `/loteamentos/${ID}`,
@@ -381,6 +384,10 @@ describe('EditarLoteamento', () => {
 
     expect(screen.getByLabelText('Carregando loteamento')).toBeInTheDocument();
     expect(await screen.findByLabelText(/Nome/)).toHaveValue('Bela Vista');
+    expect(screen.getByRole('link', { name: 'Quadras' })).toHaveAttribute(
+      'href',
+      `/loteamentos/${ID}#quadras`,
+    );
     expect(screen.getByRole('link', { name: 'Bela Vista' })).toHaveAttribute(
       'href',
       `/loteamentos/${ID}`,

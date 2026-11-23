@@ -37,6 +37,9 @@ function criarIcone(d: string): IconComponent {
 }
 
 export const IconInicio = criarIcone('M3 11l9-8 9 8M5 9v12h14V9M10 21v-7h4v7');
+export const IconTema = criarIcone(
+  'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 3v18M12 6l5 5M12 11l5 5M12 16l2 2',
+);
 export const IconMapa = criarIcone(
   'M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15',
 );
