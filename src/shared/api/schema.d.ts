@@ -107,6 +107,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reservas/vendedores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista os vendedores com reservas para seleção pelo nome, sem dados de contato */
+        get: operations["ReservasConsultaController_vendedores_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reservas": {
         parameters: {
             query?: never;
@@ -962,6 +979,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/usuarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista usuários com filtros por perfil e situação */
+        get: operations["UsuariosController_list_v1"];
+        put?: never;
+        /** Cria usuário ativo com senha inicial */
+        post: operations["UsuariosController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/usuarios/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consulta um usuário */
+        get: operations["UsuariosController_find_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Altera nome, e-mail ou perfil do usuário */
+        patch: operations["UsuariosController_update_v1"];
+        trace?: never;
+    };
+    "/v1/usuarios/{id}/ativar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ativa usuário existente */
+        post: operations["UsuariosController_ativar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/usuarios/{id}/desativar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desativa sem excluir o histórico do usuário */
+        post: operations["UsuariosController_desativar_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1074,76 +1161,6 @@ export interface paths {
         get: operations["AuthController_me_v1"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/usuarios": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lista usuários com filtros por perfil e situação */
-        get: operations["UsuariosController_list_v1"];
-        put?: never;
-        /** Cria usuário ativo com senha inicial */
-        post: operations["UsuariosController_create_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/usuarios/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Consulta um usuário */
-        get: operations["UsuariosController_find_v1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Altera nome, e-mail ou perfil do usuário */
-        patch: operations["UsuariosController_update_v1"];
-        trace?: never;
-    };
-    "/v1/usuarios/{id}/ativar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Ativa usuário existente */
-        post: operations["UsuariosController_ativar_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/usuarios/{id}/desativar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Desativa sem excluir o histórico do usuário */
-        post: operations["UsuariosController_desativar_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1371,6 +1388,10 @@ export interface components {
              */
             motivo: string;
         };
+        VendedorReservaDto: {
+            id: string;
+            nome: string;
+        };
         LoteReservaResumoDto: {
             id: string;
             numero: string;
@@ -1400,6 +1421,7 @@ export interface components {
             propostaAtual: components["schemas"]["PropostaReservaResumoDto"] | null;
             id: string;
             vendedorId: string;
+            vendedorNome: string;
         };
         CreateReservaDto: {
             /**
@@ -2121,6 +2143,56 @@ export interface components {
              */
             tilesUrl: string;
         };
+        /** @enum {string} */
+        PerfilCodigo: "ADMINISTRADOR" | "GESTOR" | "COMERCIAL" | "CONSULTA";
+        UsuarioDto: {
+            perfil: components["schemas"]["PerfilCodigo"];
+            id: string;
+            nome: string;
+            email: string;
+            ativo: boolean;
+        };
+        CreateUsuarioDto: {
+            /**
+             * @description Perfil de acesso.
+             * @example COMERCIAL
+             */
+            perfil: components["schemas"]["PerfilCodigo"];
+            /**
+             * @description Nome do usuário.
+             * @example Maria Silva
+             */
+            nome: string;
+            /**
+             * Format: email
+             * @description E-mail único.
+             * @example maria@exemplo.com
+             */
+            email: string;
+            /**
+             * @description Senha inicial.
+             * @example SenhaInicial123!
+             */
+            senha: string;
+        };
+        UpdateUsuarioDto: {
+            /**
+             * @description Perfil de acesso.
+             * @example COMERCIAL
+             */
+            perfil?: components["schemas"]["PerfilCodigo"];
+            /**
+             * @description Nome do usuário.
+             * @example Maria Silva
+             */
+            nome?: string;
+            /**
+             * Format: email
+             * @description E-mail único.
+             * @example maria@exemplo.com
+             */
+            email?: string;
+        };
         ForgotPasswordDto: {
             /**
              * Format: email
@@ -2183,11 +2255,6 @@ export interface components {
              */
             refreshToken: string;
         };
-        /**
-         * @description Perfil atual.
-         * @enum {string}
-         */
-        PerfilCodigo: "ADMINISTRADOR" | "GESTOR" | "COMERCIAL" | "CONSULTA";
         UsuarioLogadoDto: {
             /**
              * @description Perfil atual.
@@ -2209,54 +2276,6 @@ export interface components {
              * @example usuario@exemplo.com
              */
             email: string;
-        };
-        UsuarioDto: {
-            perfil: components["schemas"]["PerfilCodigo"];
-            id: string;
-            nome: string;
-            email: string;
-            ativo: boolean;
-        };
-        CreateUsuarioDto: {
-            /**
-             * @description Perfil de acesso.
-             * @example COMERCIAL
-             */
-            perfil: components["schemas"]["PerfilCodigo"];
-            /**
-             * @description Nome do usuário.
-             * @example Maria Silva
-             */
-            nome: string;
-            /**
-             * Format: email
-             * @description E-mail único.
-             * @example maria@exemplo.com
-             */
-            email: string;
-            /**
-             * @description Senha inicial.
-             * @example SenhaInicial123!
-             */
-            senha: string;
-        };
-        UpdateUsuarioDto: {
-            /**
-             * @description Perfil de acesso.
-             * @example COMERCIAL
-             */
-            perfil?: components["schemas"]["PerfilCodigo"];
-            /**
-             * @description Nome do usuário.
-             * @example Maria Silva
-             */
-            nome?: string;
-            /**
-             * Format: email
-             * @description E-mail único.
-             * @example maria@exemplo.com
-             */
-            email?: string;
         };
         CreateLinkPublicoDto: {
             /**
@@ -3099,6 +3118,60 @@ export interface operations {
             };
             /** @description Conflito com o estado atual do recurso */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ReservasConsultaController_vendedores_v1: {
+        parameters: {
+            query: {
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["VendedorReservaDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7158,6 +7231,391 @@ export interface operations {
             };
         };
     };
+    UsuariosController_list_v1: {
+        parameters: {
+            query: {
+                /** @description Perfil desejado. */
+                perfil?: components["schemas"]["PerfilCodigo"];
+                /** @description Filtra usuários ativos ou inativos. */
+                ativo?: boolean;
+                /** @description Página desejada, começando em 1 */
+                page: number;
+                /** @description Itens por página (máximo 100) */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["UsuarioDto"][];
+                        meta: components["schemas"]["PaginationMetaDto"];
+                    };
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_create_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUsuarioDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_find_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_update_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUsuarioDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_ativar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsuariosController_desativar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioDto"];
+                };
+            };
+            /** @description Dados inválidos (code DADOS_INVALIDOS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Token ausente ou inválido */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Perfil sem permissão para a ação */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Recurso não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Conflito com o estado atual do recurso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
     HealthController_check: {
         parameters: {
             query?: never;
@@ -7545,391 +8003,6 @@ export interface operations {
             };
             /** @description Token ausente ou inválido */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UsuariosController_list_v1: {
-        parameters: {
-            query: {
-                /** @description Perfil desejado. */
-                perfil?: components["schemas"]["PerfilCodigo"];
-                /** @description Filtra usuários ativos ou inativos. */
-                ativo?: boolean;
-                /** @description Página desejada, começando em 1 */
-                page: number;
-                /** @description Itens por página (máximo 100) */
-                pageSize: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["UsuarioDto"][];
-                        meta: components["schemas"]["PaginationMetaDto"];
-                    };
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UsuariosController_create_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUsuarioDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsuarioDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Conflito com o estado atual do recurso */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UsuariosController_find_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsuarioDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UsuariosController_update_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUsuarioDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsuarioDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Conflito com o estado atual do recurso */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UsuariosController_ativar_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsuarioDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Conflito com o estado atual do recurso */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UsuariosController_desativar_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsuarioDto"];
-                };
-            };
-            /** @description Dados inválidos (code DADOS_INVALIDOS) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Token ausente ou inválido */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Perfil sem permissão para a ação */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Recurso não encontrado */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Conflito com o estado atual do recurso */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };

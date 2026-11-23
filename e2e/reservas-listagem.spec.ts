@@ -81,10 +81,13 @@ test('Minhas reservas isola vendedores; gestor filtra o conjunto', async ({
     await page.getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(page.getByRole('link', { name: /^Lote 13/ })).toBeVisible();
     await page
-      .getByLabel('Identificador do vendedor')
-      .fill(scenario.accounts.outro.id);
+      .getByLabel('Vendedor', { exact: true })
+      .selectOption(scenario.accounts.outro.id);
     await page.getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(lotes).toHaveText([/^Lote 13/]);
+    await expect(
+      page.getByRole('cell', { name: scenario.accounts.outro.nome }),
+    ).toBeVisible();
     await page
       .getByLabel('Loteamento', { exact: true })
       .selectOption(outroLoteamento.id);

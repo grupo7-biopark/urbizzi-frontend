@@ -5,6 +5,40 @@ test.skip(
   !process.env.E2E_API_URL || !process.env.E2E_BACKEND_DIR,
   'Requer backend real e banco isolado de teste.',
 );
+
+test('a lupa permanece centralizada no campo de cliente com a lista aberta', async ({
+  page,
+  cenario,
+}) => {
+  for (const viewport of [
+    { width: 1280, height: 900 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto(`/lotes/${cenario.lote.id}`);
+    await page.getByRole('button', { name: 'Reservar', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Reservar lote' });
+    const campo = dialog.getByRole('combobox', { name: /^Cliente/ });
+    await campo.click();
+    await expect(
+      dialog.getByRole('option', { name: 'Cadastrar novo cliente' }),
+    ).toBeVisible();
+    const inputBox = await campo.boundingBox();
+    const iconBox = await campo.locator('..').locator('svg').boundingBox();
+    expect(inputBox).not.toBeNull();
+    expect(iconBox).not.toBeNull();
+    expect(
+      Math.abs(
+        iconBox!.y + iconBox!.height / 2 - (inputBox!.y + inputBox!.height / 2),
+      ),
+    ).toBeLessThanOrEqual(1);
+    expect(iconBox!.y + iconBox!.height).toBeLessThan(
+      inputBox!.y + inputBox!.height,
+    );
+    await expect(campo).toHaveCSS('padding-inline-start', '40px');
+    await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  }
+});
 test('reserva existente, renova, registra histórico e cancela com motivo', async ({
   page,
   cenario,

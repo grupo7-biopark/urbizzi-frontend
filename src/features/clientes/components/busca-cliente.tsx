@@ -165,28 +165,30 @@ export function BuscaCliente({
       errorId={errorId}
     >
       <div className="relative">
-        <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-muted">
-          <IconBusca className="size-4" />
-        </span>
-        <input
-          {...controlProps}
-          type="text"
-          role="combobox"
-          autoComplete="off"
-          aria-autocomplete="list"
-          aria-expanded={aberto}
-          aria-controls={listboxId}
-          aria-activedescendant={ativo >= 0 ? idDaOpcao(ativo) : undefined}
-          value={texto}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          onFocus={() => setAberto(true)}
-          onBlur={() => {
-            setAberto(false);
-            setAtivo(-1);
-          }}
-          className={cn(CONTROL_CLASSES, CONTROL_HEIGHT_CLASSES, 'pl-10')}
-        />
+        <div className="relative">
+          <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-muted">
+            <IconBusca className="size-4" />
+          </span>
+          <input
+            {...controlProps}
+            type="text"
+            role="combobox"
+            autoComplete="off"
+            aria-autocomplete="list"
+            aria-expanded={aberto}
+            aria-controls={listboxId}
+            aria-activedescendant={ativo >= 0 ? idDaOpcao(ativo) : undefined}
+            value={texto}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setAberto(true)}
+            onBlur={() => {
+              setAberto(false);
+              setAtivo(-1);
+            }}
+            className={cn(CONTROL_CLASSES, CONTROL_HEIGHT_CLASSES, 'ps-10')}
+          />
+        </div>
         <div
           hidden={!aberto}
           className={cn(

@@ -650,6 +650,9 @@ function resumosDeReservas() {
         id: registro.id,
         status: registro.status,
         vendedorId: registro.vendedorId,
+        vendedorNome:
+          USUARIOS.find(({ id }) => id === registro.vendedorId)?.nome ??
+          'Vendedor',
         dataInicio: registro.dataInicio,
         dataVencimento: registro.dataVencimento,
         lote: {
@@ -1636,6 +1639,20 @@ const routes = {
     }
   }, PERFIS_CLIENTES),
 
+  'GET /v1/reservas/vendedores': protegida(
+    (request, response) => {
+      const ids = new Set(resumosDeReservas().map((r) => r.vendedorId));
+      sendPagina(
+        request,
+        response,
+        USUARIOS.filter((u) => ids.has(u.id)).map(({ id, nome }) => ({
+          id,
+          nome,
+        })),
+      );
+    },
+    ['ADMINISTRADOR', 'GESTOR'],
+  ),
   'GET /v1/reservas': protegida(
     (request, response) =>
       sendPagina(request, response, listarReservas(request, false)),

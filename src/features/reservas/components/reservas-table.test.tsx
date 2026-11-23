@@ -19,6 +19,7 @@ const ID = '0b6f3c1e-8a52-4a8e-9d3f-2c7f1e5a9b10';
 const RESERVA: ReservaResumo = {
   id: ID,
   vendedorId: makeUsuario().id,
+  vendedorNome: 'Vendedor de teste',
   status: 'ATIVA',
   dataInicio: '2026-11-09T12:00:00Z',
   dataVencimento: '2026-11-16T12:00:00Z',
@@ -36,6 +37,12 @@ const RESERVA: ReservaResumo = {
 beforeEach(() => {
   setTestUrl('/reservas');
   server.use(
+    http.get('/v1/reservas/vendedores', ({ response }) =>
+      response(200).json({
+        data: [{ id: ID, nome: 'Vendedor de teste' }],
+        meta: META,
+      }),
+    ),
     http.get('/v1/auth/me', ({ response }) =>
       response(200).json(makeUsuario()),
     ),
@@ -100,26 +107,18 @@ describe('ReservasTable', () => {
     expect(
       screen.getByRole('link', { name: 'Todas as reservas' }),
     ).toHaveAttribute('aria-current', 'page');
-    expect(
-      screen.getByLabelText('Identificador do vendedor'),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Vendedor')).toBeInTheDocument();
     const usuario = userEvent.setup();
-    await usuario.type(
-      screen.getByLabelText('Identificador do vendedor'),
-      'invalido',
-    );
-    await usuario.click(
-      screen.getByRole('button', { name: 'Aplicar filtros' }),
-    );
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'identificador válido',
-    );
-    await usuario.clear(screen.getByLabelText('Identificador do vendedor'));
-    await usuario.type(screen.getByLabelText('Identificador do vendedor'), ID);
+    await screen.findByRole('option', { name: 'Vendedor de teste' });
+    await usuario.selectOptions(screen.getByLabelText('Vendedor'), ID);
+    expect(
+      screen.getByRole('cell', { name: /Vendedor de teste/ }),
+    ).toBeInTheDocument();
     await usuario.click(
       screen.getByRole('button', { name: 'Aplicar filtros' }),
     );
     expect(window.location.search).toContain(`vendedorId=${ID}`);
+    expect(window.location.search).not.toContain('Vendedor');
   });
   it('não oferece ação de alteração para outro vendedor', async () => {
     server.use(

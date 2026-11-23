@@ -11,6 +11,7 @@ import { Button, buttonClasses } from '@/shared/ui/button';
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { formatDataHora } from '@/shared/ui/datas';
 import { Input } from '@/shared/ui/input';
+import { Select } from '@/shared/ui/select';
 import { FilterBar, UrlSelectFilter } from '@/shared/ui/list-filters';
 import { formatMoeda } from '@/shared/ui/masks';
 import { TempoRestante } from '@/shared/ui/tempo-restante';
@@ -19,6 +20,7 @@ import type { ReservaResumo } from '../api/reservas-consulta.api';
 import {
   loteamentosReservasOptions,
   reservasListOptions,
+  vendedoresReservasOptions,
 } from '../api/reservas-consulta.queries';
 import {
   periodoInvertido,
@@ -93,6 +95,7 @@ function PeriodoVendedor({
 }) {
   const { setParams } = useListParams();
   const [erro, setErro] = useState<string>();
+  const vendedores = useQuery(vendedoresReservasOptions(todas));
 
   function aplicar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -134,12 +137,33 @@ function PeriodoVendedor({
           defaultValue={search.vencimentoAte ?? ''}
         />
         {todas ? (
-          <Input
-            label="Identificador do vendedor"
+          <Select
+            label="Vendedor"
             name="vendedorId"
             defaultValue={search.vendedorId ?? ''}
-            hint="Use o identificador exibido na reserva."
-          />
+            disabled={vendedores.isPending || vendedores.isError}
+            error={
+              vendedores.isError
+                ? 'Não foi possível carregar os vendedores.'
+                : undefined
+            }
+          >
+            <option value="">Todos os vendedores</option>
+            {search.vendedorId &&
+            !vendedores.data?.some((v) => v.id === search.vendedorId) ? (
+              <option value={search.vendedorId}>Vendedor selecionado</option>
+            ) : null}
+            {vendedores.data?.map(({ id, nome }) => (
+              <option key={id} value={id}>
+                {nome}
+              </option>
+            ))}
+          </Select>
+        ) : null}
+        {todas && vendedores.isError ? (
+          <Button variant="fantasma" onClick={() => void vendedores.refetch()}>
+            Tentar carregar vendedores
+          </Button>
         ) : null}
         <Button type="submit" variant="secundario">
           Aplicar filtros
@@ -159,9 +183,9 @@ function criarColunas(
   if (!minhas)
     colunas.push({
       id: 'vendedor',
-      header: 'Identificador do vendedor',
-      cell: ({ vendedorId }) => (
-        <span className="wrap-anywhere">{vendedorId}</span>
+      header: 'Vendedor',
+      cell: ({ vendedorNome }) => (
+        <span className="wrap-anywhere">{vendedorNome}</span>
       ),
     });
   colunas.push({
