@@ -2,7 +2,9 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useWatch } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { estimarAreaM2 } from '@/shared/ui/area-geografica';
+import { formatArea } from '@/shared/ui/masks';
 import { Button } from '@/shared/ui/button';
 import { Alert } from '@/shared/ui/alert';
 import { EditorAreaGeografica } from '@/shared/ui/editor-area-geografica';
@@ -42,6 +44,8 @@ export function DemarcacaoLote({
   onChange: (v: number[][] | null) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [estimativa, setEstimativa] = useState<number | null>(null);
+  const { setValue } = useFormContext();
   const areas = useQuery(areasOptions(loteamentoId, open));
   const parent = areas.data?.find(
     (a) => a.id === quadraId && a.tipo === 'QUADRA',
@@ -89,7 +93,16 @@ export function DemarcacaoLote({
                 ? (areas.data?.find((a) => a.id === id)?.vertices ?? null)
                 : vertices
             }
-            onChange={onChange}
+            onChange={(value) => {
+              onChange(value);
+              const area = estimarAreaM2(value);
+              setEstimativa(area);
+              if (area !== null)
+                setValue('areaM2', area.toFixed(2), {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+            }}
             buscar={buscarLocal}
             enquadramento={quadraId}
             contornos={(areas.data ?? [])
@@ -105,6 +118,14 @@ export function DemarcacaoLote({
               }))}
           />
         ))}
+      {estimativa !== null && (
+        <output className="block text-small text-ink-muted">
+          Área estimada no mapa: {formatArea(estimativa.toFixed(2))}. O campo
+          Área foi preenchido automaticamente e pode ser corrigido manualmente.
+          Alterar o contorno recalcula a estimativa; confirme a metragem com o
+          levantamento topográfico.
+        </output>
+      )}
     </div>
   );
 }

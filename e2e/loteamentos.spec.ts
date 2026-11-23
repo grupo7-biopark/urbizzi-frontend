@@ -32,6 +32,68 @@ function campoNome(page: Page) {
   return page.getByRole('textbox', { name: 'Nome', exact: true });
 }
 
+test('demarcar o lote preenche a área estimada e permite corrigir antes de salvar', async ({
+  page,
+}) => {
+  test.skip(SEM_API_FALSA, 'Usa a quadra fictícia da API simulada.');
+  await entrar(page);
+  await page.goto('/lotes/novo');
+  await page.getByLabel(/^Loteamento/).selectOption(SEMENTE_ID);
+  await page.getByLabel(/^Quadra/).selectOption({ label: 'Quadra Semente' });
+  const quadraId = await page.getByLabel(/^Quadra/).inputValue();
+  await page.route('**/api/backend/v1/geografia/areas?**', (route) =>
+    route.fulfill({
+      json: {
+        data: [
+          {
+            id: quadraId,
+            quadraId,
+            loteamentoId: SEMENTE_ID,
+            tipo: 'QUADRA',
+            nome: 'Quadra Semente',
+            vertices: [
+              [0, 0],
+              [0, 0.002],
+              [0.002, 0.002],
+              [0.002, 0],
+            ],
+          },
+        ],
+        meta: { page: 1, pageSize: 100, total: 1, totalPages: 1 },
+      },
+    }),
+  );
+  await page.route('https://tile.openstreetmap.org/**', (route) =>
+    route.abort(),
+  );
+  await page.getByLabel(/^Número/).fill('Área de teste');
+  const campo = page.getByLabel(/^Área \(m²\)/);
+  await campo.fill('10000');
+  await page.getByRole('button', { name: 'Demarcar no mapa' }).click();
+  await page.getByText('Informar ou editar coordenadas dos vértices').click();
+  await expect(campo).toHaveValue('100,00');
+  await page
+    .getByLabel('Vértices (latitude, longitude)')
+    .fill('0,0\n0,0.001\n0.001,0.001\n0.001,0');
+  await page.getByRole('button', { name: 'Aplicar coordenadas' }).click();
+  await expect(campo).toHaveValue('12.364,35');
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Área estimada no mapa' }),
+  ).toBeVisible();
+  await campo.fill('25000');
+  let cadastro: { areaM2: string } | undefined;
+  await page.route('**/api/backend/v1/geografia/lotes', async (route) => {
+    cadastro = route.request().postDataJSON().cadastro;
+    await route.fulfill({
+      status: 201,
+      json: { id: 'ef66d208-092a-4d28-801d-bdfebd6103ca' },
+    });
+  });
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page).toHaveURL('/lotes');
+  expect(cadastro?.areaM2).toBe('250.00');
+});
+
 test('demarcação usa cruz de precisão e restaura o cursor ao concluir', async ({
   page,
 }) => {

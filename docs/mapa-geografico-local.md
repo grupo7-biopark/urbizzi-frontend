@@ -36,7 +36,7 @@ sem a busca. Política da busca: [Nominatim](https://operations.osmfoundation.or
 Mapa base é de ruas; não é imagem de satélite.
 
 O exemplo local tem contornos
-fictícios, sem valor topográfico. A área em m² do cadastro não é recalculada.
+fictícios, sem valor topográfico. Ao alterar o contorno de um lote, a área aproximada em m² é calculada sobre uma esfera de raio médio e preenche o campo Área com duas casas decimais. O valor continua editável e pode ser corrigido antes de salvar. Apenas abrir um desenho existente preserva a metragem cadastrada; mover pontos ou aplicar coordenadas recalcula a estimativa. Contornos incompletos não preenchem a área.
 
 Demarcações aceitam até 500 pontos, com zoom de aproximação até o nível 22.
 Após concluir o desenho, os botões **+** entre os vértices inserem novos pontos
