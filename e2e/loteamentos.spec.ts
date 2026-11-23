@@ -32,6 +32,58 @@ function campoNome(page: Page) {
   return page.getByRole('textbox', { name: 'Nome', exact: true });
 }
 
+test('alterna o tema e mantém a escolha ao recarregar no celular', async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await entrar(page);
+  const botao = page.getByRole('button', {
+    name: 'Alternar tema claro ou escuro',
+  });
+  await botao.click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await botao.click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
+});
+
+test('Quadras abre diretamente pela lista e pela edição sem salvar', async ({
+  page,
+}) => {
+  test.skip(SEM_API_FALSA, 'Usa o loteamento fictício da API simulada.');
+  await entrar(page);
+  await abrirListagem(page);
+  await page.getByRole('link', { name: `Quadras de ${SEMENTE}` }).click();
+  await expect(page).toHaveURL(`/loteamentos/${SEMENTE_ID}#quadras`);
+  await expect(
+    page.getByRole('heading', { name: 'Quadras', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('#quadras').locator('..')).toBeFocused();
+
+  await page.goto(`/loteamentos/${SEMENTE_ID}/editar`);
+  await expect(campoNome(page)).toHaveValue(SEMENTE);
+  const gravacoes: string[] = [];
+  page.on('request', (request) => {
+    if (
+      ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method()) &&
+      request.url().includes('/loteamentos/')
+    ) {
+      gravacoes.push(request.url());
+    }
+  });
+  await page.getByRole('link', { name: 'Quadras', exact: true }).click();
+  await expect(page).toHaveURL(`/loteamentos/${SEMENTE_ID}#quadras`);
+  await expect(
+    page.getByRole('heading', { name: 'Quadras', exact: true }),
+  ).toBeVisible();
+  expect(gravacoes).toEqual([]);
+});
+
 /** Mesma origem do navegador: passa pelo proxy, como uma tela da FE-13 faria. */
 function chamarApi(page: Page, method: string, path: string, body?: unknown) {
   return page.evaluate(

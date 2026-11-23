@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { Logo } from '@/shared/ui/logo';
+import { AlternarTema } from '@/shared/ui/alternar-tema';
 import { MenuCelular } from './menu-celular';
 import { MenuNavegacao } from './menu-navegacao';
 
@@ -43,7 +44,10 @@ export function AppShell({ userMenu, pendencias, children }: AppShellProps) {
               <Logo alt={LOGO_ALT} className="h-7 w-auto" />
             </Link>
           </div>
-          {userMenu}
+          <div className="flex min-w-0 items-center gap-1 sm:gap-3">
+            <AlternarTema />
+            {userMenu}
+          </div>
         </header>
         <main id="conteudo" tabIndex={-1} className="flex flex-1 flex-col">
           <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 lg:px-8 lg:py-8">

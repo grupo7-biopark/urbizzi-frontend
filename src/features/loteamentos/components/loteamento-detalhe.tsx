@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { Permitido } from '@/shared/auth/permitido';
 import { buttonClasses } from '@/shared/ui/button';
 import { cn } from '@/shared/ui/cn';
@@ -39,6 +40,14 @@ function Dado({ termo, valor }: { termo: string; valor: string | null }) {
 export function LoteamentoDetalhe({ id }: { id: string }) {
   const query = useQuery(loteamentoDetailOptions(id));
   const router = useRouter();
+  const quadras = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (query.isSuccess && window.location.hash === '#quadras') {
+      quadras.current?.scrollIntoView({ block: 'start' });
+      quadras.current?.focus({ preventScroll: true });
+    }
+  }, [query.isSuccess]);
 
   if (!query.isSuccess) {
     return (
@@ -81,7 +90,9 @@ export function LoteamentoDetalhe({ id }: { id: string }) {
           <Dado termo="Localização" valor={loteamento.localizacao} />
         </dl>
       </Panel>
-      <QuadrasPanel loteamentoId={id} />
+      <div ref={quadras} tabIndex={-1} className="scroll-mt-24">
+        <QuadrasPanel loteamentoId={id} />
+      </div>
     </>
   );
 }
@@ -94,7 +105,20 @@ export function EditarLoteamento({ id }: { id: string }) {
 
   return (
     <>
-      <PageHeader title="Editar loteamento" parents={parents} />
+      <PageHeader
+        title="Editar loteamento"
+        parents={parents}
+        actions={
+          query.isSuccess ? (
+            <Link
+              href={`/loteamentos/${id}#quadras`}
+              className={buttonClasses('secundario')}
+            >
+              Quadras
+            </Link>
+          ) : undefined
+        }
+      />
       {query.isSuccess ? (
         <EditarLoteamentoForm loteamento={query.data} />
       ) : (

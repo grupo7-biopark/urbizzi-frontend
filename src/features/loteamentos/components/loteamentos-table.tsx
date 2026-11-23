@@ -41,7 +41,14 @@ const COLUNA_ACOES: DataTableColumn<Loteamento> = {
   acoes: true,
   // Ações discretas: a linha repete, e os dados é que devem chamar a atenção.
   cell: (loteamento) => (
-    <span className="flex gap-1 *:grow md:justify-end md:*:grow-0">
+    <span className="flex flex-wrap gap-1 *:grow md:justify-end md:*:grow-0">
+      <Link
+        href={`/loteamentos/${loteamento.id}#quadras`}
+        aria-label={`Quadras de ${loteamento.nome}`}
+        className={buttonClasses('fantasma', undefined, 'compacto')}
+      >
+        Quadras
+      </Link>
       <Link
         href={`/loteamentos/${loteamento.id}/editar`}
         aria-label={`Editar ${loteamento.nome}`}
