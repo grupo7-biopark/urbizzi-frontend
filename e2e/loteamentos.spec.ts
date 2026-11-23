@@ -32,6 +32,36 @@ function campoNome(page: Page) {
   return page.getByRole('textbox', { name: 'Nome', exact: true });
 }
 
+test('demarcação usa cruz de precisão e restaura o cursor ao concluir', async ({
+  page,
+}) => {
+  await page.route('https://tile.openstreetmap.org/**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'image/png',
+      body: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=',
+        'base64',
+      ),
+    }),
+  );
+  await entrar(page);
+  await page.goto('/loteamentos/novo');
+  await page.getByRole('button', { name: 'Demarcar no mapa' }).click();
+  const mapa = page.getByRole('region', { name: 'Mapa geográfico interativo' });
+  await expect(mapa).toHaveClass(/leaflet-container/);
+  await page
+    .getByRole('button', { name: 'Desenhar área', exact: true })
+    .click();
+  await expect(mapa).toHaveCSS('cursor', 'crosshair');
+  await mapa.click({ position: { x: 160, y: 130 } });
+  await mapa.click({ position: { x: 260, y: 130 } });
+  await mapa.click({ position: { x: 260, y: 230 } });
+  await expect(page.getByTitle('Vértice 1')).toHaveCSS('cursor', 'crosshair');
+  await page.getByRole('button', { name: 'Concluir desenho' }).click();
+  await expect(mapa).not.toHaveCSS('cursor', 'crosshair');
+});
+
 test('alterna o tema e mantém a escolha ao recarregar no celular', async ({
   page,
 }) => {

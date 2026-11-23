@@ -1,5 +1,12 @@
 @import 'tailwindcss';
 
+/* Mantém a mira durante o desenho, inclusive sobre vértices e ao arrastar o mapa. */
+.leaflet-container[data-demarcando='true'],
+.leaflet-container[data-demarcando='true'] .leaflet-interactive,
+.leaflet-container[data-demarcando='true'] .leaflet-marker-icon {
+  cursor: crosshair !important;
+}
+
 /*
  * O tema segue o sistema operacional; `data-theme` no <html> força claro ou escuro.
  * `light-dark()` escolhe o valor pelo `color-scheme`, sem duplicar a lista de tokens.
